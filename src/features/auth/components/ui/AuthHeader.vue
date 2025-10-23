@@ -30,7 +30,7 @@ withDefaults(defineProps<Props>(), {
 
     <!-- Welcome Text -->
     <div class="space-y-1 text-center">
-      <h2 class="text-xs text-[#083040]">Bienvenido a</h2>
+      <h2 class="text-xs text-[#083040]">Bienvenido a*</h2>
       <h1 class="text-lg font-semibold !text-[#D9AC59]">{{ title }}</h1>
     </div>
     
