@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  pwa-gerentes:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_MAPBOX_KEY=${VITE_MAPBOX_KEY}
+        - VITE_APP_VERSION=${VITE_APP_VERSION}
+        - VITE_IMAGEKIT_PUBLIC=${VITE_IMAGEKIT_PUBLIC}
+        - VITE_IMAGEKIT_PRIVATE=${VITE_IMAGEKIT_PRIVATE}
+        - VITE_IMAGEKIT_ID=${VITE_IMAGEKIT_ID}
+        - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+        - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    container_name: pwa-gerentes-seguridad
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    environment:
+      - TZ=America/Mexico_City
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
