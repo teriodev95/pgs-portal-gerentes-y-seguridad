@@ -68,6 +68,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.3(ts-node@10.9.2(@types/node@18.19.130)(typescript@5.0.4)))
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
       vue:
         specifier: ^3.4.21
         version: 3.4.27(typescript@5.0.4)
@@ -4385,6 +4388,10 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
+
   uuid@7.0.3:
     resolution: {integrity: sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==}
     hasBin: true
@@ -4759,7 +4766,7 @@ snapshots:
 
   '@babel/helper-builder-binary-assignment-operator-visitor@7.24.6':
     dependencies:
-      '@babel/types': 7.24.6
+      '@babel/types': 7.28.5
 
   '@babel/helper-compilation-targets@7.24.6':
     dependencies:
@@ -4878,7 +4885,7 @@ snapshots:
     dependencies:
       '@babel/helper-function-name': 7.24.6
       '@babel/template': 7.24.6
-      '@babel/types': 7.24.6
+      '@babel/types': 7.28.5
 
   '@babel/helpers@7.24.6':
     dependencies:
@@ -5178,7 +5185,7 @@ snapshots:
       '@babel/helper-hoist-variables': 7.24.6
       '@babel/helper-module-transforms': 7.24.6(@babel/core@7.24.6)
       '@babel/helper-plugin-utils': 7.24.6
-      '@babel/helper-validator-identifier': 7.24.6
+      '@babel/helper-validator-identifier': 7.28.5
 
   '@babel/plugin-transform-modules-umd@7.24.6(@babel/core@7.24.6)':
     dependencies:
@@ -5419,7 +5426,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.24.6
       '@babel/helper-plugin-utils': 7.24.6
-      '@babel/types': 7.24.6
+      '@babel/types': 7.28.5
       esutils: 2.0.3
 
   '@babel/regjsgen@0.8.0': {}
@@ -9347,6 +9354,8 @@ snapshots:
       punycode: 2.3.1
 
   util-deprecate@1.0.2: {}
+
+  uuid@13.0.0: {}
 
   uuid@7.0.3: {}
 
