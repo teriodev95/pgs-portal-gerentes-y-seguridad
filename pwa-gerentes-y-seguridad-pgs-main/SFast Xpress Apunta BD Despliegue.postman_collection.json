@@ -1,0 +1,1454 @@
+{
+	"info": {
+		"_postman_id": "0def74b2-a11a-40e8-8902-ee6a4b6ed8ac",
+		"name": "SFast Xpress Apunta BD Despliegue",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25493418",
+		"_collection_link": "https://clvrt1.postman.co/workspace/Team-Workspace-Clvrt~f4e96098-36e1-4e5d-8c15-462ec30a1d0a/collection/25440997-0def74b2-a11a-40e8-8902-ee6a4b6ed8ac?action=share&creator=25493418&source=collection_link"
+	},
+	"item": [
+		{
+			"name": "PWA",
+			"item": [
+				{
+					"name": "asignacionesGetByAgenciaAnioAndSemana Copy",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/assignments/AGD043/2023/23",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"assignments",
+								"AGD043",
+								"2023",
+								"23"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "agenciasGetManyByGerencia",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/pwa/agencias/Ger003",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"pwa",
+								"agencias",
+								"Ger003"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "calendarioGetSemanaActual",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/pwa/semana_actual",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"pwa",
+								"semana_actual"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cobranzaVsCobradoGetByAgenciaAnioAndSemana",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJGTEFWSU8iLCJleHAiOjE2ODgxODI0NzgsIm5vbWJyZSI6IkZMQVZJTyJ9.U3xaW7mlYXmMNvSUBb24u8wURPdsl6jqPv26Cyu1c0I",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/pwa/cobranza/AGD001/2023/22",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"pwa",
+								"cobranza",
+								"AGD001",
+								"2023",
+								"22"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dashboardByAgenciaAnioAndSemana",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/dashboard-agencia/AGD043/2023/21",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"dashboard-agencia",
+								"AGD043",
+								"2023",
+								"21"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dashboardByAgenciaAndFecha",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/pwa/dashboard-fecha/AGD043/07-06-2023",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"pwa",
+								"dashboard-fecha",
+								"AGD043",
+								"07-06-2023"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "gerenciasGetByUserSeguridadOrUserRegional",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/pwa/gerencias/FLAVIO",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"pwa",
+								"gerencias",
+								"FLAVIO"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pagosGetHistoricoByAgenciaAnioAndSemana",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJGTEFWSU8iLCJleHAiOjE2ODgxODI0NzgsIm5vbWJyZSI6IkZMQVZJTyJ9.U3xaW7mlYXmMNvSUBb24u8wURPdsl6jqPv26Cyu1c0I",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/pwa/historico/AGD043/2023/24",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"pwa",
+								"historico",
+								"AGD043",
+								"2023",
+								"24"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pagosGetHistorialByPrestamoId",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/pwa/history/11834",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"pwa",
+								"history",
+								"11834"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "prestamoGetOneByPrestamoId",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/loans/D-0025",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"loans",
+								"D-0025"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "loginForPGS",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"FLAVIO\",\r\n    \"password\": 95725\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/pwa/login",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"pwa",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "n8n",
+			"item": [
+				{
+					"name": "TestPostOne",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"curdate\": \"2023-03-22 16:01:28.989\",\r\n    \"environment\": \"forDevsTest\",\r\n    \"information\": \"info\",\r\n    \"extra\":\"extra\",\r\n    \"tag\": \"TestSilenSync\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://fast-n8n.terio.xyz/webhook-test/8fef445d-7300-449e-98c9-3031fcf65129",
+							"protocol": "https",
+							"host": [
+								"fast-n8n",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"webhook-test",
+								"8fef445d-7300-449e-98c9-3031fcf65129"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Logs",
+			"item": [
+				{
+					"name": "logsCreateAll (n8n)",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "logCreateOne",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"agent\": {\r\n    \"agencia\": \"AGD043\",\r\n    \"agente\": \"AGD043\",\r\n    \"pass\": \"4343\"\r\n  },\r\n  \"asignaciones\": [\r\n    {\r\n      \"asignacionId\": \"44cae1fd-216e-49fe-b3f6-77ef6e5b0663\",\r\n      \"monto\": 1,\r\n      \"agencia\": \"AGD043\",\r\n      \"gerencia\": \"Ger003\",\r\n      \"semana\": 7,\r\n      \"anio\": 2023,\r\n      \"isOnline\": true\r\n    }\r\n  ],\r\n  \"curdate\": {\r\n    \"dateTime\": 1677036979664,\r\n    \"mxFormat\": \"martes 21 de febrero de 2023 9:36 p. m.\",\r\n    \"epoch\": 1677036979663\r\n  },\r\n  \"pagos\": [\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"SARA CERVANTES ROMANO\",\r\n      \"comentario\": \"9810.0 - 5625.0 : 4185.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"0946c481-536e-487e-a45f-11f12fba9add\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 465,\r\n      \"prestamo\": \"L-4434\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 465,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"IVONNE GARCIA MONTES\",\r\n      \"comentario\": \"4410.0 - 1935.0 : 2475.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"09dccfd0-1eb6-407e-9e8f-70b408203b45\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"11842\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MARIBEL RIVERA RAZO\",\r\n      \"comentario\": \"4410.0 - 1385.0 : 3025.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"0b9c6b6c-de5a-497b-ae6e-d7f7c9423d87\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"12462\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"LORENA BRIONES BONILLA\",\r\n      \"comentario\": \"14500.0 - 1712.0 : 12788.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"0c147c7f-8c4d-48c3-9fef-c76feea2b959\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 556,\r\n      \"prestamo\": \"L-4917\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 556,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"GIOVANNA BONILLA DAVILA\",\r\n      \"comentario\": \"9360.0 - 4910.0 : 4450.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"16e3634a-e19c-4497-a24a-ee4fa0f759c8\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 445,\r\n      \"prestamo\": \"V-5063\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 445,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"BRAULIA PEREZ CUEVAS\",\r\n      \"comentario\": \"9970.0 - 2402.0 : 7568.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"1f8a929c-3c57-4d16-b4b7-ce2fd2eb239d\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 473,\r\n      \"prestamo\": \"P-3326\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 473,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MA. GLORIA VAZQUEZ FUENTES\",\r\n      \"comentario\": \"4410.0 - 2210.0 : 2200.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"269a6ffc-0b15-427f-b386-fe7750ec4012\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"11834\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"LUISA RAMIREZ HERNANDEZ\",\r\n      \"comentario\": \"4410.0 - 2210.0 : 2200.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"28c735d4-78f8-478e-8e92-04c6b896b7b2\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"11835\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MA. DEL ROSARIO ROBLES DE LA CRUZ\",\r\n      \"comentario\": \"2940.0 - 2574.0 : 366.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"2f653a1a-675d-4145-8d6b-f0f05072922a\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 183,\r\n      \"prestamo\": \"11489\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 183,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"VIVIANA GUADALUPE MONTES CORONA\",\r\n      \"comentario\": \"7050.0 - 5730.0 : 1320.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"301fca9e-8e6a-4a91-b9d6-a7ab65ad2acd\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 440,\r\n      \"prestamo\": \"P-3002\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 440,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MARIA AURORA DE LOS SANTOS SALDAÑA\",\r\n      \"comentario\": \"4410.0 - 4410.0 : 0.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"38e3f739-7fad-4d9e-ae7f-c3ddcb24df11\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"11469\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MARICRUZ LOPEZ ARROYO\",\r\n      \"comentario\": \"9810.0 - 5625.0 : 4185.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"39374832-8add-476b-b25b-94ccec6abc2d\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 465,\r\n      \"prestamo\": \"L-4433\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 465,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"CRISTIAN MONTES CORONA\",\r\n      \"comentario\": \"13850.0 - 9071.0 : 4779.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"3dbaeaed-253a-4d28-9e7d-77b27a7583a9\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 531,\r\n      \"prestamo\": \"L-4219\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 531,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ABIGAIL HUERTA MARQUEZ\",\r\n      \"comentario\": \"9060.0 - 8200.0 : 860.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"3e0c1e8d-65e1-4093-bac3-ad34104db6bc\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 430,\r\n      \"prestamo\": \"L-4143\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 430,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"VICENTA HUERTA TANECO\",\r\n      \"comentario\": \"11320.0 - 3265.0 : 8055.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"3ee07484-2efa-4fc1-a60e-659e34de548b\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 537,\r\n      \"prestamo\": \"L-4828\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 537,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"CLEOFAS HERNANDEZ MONTES\",\r\n      \"comentario\": \"9810.0 - 2370.0 : 7440.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"400da43c-b2b0-4ee2-8d13-18734b0eb490\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 465,\r\n      \"prestamo\": \"L-4845\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 465,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MARIA ADRIANA ANACLETO ROMERO\",\r\n      \"comentario\": \"9360.0 - 8915.0 : 445.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"422d9ff9-b124-4668-baf0-fa16517a9bb9\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 445,\r\n      \"prestamo\": \"V-4612\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 445,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"VIVIANA RUIZ LOPEZ\",\r\n      \"comentario\": \"7155.0 - 4026.0 : 3129.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"426f4ee8-64fe-494e-8a8d-1809f26e0888\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 447,\r\n      \"prestamo\": \"V-5069\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 447,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"AMELIO LOPEZ RIVERA\",\r\n      \"comentario\": \"9220.0 - 3526.0 : 5694.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"4606281d-db4c-496c-ade1-d73f945c7cc2\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 438,\r\n      \"prestamo\": \"P-3313\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 438,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"REBECA MONTES MARIANO\",\r\n      \"comentario\": \"6525.0 - 2048.0 : 4477.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"4662a488-3e50-48d6-9b7e-6b936d7b9b86\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 407,\r\n      \"prestamo\": \"N-7660\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 407,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ARACELI GOMEZ HERNANDEZ\",\r\n      \"comentario\": \"12080.0 - 8069.0 : 4011.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"489a77f8-0a01-444c-b98c-7049baf260af\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 573,\r\n      \"prestamo\": \"L-4402\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 573,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"JOSUE BAUTISTA FLORES\",\r\n      \"comentario\": \"4410.0 - 560.0 : 3850.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"4b825548-61cd-49a4-9d89-9bc2dc16deed\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"12473\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"SANDRA HERNANDEZ MONTES\",\r\n      \"comentario\": \"9220.0 - 1354.0 : 7866.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"50514ce3-748b-4b86-bc37-a06092bd1219\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 447,\r\n      \"prestamo\": \"P-3328\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 438,\r\n      \"tipo\": \"Excedente\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ALMA ROSA LOAIZA HERNANDEZ\",\r\n      \"comentario\": \"6525.0 - 3420.0 : 3105.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"50f77e01-8964-4a09-a664-5651062269dd\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 500,\r\n      \"prestamo\": \"N-7652\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 407,\r\n      \"tipo\": \"Excedente\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"PALMIRA RIVERA BONILLA\",\r\n      \"comentario\": \"13850.0 - 11195.0 : 2655.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"53a6b2bb-0503-4b68-8168-6f8e463e2beb\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 531,\r\n      \"prestamo\": \"L-4118\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 531,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ANA KAREN HERNANDEZ BONILLA\",\r\n      \"comentario\": \"4410.0 - 1385.0 : 3025.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"5646d1ed-c2eb-41c0-9bcc-0b3e869a94a3\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"12457\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MA. CONSEJO LILIA ALEJANDRO LOPEZ\",\r\n      \"comentario\": \"12080.0 - 8116.0 : 3964.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"5e563a98-f18f-4ff0-8f74-211d7fd31042\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 573,\r\n      \"prestamo\": \"L-4401\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 573,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MAYRA FLORES HERNANDEZ\",\r\n      \"comentario\": \"6945.0 - 3914.0 : 3031.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"5e8eb937-6dff-4837-a2f6-69d1177d035e\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 433,\r\n      \"prestamo\": \"L-4582\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 433,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ISABEL BAUTISTA CARDOSA\",\r\n      \"comentario\": \"15500.0 - 2432.0 : 13068.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"68f50906-c598-4e90-a7a1-ecb2635cb81a\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 594,\r\n      \"prestamo\": \"L-4906\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 594,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"NAYELI GUEVARA MONTIEL\",\r\n      \"comentario\": \"5800.0 - 1094.0 : 4706.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"69dcf9e1-800a-4976-a5d4-1f5e1a594916\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 362,\r\n      \"prestamo\": \"N-7670\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 362,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ANGEL CABRERA PEÑA\",\r\n      \"comentario\": \"4410.0 - 4135.0 : 275.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"6f4dea44-5f2b-4853-b6dc-b52f4d037e0f\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"11480\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"LEONOR ARELY RIVERA RAZO\",\r\n      \"comentario\": \"4410.0 - 1385.0 : 3025.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"703f6097-fe31-45ab-ad44-d58ed7124606\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"12460\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"GABRIELA TAPIA MONTES\",\r\n      \"comentario\": \"11320.0 - 4876.0 : 6444.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"717fc889-57ea-4b9a-835c-cd331b8326cb\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 537,\r\n      \"prestamo\": \"L-4579\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 537,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"DAYANA ROSARIO SANCHEZ BRIONES\",\r\n      \"comentario\": \"6525.0 - 827.0 : 5698.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"7318e126-e5e2-49d2-bf72-fcd5e8151cd4\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 407,\r\n      \"prestamo\": \"N-7677\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 407,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"EVA MARQUEZ LOPEZ\",\r\n      \"comentario\": \"9360.0 - 4537.0 : 4823.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"74a34b74-d252-4f6c-9fcb-c97f13e9117b\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 453,\r\n      \"prestamo\": \"V-5066\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 445,\r\n      \"tipo\": \"Excedente\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ROSA ISABEL BONILLA SANCHEZ\",\r\n      \"comentario\": \"5800.0 - 1456.0 : 4344.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"754b4b65-32fe-4308-aa73-9af80704c285\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 362,\r\n      \"prestamo\": \"N-7666\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 362,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MARICELA HERNANDEZ VAZQUEZ\",\r\n      \"comentario\": \"6945.0 - 3048.0 : 3897.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"818e83ed-b8b0-4fd8-9b6b-0ed51c2fb307\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 433,\r\n      \"prestamo\": \"L-4811\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 433,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MICAELA OLIVARES VAZQUEZ\",\r\n      \"comentario\": \"9360.0 - 1795.0 : 7565.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"878857c9-ab76-4297-946a-9e393bc38ab9\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 445,\r\n      \"prestamo\": \"V-5093\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 445,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ANGELY BONILLA HUERTA\",\r\n      \"comentario\": \"4410.0 - 1110.0 : 3300.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"8a97c089-aed4-43cc-b10d-43c024851802\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"12468\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MARIBEL SANCHEZ CUAPIO\",\r\n      \"comentario\": \"6255.0 - 3921.0 : 2334.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"8bdb178c-5cf3-4507-9402-d9643296625a\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 389,\r\n      \"prestamo\": \"L-4568\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 389,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"LORENZA RAMIREZ HERNANDEZ\",\r\n      \"comentario\": \"6525.0 - 3269.0 : 3256.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"8bf6fd00-5eb1-42d8-bb27-a0086a662248\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 407,\r\n      \"prestamo\": \"N-7442\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 407,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"JUAN GABRIEL GOMEZ HERNANDEZ\",\r\n      \"comentario\": \"4410.0 - 2210.0 : 2200.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"8c93cfe4-48af-46e9-b8ae-d0e52cba9c17\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"11836\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"SARA LOPEZ ARROYO\",\r\n      \"comentario\": \"9220.0 - 7906.0 : 1314.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"8e46aa1d-e98e-4b43-a8ae-59a787746155\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 438,\r\n      \"prestamo\": \"P-3035\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 438,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"CITLALLI HERNANDEZ BONILLA\",\r\n      \"comentario\": \"4410.0 - 1385.0 : 3025.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"92476ead-3289-474c-a9a2-f5e7856e1d04\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"12458\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MARIA GUADALUPE HERNANDEZ LOAIZA\",\r\n      \"comentario\": \"12080.0 - 2339.0 : 9741.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"9ec79a94-9106-4e00-bdcb-184fc8a0c5ec\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 573,\r\n      \"prestamo\": \"L-4907\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 573,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"CITLALLI LIZBETH ROMERO RIVERA\",\r\n      \"comentario\": \"4410.0 - 1385.0 : 3025.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"a044f3d3-3369-451b-926d-06e676dce5b3\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"12459\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ELADIA BONILLA LOPEZ\",\r\n      \"comentario\": \"6525.0 - 1641.0 : 4884.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"a2d0a73a-2769-417f-a1d9-39440f36cabc\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 407,\r\n      \"prestamo\": \"N-7664\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 407,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"REYNA ROMAN LOPEZ\",\r\n      \"comentario\": \"7050.0 - 890.0 : 6160.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"a577839e-4efb-4336-a8c4-c5f40b99e8e5\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 440,\r\n      \"prestamo\": \"P-3333\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 440,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"JUANA DAVILA HERNANDEZ\",\r\n      \"comentario\": \"11520.0 - 1674.0 : 9846.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"a6e2348f-8b6d-4412-867f-c864bd980670\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 547,\r\n      \"prestamo\": \"P-3329\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 547,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"WENDY HUERTA HERNANDEZ\",\r\n      \"comentario\": \"5800.0 - 3266.0 : 2534.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"a95894bf-007c-4e93-b9ea-c16742ba4a34\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 362,\r\n      \"prestamo\": \"N-7437\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 362,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"FABIOLA LOPEZ MONTES\",\r\n      \"comentario\": \"11520.0 - 2038.0 : 9482.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"aa1d4be1-9690-4bbb-8231-bbf3dc273c9b\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 729,\r\n      \"prestamo\": \"P-3330\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 547,\r\n      \"tipo\": \"Excedente\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ANSELMO MONTES RAMIREZ\",\r\n      \"comentario\": \"4410.0 - 2210.0 : 2200.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"aa322dd0-bda2-4ce5-8f34-e03a90e34e79\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"11833\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MONICA GARCIA LORANCA\",\r\n      \"comentario\": \"10570.0 - 6562.0 : 4008.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"ae8c26ce-27c7-47d6-abe1-636dbb969e95\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 501,\r\n      \"prestamo\": \"L-4422\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 501,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"JOSE ANTONIO LOPEZ FLORES\",\r\n      \"comentario\": \"10570.0 - 4558.0 : 6012.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"b28bf347-d395-4639-a347-788608f13262\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 501,\r\n      \"prestamo\": \"L-4580\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 501,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"CLAUDIO FLORES LOPEZ\",\r\n      \"comentario\": \"5725.0 - 3940.0 : 1785.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"bba6eafa-c336-412e-8405-684ee41629fc\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 357,\r\n      \"prestamo\": \"V-5064\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 357,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"AIDE PAOLA RIVERA BONILLA\",\r\n      \"comentario\": \"6525.0 - 3269.0 : 3256.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"bd04d84d-4c75-465e-ac21-7e994a3df79a\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 407,\r\n      \"prestamo\": \"N-7443\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 407,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"JOSE ANGEL DE AQUINO DE LOS SANTOS\",\r\n      \"comentario\": \"5725.0 - 2512.0 : 3213.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"be2a10fc-5045-4b00-92ea-c1ea2976baf0\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 357,\r\n      \"prestamo\": \"V-5082\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 357,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"VICENTE LOPEZ LOPEZ\",\r\n      \"comentario\": \"5635.0 - 2827.0 : 2808.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"c608e44b-4158-475f-8ec3-1aed159b93e0\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 351,\r\n      \"prestamo\": \"P-3314\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 351,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"RUPERTO BONILLA SANCHEZ\",\r\n      \"comentario\": \"6615.0 - 2485.0 : 4130.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"c829af11-7ec1-4272-bd77-fd18fb4a4f4d\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 413,\r\n      \"prestamo\": \"N-7657\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 413,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ROSA SANCHEZ GARCIA\",\r\n      \"comentario\": \"9220.0 - 5716.0 : 3504.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"c9209552-5a29-419b-9db5-112713ec6a7d\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 438,\r\n      \"prestamo\": \"P-3001\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 438,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MODESTA BONILLA BONILLA\",\r\n      \"comentario\": \"6525.0 - 6118.0 : 407.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"cb7249a8-1e7e-4fa5-a4d8-8067b6860fb7\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 407,\r\n      \"prestamo\": \"N-6940\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 407,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"JOCELIN HERNANDEZ ROLDAN\",\r\n      \"comentario\": \"4170.0 - 1830.0 : 2340.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"cdaf344e-a94a-40f5-8d68-2f8ddbdbdb8e\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 260,\r\n      \"prestamo\": \"L-4809\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 260,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"PATRICIA HUERTA DAVILA\",\r\n      \"comentario\": \"9060.0 - 3900.0 : 5160.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"cdef78fd-e7a7-4399-8477-01f432f9844f\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 430,\r\n      \"prestamo\": \"L-4581\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 430,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"INES HERNANDEZ VAZQUEZ\",\r\n      \"comentario\": \"4410.0 - 3035.0 : 1375.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"cfbc4615-d0b4-4f59-b823-92bdca099e65\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"11814\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ORLANDO MONTES HERNANDEZ\",\r\n      \"comentario\": \"9360.0 - 3575.0 : 5785.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"d21e51a1-9f76-4085-a4d0-279e5f3a81be\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 445,\r\n      \"prestamo\": \"V-5077\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 445,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ESTEFANIA LOPEZ LOPEZ\",\r\n      \"comentario\": \"10570.0 - 5059.0 : 5511.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"d5b17a42-9ba4-462d-a1ca-23e497b3ce79\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 501,\r\n      \"prestamo\": \"L-4569\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 501,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ERICK FERNANDO GARCIA MONTES\",\r\n      \"comentario\": \"6525.0 - 827.0 : 5698.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"d6ee28e8-17e3-4a39-afa3-08b2aac9a500\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 407,\r\n      \"prestamo\": \"N-7676\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 407,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"AZUCENA LOPEZ LOPEZ\",\r\n      \"comentario\": \"4410.0 - 4135.0 : 275.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"d72edf42-6df0-4868-bc18-649547154763\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"11479\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"LEOBARDO GARCIA MARTINEZ\",\r\n      \"comentario\": \"6945.0 - 1749.0 : 5196.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"d8dfbf3b-c46d-45b5-86d9-987716b0bd12\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 433,\r\n      \"prestamo\": \"L-4908\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 433,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"FILOMENA LOPEZ LOAIZA\",\r\n      \"comentario\": \"5800.0 - 1456.0 : 4344.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"da5fdb84-91d6-474e-9d1e-fa61cc081d84\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 362,\r\n      \"prestamo\": \"N-7665\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 362,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"LAURA GABRIELA GARCIA BONILLA\",\r\n      \"comentario\": \"11320.0 - 4876.0 : 6444.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"df75333b-258f-4300-9cfc-832b7de05c4c\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 716,\r\n      \"prestamo\": \"L-4810\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 537,\r\n      \"tipo\": \"Excedente\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"JULIETA POZOS MORENO\",\r\n      \"comentario\": \"4410.0 - 1660.0 : 2750.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"df9357b1-721c-4c07-9e33-3a83939e4b8a\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"12453\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"RAUL TAPIA GOMEZ\",\r\n      \"comentario\": \"9220.0 - 3088.0 : 6132.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"dfec64cd-be39-47ee-ac33-816d8b1fc557\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 438,\r\n      \"prestamo\": \"P-3317\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 438,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ARELY TAPIA HERNANDEZ\",\r\n      \"comentario\": \"9520.0 - 4537.0 : 4983.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"e134f812-c221-47b9-bbfc-542efcea6125\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 453,\r\n      \"prestamo\": \"N-7432\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 453,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MARIA DEL CARMEN VILLALPANDO DE GANTE\",\r\n      \"comentario\": \"5635.0 - 2476.0 : 3159.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"e312b292-e131-45ac-8c81-d0c1bc8bd9d2\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 351,\r\n      \"prestamo\": \"P-3318\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 351,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MA. GUADALUPE PADILLA BARRIENTOS\",\r\n      \"comentario\": \"4350.0 - 1630.0 : 2720.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-21 00:00:00\",\r\n      \"id\": \"e7f94d94-f471-45e0-b549-36c3c15ceb57\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 272,\r\n      \"prestamo\": \"N-7656\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 272,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"MARIA LUISA QUINTERO FERNANDEZ\",\r\n      \"comentario\": \"4410.0 - 1935.0 : 2475.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"ecf9954a-9617-4b01-9f9b-edeb1f8d33e7\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 275,\r\n      \"prestamo\": \"11843\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 275,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"FILOMENO BONILLA HERNANDEZ\",\r\n      \"comentario\": \"6525.0 - 827.0 : 5698.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"ed1144e2-9430-40b3-8d08-21f4ce77b4ea\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 407,\r\n      \"prestamo\": \"N-7675\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 407,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"JUAN BONILLA HERNANDEZ\",\r\n      \"comentario\": \"6525.0 - 4897.0 : 1628.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"ed6498c3-4913-4f0e-97a8-fcfdff2a6c26\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 407,\r\n      \"prestamo\": \"N-7419\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 407,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"CLAUDIA DAVILA ZAMORA\",\r\n      \"comentario\": \"16300.0 - 13175.0 : 3125.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"f05b64ff-24c8-4a67-b1bc-ac24971688e9\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 625,\r\n      \"prestamo\": \"L-4119\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 625,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"NESTOR MONTES RAMIREZ\",\r\n      \"comentario\": \"9360.0 - 905.0 : 8455.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"f259907f-8377-446a-a899-8c1e9b4dce7f\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 445,\r\n      \"prestamo\": \"V-5302\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 445,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"CELESTE AGUILAR HUERTA\",\r\n      \"comentario\": \"14500.0 - 1156.0 : 13344.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"f441afea-cafd-475d-b438-1c94ba5d6d14\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 556,\r\n      \"prestamo\": \"L-4933\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 556,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ESPERANZA DAVILA HERNANDEZ\",\r\n      \"comentario\": \"9360.0 - 5355.0 : 4005.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"f9b71ddc-26d8-4101-ac21-2ef146e0e4b3\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 445,\r\n      \"prestamo\": \"V-5059\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 445,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ARTURO FLORES DAVILA\",\r\n      \"comentario\": \"13850.0 - 9071.0 : 4779.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"fad6125c-6da8-4f70-881d-4e8a55dcade9\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 531,\r\n      \"prestamo\": \"L-4218\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 531,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"ARTURO RIVERA BONILLA\",\r\n      \"comentario\": \"13850.0 - 6947.0 : 6903.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"fc7e74fd-de19-441e-8ff6-70dd60b5506c\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 531,\r\n      \"prestamo\": \"L-4421\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 531,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"SILVIA GOMEZ HERNANDEZ\",\r\n      \"comentario\": \"7155.0 - 4920.0 : 2235.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"fc8353d3-8f52-4e74-8d5b-0fabc850006f\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 447,\r\n      \"prestamo\": \"V-5062\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 447,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    },\r\n    {\r\n      \"agente\": \"AGD043\",\r\n      \"anio\": 2023,\r\n      \"cliente\": \"TELESFORO LOPEZ BONILLA\",\r\n      \"comentario\": \"13850.0 - 5354.0 : 8496.0\",\r\n      \"creadoDesde\": \"Migracion\",\r\n      \"createdAt\": \"2023-02-22 02:49:50\",\r\n      \"fechaPago\": \"2023-02-15 00:00:00\",\r\n      \"id\": \"fe4f9976-4471-4767-931c-559f550387d3\",\r\n      \"isOnline\": true,\r\n      \"lat\": 0,\r\n      \"lng\": 0,\r\n      \"monto\": 531,\r\n      \"prestamo\": \"L-4570\",\r\n      \"semana\": \"7\",\r\n      \"tarifa\": 531,\r\n      \"tipo\": \"Pago\",\r\n      \"updateAt\": \"2023-02-22 02:49:50\"\r\n    }\r\n  ],\r\n  \"device\": {\r\n    \"VersionCode\": \"2\",\r\n    \"java.io.tmpdir\": \"/data/user/0/calaverita.tech.xpressagente.prod.debug/cache\",\r\n    \"ModelAndProduct\": \"Pixel 6 Pro (raven)\",\r\n    \"PackageName\": \"calaverita.tech.xpressagente.prod.debug\",\r\n    \"Device\": \"raven\",\r\n    \"user.home\": \"\",\r\n    \"OSAPILevel\": \"33\",\r\n    \"Manufacturer\": \"Google\",\r\n    \"OSVersion\": \"5.10.107-android13-4-00038-ga6f610f1f1e6-ab9083768 (9244662)\",\r\n    \"VersionName\": \"1.0.1\",\r\n    \"OtherTAGS\": \"release-keys\",\r\n    \"http.agent\": \"Dalvik/2.1.0 (Linux; U; Android 13; Pixel 6 Pro Build/TQ1A.221205.011)\"\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logsCreateOne (Mongo)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Control-Request-Headers",
+								"value": "*",
+								"type": "text"
+							},
+							{
+								"key": "api-key",
+								"value": "3pOVXMZwSFrrA9d3mOwwQHj2EhMTxbjS4jg9wM4awra6tFPuVs4lFz61nvRlHT53",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"collection\": \"logs.AGD043\",\r\n    \"database\": \"XpressLogsAppAgentes\",\r\n    \"dataSource\": \"Cluster0\",\r\n    \"document\": {\r\n        \"agent\": {\r\n            \"agencia\": \"AGD006\",\r\n            \"agente\": \"AGD006\",\r\n            \"pass\": \"16165\"\r\n        },\r\n        \"asignaciones\": [\r\n            {\r\n                \"asignacionId\": \"994d530c-5905-47fc-a240-a153c96b1720\",\r\n                \"monto\": 1553,\r\n                \"agencia\": \"AGD006\",\r\n                \"gerencia\": \"Ger003\",\r\n                \"semana\": 8,\r\n                \"anio\": 2023,\r\n                \"isOnline\": true\r\n            }\r\n        ],\r\n        \"curdate\": {\r\n            \"dateTime\": 1677631818718,\r\n            \"mxFormat\": \"martes 28 de febrero de 2023 6:50 p. m.\",\r\n            \"epoch\": 1677631818717\r\n        },\r\n        \"pagos\": [\r\n            {\r\n                \"agente\": \"AGD006\",\r\n                \"anio\": 2023,\r\n                \"cliente\": \"Maria Del Rosario Cruz Duran\",\r\n                \"comentario\": \"\",\r\n                \"creadoDesde\": \"App\",\r\n                \"createdAt\": \"2023-02-24 16:10:49\",\r\n                \"isOnline\": true,\r\n                \"lat\": 19.4175767,\r\n                \"lng\": -98.1375877,\r\n                \"monto\": 275,\r\n                \"pagoId\": \"34fdfe11-3841-40cd-8a67-b67a8658c4a2\",\r\n                \"prestamo\": \"11821\",\r\n                \"prestamoId\": \"11821\",\r\n                \"semana\": 8,\r\n                \"tarifa\": 275,\r\n                \"tipo\": \"Pago\"\r\n            },\r\n            {\r\n                \"agente\": \"AGD006\",\r\n                \"anio\": 2023,\r\n                \"cliente\": \"Elvira Barrera Martinez\",\r\n                \"comentario\": \"\",\r\n                \"creadoDesde\": \"App\",\r\n                \"createdAt\": \"2023-02-24 10:30:07\",\r\n                \"fechaPago\": \"2023-02-24 10:30:07\",\r\n                \"isOnline\": true,\r\n                \"lat\": 19.4175723,\r\n                \"lng\": -98.1375196,\r\n                \"monto\": 275,\r\n                \"pagoId\": \"4315c7c1-8de7-4284-a2f6-a45f5cb0fa5\",\r\n                \"prestamo\": \"11801\",\r\n                \"prestamoId\": \"11801\",\r\n                \"semana\": 8,\r\n                \"tarifa\": 275,\r\n                \"tipo\": \"Pago\"\r\n            },\r\n            {\r\n                \"agente\": \"AGD006\",\r\n                \"anio\": 2023,\r\n                \"cliente\": \"Elvira Barrera Martinez\",\r\n                \"comentario\": \"\",\r\n                \"creadoDesde\": \"App\",\r\n                \"createdAt\": \"2023-02-24 10:30:07\",\r\n                \"fechaPago\": \"2023-02-24 10:30:07\",\r\n                \"isOnline\": true,\r\n                \"lat\": 19.4175723,\r\n                \"lng\": -98.1375196,\r\n                \"monto\": 275,\r\n                \"pagoId\": \"4315c7c1-8de7-4284-a2f6-a45f5cb0fa50\",\r\n                \"prestamo\": \"11801\",\r\n                \"prestamoId\": \"11801\",\r\n                \"semana\": 8,\r\n                \"tarifa\": 275,\r\n                \"tipo\": \"Pago\"\r\n            },\r\n            {\r\n                \"agente\": \"AGD006\",\r\n                \"anio\": 2023,\r\n                \"cliente\": \"Gabriel Cruz Sanchez\",\r\n                \"comentario\": \"\",\r\n                \"creadoDesde\": \"App\",\r\n                \"createdAt\": \"2023-02-24 10:43:06\",\r\n                \"fechaPago\": \"2023-02-24 10:43:06\",\r\n                \"isOnline\": true,\r\n                \"lat\": 19.4175802,\r\n                \"lng\": -98.1375845,\r\n                \"monto\": 275,\r\n                \"pagoId\": \"af6e89a0-de85-40c1-8061-6cbe4cc755cc\",\r\n                \"prestamo\": \"11809\",\r\n                \"prestamoId\": \"11809\",\r\n                \"semana\": 8,\r\n                \"tarifa\": 275,\r\n                \"tipo\": \"Pago\"\r\n            },\r\n            {\r\n                \"agente\": \"AGD006\",\r\n                \"anio\": 2023,\r\n                \"cliente\": \"Margarita Fragoso Antonio\",\r\n                \"comentario\": \"\",\r\n                \"creadoDesde\": \"App\",\r\n                \"createdAt\": \"2023-02-25 02:09:02\",\r\n                \"isOnline\": true,\r\n                \"lat\": 0,\r\n                \"lng\": 0,\r\n                \"monto\": 452,\r\n                \"pagoId\": \"caf0283c-a1ec-474e-8ad4-1cece9fcf36e\",\r\n                \"prestamo\": \"11465\",\r\n                \"prestamoId\": \"11465\",\r\n                \"semana\": 8,\r\n                \"tarifa\": 452,\r\n                \"tipo\": \"Pago\"\r\n            }\r\n        ],\r\n        \"device\": {\r\n            \"VersionCode\": \"2\",\r\n            \"java.io.tmpdir\": \"/data/user/0/calaverita.tech.xpressagente.prod.debug/cache\",\r\n            \"ModelAndProduct\": \"Pixel 6 Pro (raven)\",\r\n            \"PackageName\": \"calaverita.tech.xpressagente.prod.debug\",\r\n            \"Device\": \"raven\",\r\n            \"user.home\": \"\",\r\n            \"OSAPILevel\": \"33\",\r\n            \"Manufacturer\": \"Google\",\r\n            \"OSVersion\": \"5.10.107-android13-4-00020-g02b5dfab573c-ab9358130 (9471150)\",\r\n            \"VersionName\": \"1.0.4\",\r\n            \"OtherTAGS\": \"release-keys\",\r\n            \"http.agent\": \"Dalvik/2.1.0 (Linux; U; Android 13; Pixel 6 Pro Build/TQ1A.230205.002)\"\r\n        }\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "https://data.mongodb-api.com/app/data-nngpa/endpoint/data/v1/action/insertOne",
+							"protocol": "https",
+							"host": [
+								"data",
+								"mongodb-api",
+								"com"
+							],
+							"path": [
+								"app",
+								"data-nngpa",
+								"endpoint",
+								"data",
+								"v1",
+								"action",
+								"insertOne"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "200 Ok",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Access-Control-Request-Headers",
+										"value": "*",
+										"type": "text"
+									},
+									{
+										"key": "api-key",
+										"value": "3pOVXMZwSFrrA9d3mOwwQHj2EhMTxbjS4jg9wM4awra6tFPuVs4lFz61nvRlHT53",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"collection\": \"requests\",\r\n  \"database\": \"API-OTP\",\r\n  \"dataSource\": \"Cluster0\",\r\n  \"filter\": {\r\n    \"_id\": { \"$oid\": \"63c1713655160a12c69b7c6f\" }\r\n  }\r\n}"
+								},
+								"url": {
+									"raw": "https://data.mongodb-api.com/app/data-nngpa/endpoint/data/v1/action/findOne",
+									"protocol": "https",
+									"host": [
+										"data",
+										"mongodb-api",
+										"com"
+									],
+									"path": [
+										"app",
+										"data-nngpa",
+										"endpoint",
+										"data",
+										"v1",
+										"action",
+										"findOne"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "strict-transport-security",
+									"value": "max-age=31536000; includeSubdomains;"
+								},
+								{
+									"key": "vary",
+									"value": "Origin"
+								},
+								{
+									"key": "x-appservices-request-id",
+									"value": "63c17c5c963831e67920a7ef"
+								},
+								{
+									"key": "x-frame-options",
+									"value": "DENY"
+								},
+								{
+									"key": "date",
+									"value": "Fri, 13 Jan 2023 15:44:28 GMT"
+								},
+								{
+									"key": "content-length",
+									"value": "239"
+								},
+								{
+									"key": "x-envoy-upstream-service-time",
+									"value": "616"
+								},
+								{
+									"key": "server",
+									"value": "envoy"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"document\": {\n        \"_id\": \"63c1713655160a12c69b7c6f\",\n        \"company\": \"24HrsDeFiesta\",\n        \"phone\": \"524431466216\",\n        \"check\": false,\n        \"otp\": 6757,\n        \"info\": \"Message has been successfully sent.\",\n        \"ip_info\": {\n            \"regionName\": \"Virginia\",\n            \"city\": \"Ashburn\",\n            \"org\": \"HETZNER-DC\",\n            \"proxy\": \"\",\n            \"query\": \"5.161.150.235\"\n        }\n    }\n}"
+						},
+						{
+							"name": "200 Null not found",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Access-Control-Request-Headers",
+										"value": "*",
+										"type": "text"
+									},
+									{
+										"key": "api-key",
+										"value": "3pOVXMZwSFrrA9d3mOwwQHj2EhMTxbjS4jg9wM4awra6tFPuVs4lFz61nvRlHT53",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"collection\": \"requests\",\r\n  \"database\": \"API-OTP\",\r\n  \"dataSource\": \"Cluster0\",\r\n  \"filter\": {\r\n    \"_id\": { \"$oid\": \"63c1713655160a12c69b7c6e\" }\r\n  }\r\n}"
+								},
+								"url": {
+									"raw": "https://data.mongodb-api.com/app/data-nngpa/endpoint/data/v1/action/findOne",
+									"protocol": "https",
+									"host": [
+										"data",
+										"mongodb-api",
+										"com"
+									],
+									"path": [
+										"app",
+										"data-nngpa",
+										"endpoint",
+										"data",
+										"v1",
+										"action",
+										"findOne"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "strict-transport-security",
+									"value": "max-age=31536000; includeSubdomains;"
+								},
+								{
+									"key": "vary",
+									"value": "Origin"
+								},
+								{
+									"key": "x-appservices-request-id",
+									"value": "63c17cad1ebe2ab3e92555b5"
+								},
+								{
+									"key": "x-frame-options",
+									"value": "DENY"
+								},
+								{
+									"key": "date",
+									"value": "Fri, 13 Jan 2023 15:45:49 GMT"
+								},
+								{
+									"key": "content-length",
+									"value": "41"
+								},
+								{
+									"key": "x-envoy-upstream-service-time",
+									"value": "171"
+								},
+								{
+									"key": "server",
+									"value": "envoy"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"document\": null\n}"
+						},
+						{
+							"name": "400 Error",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Access-Control-Request-Headers",
+										"value": "*",
+										"type": "text"
+									},
+									{
+										"key": "api-key",
+										"value": "3pOVXMZwSFrrA9d3mOwwQHj2EhMTxbjS4jg9wM4awra6tFPuVs4lFz61nvRlHT53",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"collection\": \"requests\",\r\n  \"database\": \"API-OTP\",\r\n  \"dataSource\": \"Cluster0\",\r\n  \"filter\": {\r\n    \"_id\": { \"$oid\": \"63c1713655160a12c69b7c6f2\" }\r\n  }\r\n}"
+								},
+								"url": {
+									"raw": "https://data.mongodb-api.com/app/data-nngpa/endpoint/data/v1/action/findOne",
+									"protocol": "https",
+									"host": [
+										"data",
+										"mongodb-api",
+										"com"
+									],
+									"path": [
+										"app",
+										"data-nngpa",
+										"endpoint",
+										"data",
+										"v1",
+										"action",
+										"findOne"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "content-encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "content-type",
+									"value": "text/plain; charset=utf-8"
+								},
+								{
+									"key": "strict-transport-security",
+									"value": "max-age=31536000; includeSubdomains;"
+								},
+								{
+									"key": "vary",
+									"value": "Origin"
+								},
+								{
+									"key": "x-appservices-request-id",
+									"value": "63c17c826afc4fac76dcf786"
+								},
+								{
+									"key": "x-frame-options",
+									"value": "DENY"
+								},
+								{
+									"key": "date",
+									"value": "Fri, 13 Jan 2023 15:45:06 GMT"
+								},
+								{
+									"key": "content-length",
+									"value": "105"
+								},
+								{
+									"key": "x-envoy-upstream-service-time",
+									"value": "118"
+								},
+								{
+									"key": "server",
+									"value": "envoy"
+								}
+							],
+							"cookie": [],
+							"body": "\"Invalid syntax error: TypeError: expected $oid field to contain 24 hexadecimal characters\""
+						}
+					]
+				},
+				{
+					"name": "logsGetAllMongo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Control-Request-Headers",
+								"value": "*",
+								"type": "text"
+							},
+							{
+								"key": "api-key",
+								"value": "3pOVXMZwSFrrA9d3mOwwQHj2EhMTxbjS4jg9wM4awra6tFPuVs4lFz61nvRlHT53",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"collection\": \"logs\",\r\n    \"database\": \"XpressLogsAppAgentes\",\r\n    \"dataSource\": \"Cluster0\"\r\n}"
+						},
+						"url": {
+							"raw": "https://data.mongodb-api.com/app/data-nngpa/endpoint/data/v1/action/find",
+							"protocol": "https",
+							"host": [
+								"data",
+								"mongodb-api",
+								"com"
+							],
+							"path": [
+								"app",
+								"data-nngpa",
+								"endpoint",
+								"data",
+								"v1",
+								"action",
+								"find"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "asignaciones",
+			"item": [
+				{
+					"name": "asignacionesGetAll",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/assignments/all",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"assignments",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "asignacionesGetByAgenciaAnioAndSemana",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/assignments/AGD043/2023/12",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"assignments",
+								"AGD043",
+								"2023",
+								"12"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "asignacionesGetOne",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/assignments/one/69",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"assignments",
+								"one",
+								"69"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "asignacionesCreateOne",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"asignacionId\": \"0\",\r\n    \"monto\": 0,\r\n    \"agencia\": \"\",\r\n    \"gerencia\": \"\",\r\n    \"semana\": 0,\r\n    \"anio\": 0,\r\n    \"quienRecibioUsuarioId\": 0,\r\n    \"quienEntregoUsuarioId\": 0,\r\n    \"log\": \"{}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/assignments/create-one",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"assignments",
+								"create-one"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "asignacionesCreateMany",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"asignacionId\": \"0\",\r\n        \"monto\": 0,\r\n        \"agencia\": \"\",\r\n        \"gerencia\": \"\",\r\n        \"semana\": 0,\r\n        \"anio\": 0,\r\n        \"quienRecibioUsuarioId\": 0,\r\n        \"quienEntregoUsuarioId\": 0,\r\n        \"log\": \"{}\"\r\n    },\r\n    {\r\n        \"asignacionId\": \"0\",\r\n        \"monto\": 0,\r\n        \"agencia\": \"\",\r\n        \"gerencia\": \"\",\r\n        \"semana\": 0,\r\n        \"anio\": 0,\r\n        \"quienRecibioUsuarioId\": 0,\r\n        \"quienEntregoUsuarioId\": 0,\r\n        \"log\": \"{}\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/assignments/create-many",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"assignments",
+								"create-many"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "visitas",
+			"item": [
+				{
+					"name": "visitasGetAll",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/visits",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"visits"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "visitasGetManyByPrestamoId",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/visits?prestamo_id=10000",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"visits"
+							],
+							"query": [
+								{
+									"key": "prestamo_id",
+									"value": "10000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "visitasGetOneById",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/visits/1",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"visits",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "visitasCreateOne",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"visitaId\": \"1\",\r\n    \"prestamoId\": \"10001\",\r\n    \"semana\": 1,\r\n    \"anio\": 2023,\r\n    \"fecha\": \"2023-05-19\",\r\n    \"cliente\": \"Guillermo\",\r\n    \"agente\": \"AGD043\",\r\n    \"lat\": 123123123,\r\n    \"lng\": 1323\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/visits/create_one",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"visits",
+								"create_one"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "cobranzaGetByAgenciaAnioAndSemana",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/cobranza/AGD006/2023/15",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"cobranza",
+						"AGD006",
+						"2023",
+						"15"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "cobranzaGetByGerenciaAnioAndSemana",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/cobranza-gerencia/Ger003/2023/5",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"cobranza-gerencia",
+						"Ger003",
+						"2023",
+						"5"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "dashboardGetByAgenciaAnioAndSemana",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/dashboard-agencia/AGD006/2023/12",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"dashboard-agencia",
+						"AGD006",
+						"2023",
+						"12"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "dashboardGetByGerenciaAnioAndSemana",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/dashboard-gerencia/Ger003/2023/6",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"dashboard-gerencia",
+						"Ger003",
+						"2023",
+						"6"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "historialPagosGetByPrestamoId",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/pays/history/11834",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"pays",
+						"history",
+						"11834"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pagosGetByAgenciaAnioAndSemana",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/pays/AGD006/2023/15",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"pays",
+						"AGD006",
+						"2023",
+						"15"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "prestamosGetOneByPrestamoId",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/loans/D-0025",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"loans",
+						"D-0025"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "usuariosGetAll",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/users/all",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"users",
+						"all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pagosCreateOne",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"agente\": \"AGD043\",\r\n    \"anio\": 2023,\r\n    \"cliente\": \"Telesforo Lopez Bonilla\",\r\n    \"comentario\": \"\",\r\n    \"creadoDesde\": \"App\",\r\n    \"fechaPago\": \"2023-03-29 09:15:58.568\",\r\n    \"identificador\": \"LEAL\",\r\n    \"isOnline\": false,\r\n    \"lat\": 19.4237018,\r\n    \"lng\": -97.9685022,\r\n    \"log\": \"{\\\"environment\\\":\\\"forDevsTest\\\",\\\"lng\\\":-97.9683906,\\\"creado_mxtime\\\":\\\"miércoles 29 de marzo de 2023 9:15 a. m.\\\",\\\"creado_epoch\\\":1680102958,\\\"version\\\":\\\"1.0.8\\\",\\\"device\\\":\\\"356699535677244\\\",\\\"lat\\\":19.4237202}\",\r\n    \"monto\": 531,\r\n    \"pagoId\": \"e3635cc1-8561-4765-bcb3-4f5f2cb63762\",\r\n    \"prestamo\": \"L-4570\",\r\n    \"prestamoId\": \"L-4570\",\r\n    \"semana\": 13,\r\n    \"tarifa\": 531,\r\n    \"tipo\": \"Pago\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/pays/create-one",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"pays",
+						"create-one"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "pagosCreateMany",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"agente\": \"AGD043\",\r\n        \"anio\": 2023,\r\n        \"cliente\": \"Anselmo Montes Ramirez\",\r\n        \"comentario\": \"\",\r\n        \"creadoDesde\": \"App\",\r\n        \"fechaPago\": \"2023-03-10 13:03:04.448\",\r\n        \"identificador\": \"3000-a_16_sem.-NUEVO\",\r\n        \"isOnline\": false,\r\n        \"lat\": 19.6801261,\r\n        \"lng\": -101.1802765,\r\n        \"log\": \"{\\\"environment\\\":\\\"forDevsTest\\\",\\\"lng\\\":-101.1802765,\\\"creado_mxtime\\\":\\\"viernes 10 de marzo de 2023 1:03 p. m.\\\",\\\"creado_epoch\\\":1678474984,\\\"version\\\":\\\"1.0.6\\\",\\\"lat\\\":19.6801261}\",\r\n        \"monto\": 0.01,\r\n        \"pagoId\": \"78525400-d8ed-431e-aa61\",\r\n        \"prestamo\": \"11833\",\r\n        \"prestamoId\": \"11833\",\r\n        \"semana\": 10,\r\n        \"tarifa\": 275.0,\r\n        \"tipo\": \"Reducido\"\r\n    },\r\n    {\r\n        \"agente\": \"AGD043\",\r\n        \"anio\": 2023,\r\n        \"cliente\": \"Anselmo Montes Ramirez\",\r\n        \"comentario\": \"\",\r\n        \"creadoDesde\": \"App\",\r\n        \"fechaPago\": \"2023-03-10 13:03:04.448\",\r\n        \"identificador\": \"3000-a_16_sem.-NUEVO\",\r\n        \"isOnline\": false,\r\n        \"lat\": 19.6801261,\r\n        \"lng\": -101.1802765,\r\n        \"log\": \"{\\\"environment\\\":\\\"forDevsTest\\\",\\\"lng\\\":-101.1802765,\\\"creado_mxtime\\\":\\\"viernes 10 de marzo de 2023 1:03 p. m.\\\",\\\"creado_epoch\\\":1678474984,\\\"version\\\":\\\"1.0.6\\\",\\\"lat\\\":19.6801261}\",\r\n        \"monto\": 0.01,\r\n        \"pagoId\": \"78525400-d8ed-431e-aa61\",\r\n        \"prestamo\": \"11833\",\r\n        \"prestamoId\": \"11833\",\r\n        \"semana\": 10,\r\n        \"tarifa\": 275.0,\r\n        \"tipo\": \"Reducido\"\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/pays/create-many",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"pays",
+						"create-many"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "liquidacionCreateOne",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"prestamoId\": \"11469\",\r\n    \"monto\": 550,\r\n    \"descuento\": 0,\r\n    \"anio\": 2023,\r\n    \"semana\": 6,\r\n    \"pago\": {\r\n        \"pagoId\": \"0b08312a-abd3-11ed-afa1-0242ac120002\",\r\n        \"prestamoId\": \"11469\",\r\n        \"prestamo\": \"11469\",\r\n        \"monto\": 550,\r\n        \"semana\": 6,\r\n        \"anio\": 2023,\r\n        \"tarifa\": 275,\r\n        \"cliente\": \"MARIA AURORA DE LOS SANTOS\",\r\n        \"agente\": \"AGD043\",\r\n        \"tipo\": \"Pago\",\r\n        \"creadoDesde\": \"Migracion\",\r\n        \"identificador\": \"4000-a_16_sem.-VIP\",\r\n        \"fechaPago\": \"2022-12-13 00:00:00\",\r\n        \"lat\": 0.0,\r\n        \"lng\": 0.0,\r\n        \"comentario\": \"Liquidacion del prestamo\",\r\n        \"datosMigracion\": \"SEM. 50 2022\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/pays/liquidacion-pago",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"pays",
+						"liquidacion-pago"
+					]
+				},
+				"description": "1. Para poder liquedar el prestamo antes tienes que insertar el pago correspondiente a la liquidación.\n2. Despues enviar los datos de liquidación por este endpoint"
+			},
+			"response": []
+		},
+		{
+			"name": "pagoSendToNotifiSms (N8N)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"telefonoAval\": \"2411682006\",\r\n    \"montoPago\": 0.01,\r\n    \"telefonoCliente\": \"4431466216\",\r\n    \"tipoPago\": \"Pago\",\r\n    \"nombresCliente\": \"ELEUTERIO\",\r\n    \"nombresAval\": \"JESUS\",\r\n    \"pago\": {\r\n        \"prestamoId\": \"N-7411\",\r\n        \"tarifa\": 500,\r\n        \"agente\": \"AGD007\",\r\n        \"abreCon\": 3676,\r\n        \"tipo\": \"Pago\",\r\n        \"cierraCon\": 3269,\r\n        \"creadoDesde\": \"App\",\r\n        \"lng\": -98.02425,\r\n        \"log\": \"{\\\"environment\\\":\\\"forAgentsReady\\\",\\\"lng\\\":-98.02425,\\\"creado_mxtime\\\":\\\"miércoles 8 de marzo de 2023 10:52 a. m.\\\",\\\"creado_epoch\\\":1678294377,\\\"version\\\":\\\"1.0.6\\\",\\\"lat\\\":19.3979033}\",\r\n        \"semana\": 10,\r\n        \"comentario\": \"\",\r\n        \"fechaPago\": \"2023-03-08 10:52:57.014\",\r\n        \"prestamo\": \"N-7411\",\r\n        \"cliente\": \"Alberta Montes Luna\",\r\n        \"pagoId\": \"db96eb47-d8cc-4650-834a-458ca4e558704\",\r\n        \"monto\": 407,\r\n        \"esPrimerPago\": false,\r\n        \"anio\": 2023,\r\n        \"lat\": 19.3979033,\r\n        \"identificador\": \"4500-a_16_sem.-NOBEL\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://fast-n8n.terio.xyz/webhook/91557792-c1f3-442c-88ed-bdee5407d4ce",
+					"protocol": "https",
+					"host": [
+						"fast-n8n",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"webhook",
+						"91557792-c1f3-442c-88ed-bdee5407d4ce"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"AGD043\",\r\n    \"password\": 4343\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://sfast-api.terio.xyz/xpress/v1/login",
+					"protocol": "https",
+					"host": [
+						"sfast-api",
+						"terio",
+						"xyz"
+					],
+					"path": [
+						"xpress",
+						"v1",
+						"login"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "login",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"AGD043\",\r\n    \"password\": 4343\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://sfast-api.terio.xyz/xpress/v1/login",
+							"protocol": "https",
+							"host": [
+								"sfast-api",
+								"terio",
+								"xyz"
+							],
+							"path": [
+								"xpress",
+								"v1",
+								"login"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "openresty"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 15 Jun 2023 12:42:37 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "0"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "vary",
+							"value": "accept-encoding"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "X-Served-By",
+							"value": "sfast-api.terio.xyz"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"solicitante\": {\n        \"usuarioId\": 1,\n        \"nombre\": \"ELVIRA\",\n        \"tipo\": \"Agente\",\n        \"pin\": 4343,\n        \"usuario\": \"AGD043\",\n        \"puedeVerificarAsignaciones\": false,\n        \"puedeCobrar\": true,\n        \"status\": true,\n        \"gerencia\": \"Ger003\",\n        \"agencia\": \"AGD043\",\n        \"fechaIngreso\": \"2020-02-22 13:50:11\",\n        \"telegramId\": null,\n        \"numeroCelular\": \"2411144286\",\n        \"createdAt\": \"2023-02-22 19:51:02\",\n        \"updatedAt\": \"2023-02-22 19:51:02\"\n    },\n    \"involucrados\": [\n        {\n            \"usuarioId\": 2,\n            \"nombre\": \"KARINA\",\n            \"tipo\": \"Gerente\",\n            \"pin\": 85963,\n            \"usuario\": \"Ger003\",\n            \"puedeVerificarAsignaciones\": true,\n            \"puedeCobrar\": false,\n            \"status\": true,\n            \"gerencia\": \"Ger003\",\n            \"agencia\": null,\n            \"fechaIngreso\": \"2020-02-22 13:52:05\",\n            \"telegramId\": null,\n            \"numeroCelular\": \"2411951509\",\n            \"createdAt\": \"2023-02-22 19:52:39\",\n            \"updatedAt\": \"2023-02-22 19:52:49\"\n        },\n        {\n            \"usuarioId\": 3,\n            \"nombre\": \"SERGIO\",\n            \"tipo\": \"Seguridad\",\n            \"pin\": 89632,\n            \"usuario\": \"FULL_XPRESS\",\n            \"puedeVerificarAsignaciones\": true,\n            \"puedeCobrar\": false,\n            \"status\": true,\n            \"gerencia\": \"\",\n            \"agencia\": null,\n            \"fechaIngreso\": \"2020-02-22 13:54:07\",\n            \"telegramId\": null,\n            \"numeroCelular\": \"2216412543\",\n            \"createdAt\": \"2023-02-22 19:55:04\",\n            \"updatedAt\": \"2023-06-12 21:23:49\"\n        },\n        {\n            \"usuarioId\": 77,\n            \"nombre\": \"ISAIAS\",\n            \"tipo\": \"Seguridad\",\n            \"pin\": 15987,\n            \"usuario\": \"ISAIAS\",\n            \"puedeVerificarAsignaciones\": true,\n            \"puedeCobrar\": false,\n            \"status\": true,\n            \"gerencia\": null,\n            \"agencia\": null,\n            \"fechaIngreso\": \"2023-05-31 07:26:11\",\n            \"telegramId\": null,\n            \"numeroCelular\": \"2382221473\",\n            \"createdAt\": \"2023-05-31 07:26:22\",\n            \"updatedAt\": \"2023-05-31 07:26:23\"\n        },\n        {\n            \"usuarioId\": 78,\n            \"nombre\": \"FLAVIO\",\n            \"tipo\": \"Seguridad\",\n            \"pin\": 95725,\n            \"usuario\": \"FLAVIO\",\n            \"puedeVerificarAsignaciones\": true,\n            \"puedeCobrar\": false,\n            \"status\": true,\n            \"gerencia\": null,\n            \"agencia\": null,\n            \"fechaIngreso\": \"2023-05-31 07:27:10\",\n            \"telegramId\": null,\n            \"numeroCelular\": \"2411208776\",\n            \"createdAt\": \"2023-05-31 07:27:21\",\n            \"updatedAt\": \"2023-05-31 07:27:22\"\n        },\n        {\n            \"usuarioId\": 94,\n            \"nombre\": \"MIGUEL\",\n            \"tipo\": \"Seguridad\",\n            \"pin\": 69321,\n            \"usuario\": \"MIGUEL\",\n            \"puedeVerificarAsignaciones\": true,\n            \"puedeCobrar\": false,\n            \"status\": true,\n            \"gerencia\": null,\n            \"agencia\": null,\n            \"fechaIngreso\": \"2023-06-06 11:15:58\",\n            \"telegramId\": null,\n            \"numeroCelular\": \"2412796752\",\n            \"createdAt\": \"2023-06-06 11:16:01\",\n            \"updatedAt\": \"2023-06-06 18:00:08\"\n        },\n        {\n            \"usuarioId\": 95,\n            \"nombre\": \"JOSE MANUEL\",\n            \"tipo\": \"Seguridad\",\n            \"pin\": 88152,\n            \"usuario\": \"JOSE\",\n            \"puedeVerificarAsignaciones\": true,\n            \"puedeCobrar\": false,\n            \"status\": true,\n            \"gerencia\": null,\n            \"agencia\": null,\n            \"fechaIngreso\": \"2023-06-12 12:42:53\",\n            \"telegramId\": null,\n            \"numeroCelular\": \"2381021588\",\n            \"createdAt\": \"2023-06-12 12:43:02\",\n            \"updatedAt\": \"2023-06-12 12:43:03\"\n        },\n        {\n            \"usuarioId\": 3,\n            \"nombre\": \"SERGIO\",\n            \"tipo\": \"Seguridad\",\n            \"pin\": 89632,\n            \"usuario\": \"FULL_XPRESS\",\n            \"puedeVerificarAsignaciones\": true,\n            \"puedeCobrar\": false,\n            \"status\": true,\n            \"gerencia\": \"\",\n            \"agencia\": null,\n            \"fechaIngreso\": \"2020-02-22 13:54:07\",\n            \"telegramId\": null,\n            \"numeroCelular\": \"2216412543\",\n            \"createdAt\": \"2023-02-22 19:55:04\",\n            \"updatedAt\": \"2023-06-12 21:23:49\"\n        }\n    ]\n}"
+				}
+			]
+		}
+	]
+}
