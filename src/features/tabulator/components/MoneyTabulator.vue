@@ -10,7 +10,7 @@ import ClearTabulationButton from './ClearTabulationButton.vue'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
 
 interface Emits {
-  'submit:tabulation': [formData: TabulationFormData, isUpdate: boolean]
+  (e: 'submit:tabulation', formData: TabulationFormData, isUpdate: boolean): void
 }
 
 interface Props {

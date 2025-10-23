@@ -9,7 +9,7 @@ interface Props {
 }
 
 interface Emits {
-  'update:quantity': [quantity: number]
+  (e: 'update:quantity', quantity: number): void
 }
 
 const $props = defineProps<Props>()
