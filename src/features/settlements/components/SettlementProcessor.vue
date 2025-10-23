@@ -16,8 +16,8 @@ interface Props {
 }
 
 interface Emits {
-  'update:paymentForm': [value: PaymentFormData]
-  'process:settlement': []
+  (e: 'update:paymentForm', value: PaymentFormData): void
+  (e: 'process:settlement'): void
 }
 
 defineProps<Props>()

@@ -2,7 +2,7 @@
 import TrashIcon from '@/shared/components/icons/TrashIcon.vue'
 
 interface Emits {
-  'clear': []
+  (e: 'clear'): void
 }
 
 defineEmits<Emits>()
