@@ -1,0 +1,15 @@
+export const SETTLEMENT_STATUS = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+} as const
+
+export type SettlementStatus = keyof typeof SETTLEMENT_STATUS
+
+export const SETTLEMENT_STATUS_LABELS = {
+  [SETTLEMENT_STATUS.PENDING]: 'Pendiente',
+  [SETTLEMENT_STATUS.PROCESSING]: 'Procesando',
+  [SETTLEMENT_STATUS.COMPLETED]: 'Completada',
+  [SETTLEMENT_STATUS.FAILED]: 'Falló'
+} as const
