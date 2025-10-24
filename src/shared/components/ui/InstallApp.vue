@@ -62,7 +62,7 @@ const handleInstall = async () => {
       <!-- Contenido -->
       <div class="flex items-center gap-3 mb-2">
         <img src="/icons/pgs-icon2.jpg" alt="24Link" class="w-12 h-12 rounded-lg">
-        <CardTitle title="Descarga PGS" subtitle="Instala la app para un acceso más rápido y directo" />
+        <CardTitle title="Instala PGS" subtitle="Instala la app para un acceso más rápido y directo" />
       </div>
 
       <!-- Botones de acción -->
