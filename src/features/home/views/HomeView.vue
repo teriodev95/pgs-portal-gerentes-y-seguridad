@@ -18,6 +18,7 @@ import SearchForm from '@/shared/components/forms/SearchForm.vue'
 
 // Constants
 const DRAWER_ID = ELEMENT_ID.DRAWER_LEFT
+const ENVIRONMENT = import.meta.env.VITE_ENVIRONMENT
 
 // Services, Composables and Stores initialization
 const {
@@ -125,7 +126,7 @@ onMounted(() => {
 
     <!-- App Version -->
     <div class="relative bg-blue-900 p-0.5 text-xs text-center text-white">
-      <div>Versión: {{ APP_VERSION }}</div>
+      <p>Versión: {{ APP_VERSION }} <span v-if="ENVIRONMENT === 'dev'" class="bg-green-600 p-0.5 rounded-sm">{{ ENVIRONMENT }}</span></p>
     </div>
   </div>
 </template>

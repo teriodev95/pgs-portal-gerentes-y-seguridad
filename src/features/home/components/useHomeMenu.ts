@@ -69,9 +69,9 @@ export function useHomeMenu() {
   const isDevelopmentEnvironment = computed(() => {
     const hostname = window.location.hostname
     return (
-      import.meta.env.DEV || 
-      hostname === 'localhost' || 
-      hostname.includes('127.0.0.1') || 
+      import.meta.env.VITE_ENVIRONMENT === 'dev' ||
+      hostname === 'localhost' ||
+      hostname.includes('127.0.0.1') ||
       hostname.includes('pgs-dev.terio.xyz')
     )
   })
