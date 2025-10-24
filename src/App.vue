@@ -4,9 +4,11 @@ import { onBeforeMount
 import { RouterView } from 'vue-router'
 import { useStore } from './shared/stores'
 import { useCsvLoaderStore } from './shared/stores'
-import ConnectionAlert from './shared/components/ConnectionAlert.vue'
 import { onMounted } from 'vue'
 import { initAccordions, initFlowbite } from 'flowbite'
+
+import ConnectionAlert from './shared/components/ConnectionAlert.vue'
+import InstallApp from './shared/components/ui/InstallApp.vue'
 
 const $store = useStore()
 const $csvLoaderStore = useCsvLoaderStore()
@@ -24,5 +26,6 @@ onMounted(() => {
 
 <template>
   <ConnectionAlert />
+  <InstallApp />
   <RouterView />
 </template>
