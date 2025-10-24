@@ -40,9 +40,6 @@ onMounted(() => {
 </script>
 
 <template>
-
-
-
   <!-- Agency Actions Bottom Sheet -->
   <vue-bottom-sheet ref="agencyActionsBottomSheet" :max-width="1000" :max-height="1500">
     <div class="space-y-4 p-6">
@@ -112,7 +109,7 @@ onMounted(() => {
   </vue-bottom-sheet>
 
   <!-- Float buttons -->
-  <div data-dial-init class="fixed bottom-[6rem] right-6 z-50 flex items-center gap-4">
+  <div data-dial-init class="fixed bottom-[6rem] right-6 z-40 flex items-center gap-4">
     <FloatBtn @click="openAgencyActions" type="secondary" :text="agency" />
     <FloatBtn @click="openGeneralActions" type="primary" />
   </div>

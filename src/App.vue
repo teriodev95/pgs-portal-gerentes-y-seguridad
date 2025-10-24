@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount
- } from 'vue'
+import { onBeforeMount } from 'vue'
 import { RouterView } from 'vue-router'
 import { useStore } from './shared/stores'
 import { useCsvLoaderStore } from './shared/stores'

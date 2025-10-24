@@ -1,17 +1,39 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import '@webzlodimir/vue-bottom-sheet/dist/style.css';
+import { ref, onMounted } from 'vue'
+import BtnComponent from '../BtnComponent.vue'
+import CardTitle from './CardTitle.vue'
+import VueBottomSheet from '@webzlodimir/vue-bottom-sheet';
 
-const showPrompt = ref(false)
-const deferredPrompt = ref<any>(null)
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[]
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed'
+    platform: string
+  }>
+  prompt(): Promise<void>
+}
+
+const deferredPrompt = ref<BeforeInstallPromptEvent | null>(null)
+const bottomSheetRef = ref<InstanceType<typeof VueBottomSheet>>()
+
+// Methods
+function open(): void {
+  bottomSheetRef.value?.open()
+}
+
+function close(): void {
+  bottomSheetRef.value?.close()
+}
 onMounted(() => {
-  window.addEventListener('beforeinstallprompt', (e) => {
+  window.addEventListener('beforeinstallprompt', (e: Event) => {
     // Prevenir que el navegador muestre su propio prompt
     e.preventDefault()
     // Guardar el evento para usarlo después
-    deferredPrompt.value = e
+    deferredPrompt.value = e as BeforeInstallPromptEvent
     // Mostrar nuestro modal
-    showPrompt.value = true
+    open()
   })
 })
 
@@ -19,88 +41,40 @@ const handleInstall = async () => {
   if (!deferredPrompt.value) return
 
   // Mostrar el prompt de instalación
-  deferredPrompt.value.prompt()
+  await deferredPrompt.value.prompt()
 
   // Esperar la respuesta del usuario
-  const { outcome } = await deferredPrompt.value.userChoice
+  await deferredPrompt.value.userChoice
 
   // Limpiar el prompt guardado
   deferredPrompt.value = null
 
   // Ocultar el modal independientemente de la respuesta
-  showPrompt.value = false
-
-  console.log(`Usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`)
+  close()
 }
 
-const closePrompt = () => {
-  showPrompt.value = false
-}
 </script>
 
 <template>
   <!-- Modal de instalación -->
-  <Transition name="slide-up">
-    <div
-      v-if="showPrompt"
-      class="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white border-t-2 border-[#001954] shadow-2xl max-w-6xl mx-auto"
-    >
-      <div class="flex items-start justify-between gap-4">
-        <!-- Contenido -->
-        <div class="flex-1">
-          <div class="flex items-center gap-3 mb-2">
-            <img src="" alt="24Link" class="w-12 h-12 rounded-lg">
-            <div>
-              <h3 class="text-primary font-bold text-lg">Descarga 24Link</h3>
-              <p class="text-secondary text-sm">
-                Instala la app para un acceso más rápido y directo
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Botón de cerrar -->
-        <button
-          @click="closePrompt"
-          class="text-gray-400 hover:text-gray-600 transition-colors"
-          aria-label="Cerrar"
-        >
-          <LucideX :size="20" />
-        </button>
+  <vue-bottom-sheet ref="bottomSheetRef" :max-width="1000" :max-height="1500">
+    <div class="p-4">
+      <!-- Contenido -->
+      <div class="flex items-center gap-3 mb-2">
+        <img src="/icons/pgs-icon2.jpg" alt="24Link" class="w-12 h-12 rounded-lg">
+        <CardTitle title="Descarga PGS" subtitle="Instala la app para un acceso más rápido y directo" />
       </div>
 
       <!-- Botones de acción -->
       <div class="mt-4 flex gap-2">
-        <button
-          @click="handleInstall"
-          class="flex-1 bg-[#001954] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#002066] transition-colors"
-        >
+        <BtnComponent @click="handleInstall" variant="secondary" full-width>
           Instalar ahora
-        </button>
-        <button
-          @click="closePrompt"
-          class="px-6 py-3 text-secondary hover:text-primary transition-colors"
-        >
+        </BtnComponent>
+        <BtnComponent @click="close" variant="secondary" outline full-width>
           Más tarde
-        </button>
+        </BtnComponent>
       </div>
     </div>
-  </Transition>
+  </vue-bottom-sheet>
+
 </template>
-
-<style scoped>
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.slide-up-enter-from {
-  transform: translateY(100%);
-  opacity: 0;
-}
-
-.slide-up-leave-to {
-  transform: translateY(100%);
-  opacity: 0;
-}
-</style>
