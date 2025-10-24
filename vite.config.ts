@@ -41,17 +41,17 @@ export default defineConfig({
 			lang: "es",
 			icons: [
 				{
-					src: '/icons/pwa-192x192.png',
+					src: '/icons/pgs-icon2.jpg',
 					sizes: '192x192',
 					type: 'image/png'
 				},
 				{
-					src: '/icons/pwa-512x512.png',
+					src: '/icons/pgs-icon2.jpg',
 					sizes: '512x512',
 					type: 'image/png'
 				},
 				{
-					src: '/icons/pwa-512x512.png',
+					src: '/icons/pgs-icon2.jpg',
 					sizes: '512x512',
 					type: 'image/png',
 					purpose: 'any maskable'
