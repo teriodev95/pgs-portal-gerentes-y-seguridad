@@ -16,12 +16,6 @@ export const VALIDATION_MESSAGES = {
   INVALID_SALES_COMMISSION: 'La comisión de ventas debe ser mayor o igual a cero'
 } as const;
 
-export const TOAST_CONFIG = {
-  duration: 5000,
-  dismissible: true,
-  type: 'error'
-} as const;
-
 export const ACTION_BUTTON_VARIANTS = {
   primary: 'btn-primary text-white',
   danger: 'btn-red text-white',
