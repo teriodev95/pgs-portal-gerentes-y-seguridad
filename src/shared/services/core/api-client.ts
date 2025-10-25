@@ -10,11 +10,11 @@ import {
 // Predefined API configurations based on current implementation
 export const API_CONFIGURATIONS: ApiConfigurations = {
   main: {
-    baseURL: 'https://sfast-api.terio.xyz/xpress/v1',
+    baseURL: 'https://sfast.xpress1.cc/xpress/v1',
     timeout: 90000
   },
   mainV2: {
-    baseURL: 'https://sfast-api.terio.xyz/api/v2',
+    baseURL: 'https://sfast.xpress1.cc/api/v2',
     timeout: 90000
   },
   fastApi: {
