@@ -1,215 +1,108 @@
 import { ref, readonly, computed } from 'vue'
-import { useStore } from '@/shared/stores';
-import type { ReportParams, ReportState, ReportType, ShareResult } from '../types';
-
-// Constants
-const REPORT_CONFIG = {
-  API_BASE: 'https://img-reporte.xpress1.cc/api/reportes',
-  API_MANAGEMENT_ENDPOINT: '/generar',
-  API_AGENCY_ENDPOINT: '/agencias/generar',
-  API_KEY: 'qfxS8ABtPvft0YI4PPxjvYvXOgcKeeWwUOv2LLTgDAI=',
-  DEFAULT_FILE_TYPE: 'image/png',
-  REQUEST_HEADERS: {
-    'Content-Type': 'application/json',
-  },
-} as const
+import { useToast } from 'vue-toast-notification'
+import { useStore } from '@/shared/stores'
+import { reportService } from '../services/report.service'
+import { useReportErrorHandler } from './useReportErrorHandler'
+import { useReportShare } from './useReportShare'
+import { REPORT_MESSAGES } from '../constants'
+import type { ReportParams, ReportType } from '../types'
 
 export function useReport() {
   const $store = useStore()
+  const $toast = useToast()
+  const { handleError } = useReportErrorHandler()
+  const { shareReport: shareReportService, isSharing } = useReportShare()
 
   // Reactive state
-  const state: ReportState = {
-    isGenerating: ref(false),
-    isSharing: ref(false),
-    filename: ref(''),
-    managementId: ref($store.gerenciaSelected as string || ''),
-    year: ref($store.currentDate.year || new Date().getFullYear()),
-    week: ref($store.currentDate.week || 1),
-    error: ref(''),
-    imageUrl: ref(''),
-    imageBlob: ref<Blob | null>(null),
+  const isGenerating = ref(false)
+  const filename = ref('')
+  const error = ref('')
+  const imageUrl = ref('')
+  const imageBlob = ref<Blob | null>(null)
+
+  // Computed properties
+  const isLoading = computed(() => isGenerating.value)
+  const managementId = computed(() => $store.gerenciaSelected as string || '')
+  const year = computed(() => $store.currentDate.year || new Date().getFullYear())
+  const week = computed(() => $store.currentDate.week || 1)
+
+  // Current report params
+  const currentReportParams = computed((): ReportParams => ({
+    managementId: managementId.value,
+    year: year.value,
+    week: week.value,
+  }))
+
+  function resetState(): void {
+    error.value = ''
+    imageUrl.value = ''
+    imageBlob.value = null
   }
 
-  const isLoading = computed(() => state.isGenerating.value)
-
-  const resetState = (): void => {
-    state.error.value = ''
-    state.imageUrl.value = ''
-    state.imageBlob.value = null
-  }
-
-  const buildApiUrl = (type: ReportType): string => {
-    return type === 'gerencia'
-      ? REPORT_CONFIG.API_BASE + REPORT_CONFIG.API_MANAGEMENT_ENDPOINT
-      : REPORT_CONFIG.API_BASE + REPORT_CONFIG.API_AGENCY_ENDPOINT
-  }
-
-  const getCurrentDayInSpanish = (): string => {
-    const days = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO']
-    const today = new Date()
-    return days[today.getDay()]
-  }
-
-  const createRequestPayload = (params: ReportParams) => {
-    return {
-      gerenciaId: params.managementId,
-      semana: params.week,
-      anio: params.year,
-      reporteDia: getCurrentDayInSpanish(), 
-    }
-  }
-
-  async function generateReport(type: ReportType) {
+  async function generateReport(type: ReportType): Promise<void> {
     console.log(`Generating ${type} report...`)
 
-    // Use store values
-    const reportParams: ReportParams = {
-      managementId: $store.gerenciaSelected as string,
-      year: $store.currentDate.year,
-      week: $store.currentDate.week,
-    }
-
-    state.isGenerating.value = true
+    isGenerating.value = true
     resetState()
 
     try {
-      const requestPayload = createRequestPayload(reportParams)
-      const apiUrl = buildApiUrl(type)
+      const blob = await reportService.generateReport(type, currentReportParams.value)
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          ...REPORT_CONFIG.REQUEST_HEADERS,
-          'X-API-Key': REPORT_CONFIG.API_KEY,
-        },
-        body: JSON.stringify(requestPayload),
-      })
+      imageBlob.value = blob
+      imageUrl.value = URL.createObjectURL(blob)
 
-      if (!response.ok) {
-        throw new Error(`Failed to generate ${type} report: ${response.status} ${response.statusText}`)
-      }
-
-      const blob = await response.blob()
-
-      if (blob.size === 0) {
-        throw new Error('Received empty response from server')
-      }
-
-      state.imageBlob.value = blob
-      state.imageUrl.value = URL.createObjectURL(blob)
+      $toast.success(REPORT_MESSAGES.GENERATION_SUCCESS)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred during report generation'
-      state.error.value = errorMessage
+      error.value = errorMessage
+      handleError(err, 'REPORT_GENERATION_FAILED')
     } finally {
-      state.isGenerating.value = false
+      isGenerating.value = false
     }
   }
 
-  const generateFilename = (type: ReportType): string => {
-    const typePrefix = 'reporte-diario'
-    const timestamp = new Date().toISOString().split('T')[0]
-    return state.filename.value ||
-           `${typePrefix}-${type}-${state.managementId.value}-${state.year.value}-${state.week.value}-${timestamp}.png`
-  }
-
-  const shareNatively = async (file: File): Promise<ShareResult> => {
+  async function shareReport(type: ReportType): Promise<void> {
     try {
-      await navigator.share({
-        title: `Report ${state.managementId.value}`,
-        text: `Report week ${state.week.value} - ${state.year.value}`,
-        files: [file],
-      })
-      return { success: true, method: 'native' }
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Native sharing failed')
-    }
-  }
-
-  const downloadFile = (file: File): ShareResult => {
-    try {
-      const downloadLink = document.createElement('a')
-      downloadLink.href = state.imageUrl.value
-      downloadLink.download = file.name
-      downloadLink.style.display = 'none'
-
-      document.body.appendChild(downloadLink)
-      downloadLink.click()
-      document.body.removeChild(downloadLink)
-
-      return { success: true, method: 'download' }
-    } catch (err) {
-      throw new Error('Download failed')
-    }
-  }
-
-  async function shareReport(type: ReportType): Promise<ShareResult> {
-    if (!state.imageBlob.value) {
-      const errorMsg = 'No image available to share. Please generate a report first.'
-      state.error.value = errorMsg
-      return { success: false, error: errorMsg }
-    }
-
-    state.isSharing.value = true
-
-    try {
-      const filename = generateFilename(type)
-      const file = new File(
-        [state.imageBlob.value],
-        filename,
-        { type: REPORT_CONFIG.DEFAULT_FILE_TYPE }
+      await shareReportService(
+        type,
+        currentReportParams.value,
+        imageBlob.value,
+        imageUrl.value,
+        filename.value || undefined
       )
-
-      // Try native sharing first
-      if ('share' in navigator && 'canShare' in navigator && navigator.canShare({ files: [file] })) {
-        return await shareNatively(file)
-      } else {
-        // Fallback to download
-        return downloadFile(file)
-      }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to share report'
-      state.error.value = errorMessage
-      return { success: false, error: errorMessage }
-    } finally {
-      state.isSharing.value = false
+      handleError(err, 'REPORT_SHARE_FAILED')
     }
   }
 
-  /**
-   * Cleans up resources and resets state
-   */
   function cleanup(): void {
-    if (state.imageUrl.value) {
-      URL.revokeObjectURL(state.imageUrl.value)
+    if (imageUrl.value) {
+      URL.revokeObjectURL(imageUrl.value)
     }
     resetState()
   }
 
-  /**
-   * Sets a custom filename for the report
-   * @param name - Custom filename (without extension)
-   */
   function setFilename(name: string): void {
     if (typeof name !== 'string' || name.trim() === '') {
       console.warn('Invalid filename provided')
       return
     }
-    state.filename.value = name.trim()
+    filename.value = name.trim()
   }
 
   // Return public interface
   return {
     // Readonly state
-    error: readonly(state.error),
-    filename: readonly(state.filename),
-    imageBlob: readonly(state.imageBlob),
-    imageUrl: readonly(state.imageUrl),
+    error: readonly(error),
+    filename: readonly(filename),
+    imageBlob: readonly(imageBlob),
+    imageUrl: readonly(imageUrl),
     isLoading,
-    isGenerating: readonly(state.isGenerating),
-    isSharing: readonly(state.isSharing),
-    managementId: readonly(state.managementId),
-    week: readonly(state.week),
-    year: readonly(state.year),
+    isGenerating: readonly(isGenerating),
+    isSharing: readonly(isSharing),
+    managementId: readonly(managementId),
+    week: readonly(week),
+    year: readonly(year),
 
     // Actions
     generateReport,
