@@ -12,6 +12,7 @@ class CommonService {
   private javalinClient = createApiClientFromPreset('javalin')
   private expenseImageClient = createApiClientFromPreset('workerUploadExpenseImage')
   private comisionClient = createApiClientFromPreset('n8nCreateComision')
+  private faxClient = createApiClientFromPreset('fastApi')
 
   async getAgency(params: GetBaseProps) {
     return this.javalinClient.get<IAgencyDashboard>(`/dashboards/agencia?agencia=${params.agency}&anio=${params.year}&semana=${params.week}`)
@@ -32,12 +33,12 @@ class CommonService {
   }
 
   async getCurrentDate() {
-    return this.apiClient.get<{
+    return this.faxClient.get<{
       semana: number
       anio: number
       desde: string
       hasta: string
-    }>('/pwa/semana_actual')
+    }>('/calendario/actual')
   }
 
   async uploadExpenseImage(tipoGasto: string, usuarioID: number, imageBase64: string) {
