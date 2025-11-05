@@ -3,20 +3,27 @@ import { ref } from 'vue'
 import { toCurrency } from '@/shared/utils'
 import CardContainer from '@/shared/components/CardContainer.vue'
 import DataField from '@/shared/components/DataField.vue'
-import type { IManagementDashboard } from '@/features/entity/types'
-
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
+import DebtsDialog from './DebtsDialog.vue'
+import type { IManagementDashboard, IManagementDebts } from '@/features/entity/types'
 
 interface Props {
-  data: IManagementDashboard;
+  data: IManagementDashboard
+  managementDebts?: IManagementDebts
+  isLoading?: boolean
 }
 
 defineProps<Props>()
-const isDebitosOpen = ref(false)
+
+const isDebtsDialogOpen = ref(false)
+
+function openDebtsDialog(): void {
+  isDebtsDialogOpen.value = true
+}
+
+function closeDebtsDialog(): void {
+  isDebtsDialogOpen.value = false
+}
 </script>
 
 <template>
@@ -47,25 +54,22 @@ const isDebitosOpen = ref(false)
 
     <!-- Débitos Diarios -->
   <CardContainer title="Débitos Diarios">
-    <Collapsible v-model:open="isDebitosOpen">
-      <CollapsibleTrigger class="w-full text-left p-2 hover:bg-gray-50 rounded border border-gray-200 mb-2 flex justify-between items-center">
-        <span class="property-label text-gray-400">Ver débitos por día</span>
-        <svg
-          :class="{ 'rotate-180': isDebitosOpen }"
-          class="w-4 h-4 transition-transform duration-200"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </CollapsibleTrigger>
-      <CollapsibleContent class="space-y-2">
-        <DataField label="Débito Miércoles" :value="toCurrency(data.debitoMiercoles)" />
-        <DataField label="Débito Jueves" :value="toCurrency(data.debitoJueves)" />
-        <DataField label="Débito Viernes" :value="toCurrency(data.debitoViernes)" />
-      </CollapsibleContent>
-    </Collapsible>
+    <DataField label="Débito Miércoles" :value="toCurrency(data.debitoMiercoles)" />
+    <DataField label="Débito Jueves" :value="toCurrency(data.debitoJueves)" />
+    <DataField label="Débito Viernes" :value="toCurrency(data.debitoViernes)" />
     <DataField label="Débito Total" :value="toCurrency(data.debitoTotal)" />
+
+    <div v-if="managementDebts && managementDebts.reportes.length > 0" class="mt-4 pt-4 border-t border-gray-200">
+      <BtnComponent @click="openDebtsDialog" class="w-full">
+        Ver desglose por Agencia 
+      </BtnComponent>
+    </div>
   </CardContainer>
+
+  <DebtsDialog
+    :is-open="isDebtsDialogOpen"
+    :reports="managementDebts?.reportes || []"
+    :is-loading="isLoading || false"
+    @dialog:close="closeDebtsDialog"
+  />
 </template>

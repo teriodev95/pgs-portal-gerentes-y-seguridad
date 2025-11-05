@@ -6,12 +6,11 @@ import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import NavbarTop from '@/shared/components/NavbarTop.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import ManagementInformation from '@/features/entity/components/ManagementInformation.vue'
-import FilteringSection from '../components/FilteringSection.vue'
 
 // Composables
 import { useGerencyDetails } from '@/features/entity/composables/useGerencyDetails'
 
-const { dashboardData, management, isLoading, filterYear, filterWeek, updateFilters } = useGerencyDetails()
+const { dashboardData, management, managementDebts, isLoading } = useGerencyDetails()
 </script>
 
 <template>
@@ -25,12 +24,11 @@ const { dashboardData, management, isLoading, filterYear, filterWeek, updateFilt
       </div>
 
       <SectionContainer v-if="dashboardData">
-        <FilteringSection
-          :filter-year="filterYear"
-          :filter-week="filterWeek"
-          @update:filters="updateFilters"
+        <ManagementInformation
+          :data="dashboardData"
+          :management-debts="managementDebts"
+          :is-loading="isLoading"
         />
-        <ManagementInformation :data="dashboardData" />
       </SectionContainer>
 
       <LoadSkeleton v-else-if="isLoading" :items="6" class="mt-4" />
