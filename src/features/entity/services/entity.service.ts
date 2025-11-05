@@ -4,7 +4,8 @@ import type {
   IAgencyFinancialSummary,
   ILoansAboutToEnd,
   IManagementDashboardData,
-  IManagementDashboard
+  IManagementDashboard,
+  IManagementDebts,
 } from '../types'
 
 class EntityService {
@@ -29,6 +30,11 @@ class EntityService {
 
   async getLoansAboutToEnd({ agency, week, year }: GetBaseProps) {
     return this.apiClient.get<ILoansAboutToEnd>(`/loans/por_finalizar_by_agencia/${agency}/${year}/${week}`)
+  }
+
+
+  async getManagementDebts(params: GetBaseProps) { 
+    return this.apiJavalin.get<IManagementDebts>(`/debitos/gerencia?anio=${params.year}&semana=${params.week}&gerencia=${params.managment}`)
   }
 }
 
