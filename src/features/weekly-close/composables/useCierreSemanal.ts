@@ -91,7 +91,7 @@ export const useCierreSemanal = () => {
       // Guardar cierre y crear comisión
       console.log('Guardando cierre semanal:', cierreData)
       await api.createWeeklyClose(cierreData)
-      await api.createCommission(globalStore.agencySelected as string)
+      //await api.createCommission(globalStore.agencySelected as string)
 
       // Recargar datos actualizados
       await loadWeeklyClose()
