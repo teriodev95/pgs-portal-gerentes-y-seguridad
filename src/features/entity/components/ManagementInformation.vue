@@ -45,7 +45,7 @@ function closeDebtsDialog(): void {
     <DataField label="Multas" :value="toCurrency(data.multas)" />
     <DataField label="Número Liquidaciones" :value="data.numeroLiquidaciones" />
     <DataField label="Número Ventas" :value="data.numeroVentas" />
-    <DataField label="Rendimiento" :value="toCurrency(data.rendimiento)" />
+    <DataField label="Rendimiento" :value="`%${data.rendimiento.toFixed(2)}`" />
     <DataField label="Suma Asignaciones" :value="toCurrency(data.sumaAsignaciones)" />
     <DataField label="Total Cobranza Pura" :value="toCurrency(data.totalCobranzaPura)" />
     <DataField label="Total Descuento" :value="toCurrency(data.totalDescuento)" />
