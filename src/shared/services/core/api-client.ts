@@ -20,7 +20,7 @@ export const API_CONFIGURATIONS: ApiConfigurations = {
   fastApi: {
     baseURL: 'https://fax-dev.xpress1.cc/api',
     apiKey: 'ua7Sj^e6Qn#7m7BDW#8oX9*52#KDqPuK',
-    timeout: 10000
+    timeout: 60000
   },
   javalin: {
     baseURL: 'https://javalin.xpress1.cc/api',

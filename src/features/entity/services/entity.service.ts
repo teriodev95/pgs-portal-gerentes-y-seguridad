@@ -3,7 +3,6 @@ import type { GetBaseProps,  } from '@/interfaces'
 import type {
   IAgencyFinancialSummary,
   ILoansAboutToEnd,
-  IManagementDashboardData,
   IManagementDashboard,
   IManagementDebts,
 } from '../types'
@@ -11,15 +10,10 @@ import type {
 class EntityService {
   private apiClient = createApiClientFromPreset('main')
   private apiJavalin = createApiClientFromPreset('javalin')
+  private apiFastApi = createApiClientFromPreset('fastApi')
 
   async getAgencyDashboard(agency: string, date: string) {
     return this.apiClient.get<IAgencyFinancialSummary>(`/pwa/dashboard-fecha/${agency}/${date}`)
-  }
-
-  async getGerencyDashboard(params: GetBaseProps) {
-    return this.apiClient.get<IManagementDashboardData>(
-      `/dashboard-gerencia/${params.managment}/${params.year}/${params.week}`
-    )
   }
   
   async getNewGerencyDashboard(params: GetBaseProps) {
@@ -29,7 +23,7 @@ class EntityService {
   }
 
   async getLoansAboutToEnd({ agency, week, year }: GetBaseProps) {
-    return this.apiClient.get<ILoansAboutToEnd>(`/loans/por_finalizar_by_agencia/${agency}/${year}/${week}`)
+    return this.apiFastApi.get<ILoansAboutToEnd>(`/prestamos/por_finalizar_by_agencia/?agencia=${agency}&anio=${year}&semana=${week}`)
   }
 
 

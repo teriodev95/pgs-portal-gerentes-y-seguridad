@@ -1,24 +1,24 @@
 import type { ILoan } from "@/features/loan/types"
 
 export interface IAgencyFinancialSummary {
-  gerencia: string
   agencia: string
   anio: number
-  semana: number
   clientes: number
   clientesCobrados: number
+  cobranzaTotal: number
+  debitoTotal: number
+  gerencia: string
+  liquidaciones: number
+  montoDeDebitoFaltante: number
+  montoExcedente: number
+  multas: number
   noPagos: number
   numeroLiquidaciones: number
   pagosReducidos: number
-  debitoTotal: number
   rendimiento: number
-  totalDeDescuento: number
+  semana: number
   totalCobranzaPura: number
-  montoExcedente: number
-  multas: number
-  liquidaciones: number
-  cobranzaTotal: number
-  montoDeDebitoFaltante: number
+  totalDeDescuento: number
 }
 
 export interface ILoansAboutToEnd {
