@@ -22,7 +22,7 @@ export function useAgencyDetails() {
   const agency = computed(() => $store.agencyData)
   const currentDate = computed(() => $store.currentDate)
   const hasLoansToFinish = computed(() => (loansAboutToEnd.value?.prestamos.length ?? 0) > 0)
-  const isLoading = computed(() => $store.loading)
+  const isLoading = ref(false)
 
   // Methods
   function navigateToHome(): void {
@@ -39,7 +39,7 @@ export function useAgencyDetails() {
     if (!agency.value) return
 
     try {
-      $store.loading = true
+      isLoading.value = true
       dashboardData.value = undefined
 
       const value = (event.target as HTMLInputElement).value
@@ -58,12 +58,14 @@ export function useAgencyDetails() {
     } catch (error) {
       handleError(error, 'DASHBOARD_BY_DATE_LOAD_FAILED')
     } finally {
-      $store.loading = false
+      isLoading.value = false
     }
   }
 
   async function fetchLoansAboutToEnd(): Promise<void> {
     if (!agency.value?.agencia) return
+
+    isLoading.value = true
 
     try {
       const { data } = await entityService.getLoansAboutToEnd({
@@ -72,15 +74,20 @@ export function useAgencyDetails() {
         year: currentDate.value.year
       })
 
+
+      console.log('Loans About to End Data:', data);
+
       loansAboutToEnd.value = data
     } catch (error) {
       handleError(error, 'LOANS_ABOUT_TO_END_LOAD_FAILED')
+    } finally {
+      isLoading.value = false
     }
   }
 
   // Lifecycle hooks
-  onBeforeMount(() => {
-    void fetchLoansAboutToEnd()
+  onBeforeMount(async () => {
+    await fetchLoansAboutToEnd()
   })
 
   return {
@@ -89,12 +96,12 @@ export function useAgencyDetails() {
     dateSelector,
     isDatePickerVisible,
     loansAboutToEnd,
+    isLoading,
     
     // Computed
     agency,
     currentDate,
     hasLoansToFinish,
-    isLoading,
     
     // Methods
     navigateToHome,

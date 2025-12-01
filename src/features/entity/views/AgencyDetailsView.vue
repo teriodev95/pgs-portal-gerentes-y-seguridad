@@ -14,6 +14,7 @@ import MetricCard from '@/features/entity/components/MetricCard.vue'
 
 // Composables
 import { useAgencyDetails } from '../composables'
+import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 
 // Use composable for all logic
 const {
@@ -37,7 +38,10 @@ const {
       <NavbarTop label="Detalles de la agencia" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
     </div>
 
-    <SectionContainer v-if="agency">
+
+    <LoadSkeleton v-if="isLoading" :items="6" />
+
+    <SectionContainer v-else-if="agency && !isLoading">
       <!-- General Data Card -->
       <CardContainer>
         <DatePickerSection

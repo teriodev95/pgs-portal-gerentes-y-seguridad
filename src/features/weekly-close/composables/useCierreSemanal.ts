@@ -47,11 +47,6 @@ export const useCierreSemanal = () => {
       if (store.weeklyClose) {
         signStore.nombreAgente = store.weeklyClose.resumenSemanal.agente
         signStore.nombreGerente = store.weeklyClose.resumenSemanal.gerente
-        /*
-        const bonusInfo = await api.getBonusInfo("Septiembre", 2025, globalStore.agencySelected as string)
-        store.setBonusInfo(bonusInfo.data.bono)
-        store.setWeeklyClosingBonus(bonusInfo.data.bono.montoBono)
-        */
       }
     } catch (error) {
       handleError(error, 'WEEKLY_CLOSE_LOAD_FAILED')

@@ -3,9 +3,10 @@ import type { ILoan, IPaymentCreate  } from '../types'
 
 class LoanAndPaymentService {
   private apiClient = createApiClientFromPreset('main')
+  private apiFastApi = createApiClientFromPreset('fastApi')
 
   async getLoanById(id: string) {
-    return this.apiClient.get<ILoan>(`/loans/${id}`)
+    return this.apiFastApi.get<ILoan>(`/prestamos/${id}`)
   }
 
   async createPayment(pago: IPaymentCreate) {
