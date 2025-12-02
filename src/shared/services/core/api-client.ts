@@ -18,7 +18,7 @@ export const API_CONFIGURATIONS: ApiConfigurations = {
     timeout: 90000
   },
   fastApi: {
-    baseURL: 'https://fax-dev.xpress1.cc/api',
+    baseURL: `${import.meta.env.VITE_FAX_API_URL}/api`,
     apiKey: 'ua7Sj^e6Qn#7m7BDW#8oX9*52#KDqPuK',
     timeout: 60000
   },
