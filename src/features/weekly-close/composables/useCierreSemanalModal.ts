@@ -4,7 +4,7 @@ import { useCierreSemanalStore } from '@/features/weekly-close/stores'
 import { useWeeklyCloseErrorHandler } from './useWeeklyCloseErrorHandler'
 import { WEEKLY_CLOSE_VALIDATION_MESSAGES } from '../constants'
 import type {
-  IFastWeeklyClose,ModalValue,
+  IWeeklyCloseWithIncome,ModalValue,
   ModalConfigKey,
   AllConfig
 } from '../types'
@@ -108,7 +108,7 @@ export const useCierreSemanalModal = () => {
    */
   const contextMapping: Record<
     ModalConfigKey,
-    (weeklyClose: IFastWeeklyClose, value: ModalValue) => void
+    (weeklyClose: IWeeklyCloseWithIncome, value: ModalValue) => void
   > = {
     bonos: (weeklyClose, value) => {
       weeklyClose.egresosGerente.bonosPagadosEnSemana = Number(value)
@@ -152,8 +152,8 @@ export const useCierreSemanalModal = () => {
     }
 
     try {
-      // Crear una copia para evitar mutaciones directas
-      const updatedWeeklyClose = { ...store.weeklyClose } as IFastWeeklyClose
+      // Crear una copia profunda para evitar mutaciones directas
+      const updatedWeeklyClose = JSON.parse(JSON.stringify(store.weeklyClose)) as IWeeklyCloseWithIncome
       updateFunction(updatedWeeklyClose, value)
 
       // Actualizar el store con los nuevos datos

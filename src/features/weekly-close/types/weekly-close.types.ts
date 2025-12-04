@@ -59,7 +59,6 @@ interface IIsSemanaBonos {
 
 export interface IFastWeeklyClose {
   resumenSemanal: IResumenSemanal;
-  ingresosAgente: IIngresosAgente;
   egresosAgente: IEgresosAgente;
   egresosGerente: IEgresosGerente;
   rendimientoFun: IRendimientoFun;
@@ -68,6 +67,11 @@ export interface IFastWeeklyClose {
   pinAgente: number
   statusAgencia: 'ACTIVA' | 'VACANTE'
   id: number;
+}
+
+// Interfaz extendida para el store local que incluye ingresosAgente
+export interface IWeeklyCloseWithIncome extends IFastWeeklyClose {
+  ingresosAgente: IIngresosAgente;
 }
 
 export interface ICreateCierreSemana {
@@ -104,4 +108,40 @@ export interface IUploadVideoResponse {
   videoUrl: string
   success: boolean
   error?: string
+}
+
+export interface IAgencyDashboard {
+  gerencia: string;
+  agencia: string;
+  anio: number;
+  semana: number;
+  clientes: number;
+  clientesCobrados: number;
+  noPagos: number;
+  numeroLiquidaciones: number;
+  pagosReducidos: number;
+  debitoMiercoles: number;
+  debitoJueves: number;
+  debitoViernes: number;
+  debitoTotal: number;
+  rendimientoGeneral: number;
+  totalDescuento: number;
+  totalCobranzaPura: number;
+  montoExcedente: number;
+  multas: number;
+  liquidaciones: number;
+  cobranzaTotal: number;
+  debitoFaltante: number;
+  efectivoEnCampo: number;
+  statusAgencia: string;
+  numeroVentas: number;
+  ventas: number;
+  numeroAsignaciones: number;
+  asignaciones: number;
+  agenciaCerrada: number; // 0 o 1 (booleano como número)
+  debitoGeneral: number;
+  debitoNoImpacta: number;
+  debitoAplicable: number;
+  totalPagado: number;
+  rendimiento: number;
 }

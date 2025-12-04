@@ -174,6 +174,11 @@ const router = createRouter({
           name: ROUTE_NAME.DAILY_REPORT,
           component: () => import('@/features/daily-report/views/ReportView.vue')
         },
+        {
+          path: 'tickets',
+          name: ROUTE_NAME.TICKETS,
+          component: () => import('@/features/iframe/views/TicketsView.vue')
+        },
 
       ]
     },

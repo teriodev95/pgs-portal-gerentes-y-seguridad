@@ -1,7 +1,7 @@
-import type { ICreateCierreSemana, IFastWeeklyClose } from '../types'
+import type { ICreateCierreSemana, IWeeklyCloseWithIncome } from '../types'
 
 export const transformToCreateCierre = (
-  weeklyClose: IFastWeeklyClose,
+  weeklyClose: IWeeklyCloseWithIncome,
   gerencia: string,
   uidVerificacionAgente: string,
   uidVerificacionGerente: string

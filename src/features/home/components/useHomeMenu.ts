@@ -196,7 +196,7 @@ export function useHomeMenu() {
       id: 'ticket',
       title: 'Tickets',
       icon: Ticket,
-      href: 'https://v0-ticket-4-pgs-project.vercel.app/',
+      route: ROUTE_NAME.TICKETS,
       description: 'Soporte'
     },
     {

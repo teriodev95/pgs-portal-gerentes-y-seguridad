@@ -4,13 +4,19 @@ import type {
   ICreateCierreSemana,
   IFastWeeklyClose,
   IUploadVideoResponse,
+  IAgencyDashboard
 } from '@/features/weekly-close/types'
+import type { GetBaseProps } from '@/interfaces'
 
 
 class WeeklyClosingService {
   private fastApiClient = createApiClientFromPreset('fastApi')
   private uploadVideoClient = createApiClientFromPreset('workerUploadVideo')
-  private javalinClient = createApiClientFromPreset('javalin')
+  private apiJavalin = createApiClientFromPreset('javalin')
+
+  async getAgentsIncome({ agency, year, week } : GetBaseProps) {
+    return this.apiJavalin.get<IAgencyDashboard>(`/dashboards/agencia?agencia=${agency}&anio=${year}&semana=${week}`)
+  } 
 
   async getWeeklyClose(week: number, anio: number, gerencia: string, agencia: string) {
     return this.fastApiClient.get<IFastWeeklyClose[]>(
@@ -29,7 +35,7 @@ class WeeklyClosingService {
   }
 
   async getBonusInfo(mes: string, anio: number, agencia: string) {
-    return this.javalinClient.get<IBonusDetails>(`/bonos/reporte?agencia=${agencia}&anio=${anio}&mes=${mes}`)
+    return this.apiJavalin.get<IBonusDetails>(`/bonos/reporte?agencia=${agencia}&anio=${anio}&mes=${mes}`)
   }
 }
 

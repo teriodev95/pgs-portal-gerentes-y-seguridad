@@ -4,6 +4,7 @@ import { useWeeklyCloseErrorHandler } from './useWeeklyCloseErrorHandler'
 import { commonService } from '@/shared/services/modules'
 
 import type {
+  IAgencyDashboard,
   ICreateCierreSemana,
   IFastWeeklyClose
 } from '../types'
@@ -18,6 +19,20 @@ export const useCierreSemanalAPI = () => {
   const store = useStore()
   const { handleAPIError } = useWeeklyCloseErrorHandler()
 
+  const getAgentsIncome = async (): Promise<IAgencyDashboard> => {
+    try {
+      const { data } = await weeklyClosingService.getAgentsIncome({
+        agency: store.agencySelected as string,
+        year: store.currentDate.year,
+        week: store.currentDate.week
+      })
+      return data
+    } 
+    catch (error) {
+      handleAPIError(error, 'GET')
+      throw error
+    }
+  }
   /**
    * Obtiene el cierre semanal actual
    */
@@ -74,6 +89,7 @@ export const useCierreSemanalAPI = () => {
   return {
     createCommission,
     createWeeklyClose,
+    getAgentsIncome,
     getBonusInfo,
     getWeeklyClose,
   }

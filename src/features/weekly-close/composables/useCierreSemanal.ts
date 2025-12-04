@@ -40,8 +40,9 @@ export const useCierreSemanal = () => {
       console.log('loading', store.isLoading)
       store.setError(null)
 
-      // Cargar datos en paralelo
+      // Cargar datos secuencialmente para evitar problemas de dependencia
       await loadWeeklyClose()
+      await loadAgentsIncome()
 
       // Configurar nombres para firmas
       if (store.weeklyClose) {
@@ -62,6 +63,12 @@ export const useCierreSemanal = () => {
     const data = await api.getWeeklyClose(agency.value?.agencia || '')
     console.log('Cierre semanal cargado:', data)
     store.setWeeklyClose(data)
+  }
+
+  const loadAgentsIncome = async () => {
+    const data = await api.getAgentsIncome()
+    console.log('Ingresos de agentes cargados:', data)
+    store.setAgentsIncome(data)
   }
 
   // Método para guardar el cierre
