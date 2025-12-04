@@ -27,18 +27,15 @@ class SettlementsService {
     return dataMapped
   }
 
-  async createSettlement(data: Liquidacion, token: string) {
+  async createSettlement(data: Liquidacion) {
     const dataMapped: PayloadCreateSettlement = {
       prestamo_id: data.prestamoId,
       recuperado_por: data.recuperadoPor as string,
       comentario: data.quienPago as string,
     }
 
-    return this.apiElysia.post<string>(`/liquidaciones/`, dataMapped, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
+    // El interceptor elysiaAuthInterceptor se encarga automáticamente de agregar el token
+    return this.apiElysia.post<string>(`/liquidaciones/`, dataMapped)
   }
 }
 

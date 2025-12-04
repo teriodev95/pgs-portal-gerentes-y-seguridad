@@ -37,6 +37,32 @@ export const authInterceptor = (token: string): InterceptorConfig => ({
   }
 })
 
+// Dynamic authorization interceptor for Elysia API
+export const elysiaAuthInterceptor = (): InterceptorConfig => ({
+  request: {
+    onFulfilled: async (config: InternalAxiosRequestConfig) => {
+      // Solo aplica si es una petición al API de Elysia y no tiene Authorization header ya establecido
+      if (config.baseURL?.includes('elysia.xpress1.cc') &&
+          !(config.headers as AxiosRequestHeaders)['Authorization']) {
+
+        try {
+          // Accede al store de manera dinámica
+          const { useStore } = await import('@/shared/stores')
+          const store = useStore()
+
+          if (store.elysiaToken) {
+            ;(config.headers as AxiosRequestHeaders)['Authorization'] = `Bearer ${store.elysiaToken}`
+          }
+        } catch (error) {
+          // Si no se puede acceder al store, continúa sin el token
+          console.warn('Could not access Pinia store for Elysia token:', error)
+        }
+      }
+      return config
+    }
+  }
+})
+
 // Request logging interceptor (for development)
 export const loggingInterceptor: InterceptorConfig = {
   request: {

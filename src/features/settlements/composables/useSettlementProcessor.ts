@@ -3,7 +3,6 @@ import type { Liquidacion } from '../types'
 import { PaymentSource, RecoverySource } from '@/features/loan/types'
 import { settlementsService } from '../services/settlements.service'
 import { useSettlementErrorHandler } from './useSettlementErrorHandler'
-import { useStore } from '@/shared/stores'
 
 interface PaymentFormData {
   amount: number
@@ -14,7 +13,6 @@ interface PaymentFormData {
 export function useSettlementProcessor() {
   // Services and composables
   const { handleError, handleSuccess } = useSettlementErrorHandler()
-  const store = useStore()
 
   // State definitions
   const isProcessing = ref(false)
@@ -45,7 +43,7 @@ export function useSettlementProcessor() {
       processedData.quienPago = paymentForm.value.paymentSource
       processedData.recuperadoPor = paymentForm.value.paymentRecovery
 
-      await settlementsService.createSettlement(processedData, store.elysiaToken as string)
+      await settlementsService.createSettlement(processedData)
       
       handleSuccess(`Liquidación exitosa para ${processedData.cliente}`)
       showSuccessCircle.value = true
