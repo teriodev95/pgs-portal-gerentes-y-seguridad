@@ -13,7 +13,8 @@ export function useAuthLogin() {
   const $router = useRouter()
   const $store = useStore()
   const $toast = useToast()
-  const { handleAuthError, handleError } = useAuthErrorHandler()
+  const { handleError } = useAuthErrorHandler()
+
 
   // State definitions
   const loginForm = ref<IAuthLogin>({
@@ -31,6 +32,7 @@ export function useAuthLogin() {
     try {
       isLoading.value = true
 
+      console.log('Submitting login form:', loginForm.value)
       const { user, token } = await authService.authLogin(loginForm.value)
 
       console.log('Login response:', user)
@@ -48,8 +50,8 @@ export function useAuthLogin() {
 
       $toast.success(AUTH_CONSTANTS.SUCCESS_MESSAGES.LOGIN_SUCCESS)
       await $router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
-    } catch (error) {
-      handleAuthError(error)
+    } catch (error: any) {
+      $toast.error(error.response?.data.error)
     } finally {
       isLoading.value = false
     }
