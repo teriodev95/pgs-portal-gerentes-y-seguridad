@@ -29,7 +29,7 @@ const {
         <InputGeneric 
           id="username" 
           type="text" 
-          v-model="loginForm.username" 
+          v-model="loginForm.usuario" 
           placeholder="Ingrese su nombre de usuario"
           :disabled="isLoading"
           required
@@ -41,7 +41,7 @@ const {
         <LabelForm for="password"/>
         <InputGeneric 
           id="password" 
-          v-model="loginForm.password" 
+          v-model="loginForm.pin" 
           type="password" 
           placeholder="*****" 
           :disabled="isLoading"

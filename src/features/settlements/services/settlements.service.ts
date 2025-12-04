@@ -1,9 +1,10 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
-import type { Liquidacion, settlementDetails } from '../types'
+import type { Liquidacion, settlementDetails, PayloadCreateSettlement } from '../types'
 
 class SettlementsService {
-  private apiClient = createApiClientFromPreset('main')
+
   private apiJavalin = createApiClientFromPreset('javalin')
+  private apiElysia = createApiClientFromPreset('elysia')
 
   async getLiquidacion(id: string) {
     const { data } = await this.apiJavalin.get<settlementDetails>(`/liquidaciones/prestamo/${id}`)
@@ -26,8 +27,18 @@ class SettlementsService {
     return dataMapped
   }
 
-  async createLiquidacion(data: Liquidacion) {
-    return this.apiClient.post<string>(`/pwa/payoffs/create-one`, data)
+  async createSettlement(data: Liquidacion, token: string) {
+    const dataMapped: PayloadCreateSettlement = {
+      prestamo_id: data.prestamoId,
+      recuperado_por: data.recuperadoPor as string,
+      comentario: data.quienPago as string,
+    }
+
+    return this.apiElysia.post<string>(`/liquidaciones/`, dataMapped, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
   }
 }
 

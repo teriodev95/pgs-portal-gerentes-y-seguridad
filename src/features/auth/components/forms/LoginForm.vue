@@ -23,8 +23,8 @@ withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const form = ref<IAuthLogin>({
-  username: "",
-  password: ""
+  usuario: "",
+  pin: ""
 })
 
 const handleSubmit = () => {
@@ -40,7 +40,7 @@ const handleSubmit = () => {
       <InputGeneric 
         id="username" 
         type="text" 
-        v-model="form.username" 
+        v-model="form.usuario" 
         placeholder="ABC.XYZ"
         :disabled="loading"
         required
@@ -52,7 +52,7 @@ const handleSubmit = () => {
       <LabelForm for="password">Contraseña</LabelForm>
       <InputGeneric 
         id="password" 
-        v-model="form.password" 
+        v-model="form.pin" 
         type="password" 
         placeholder="*****" 
         :disabled="loading"
