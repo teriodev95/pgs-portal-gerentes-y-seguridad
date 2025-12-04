@@ -23,7 +23,7 @@ export function useAuthLogin() {
 
   // Methods
   async function handleLogin(): Promise<void> {
-    if (!loginForm.value.username || !loginForm.value.password) {
+    if (!loginForm.value.usuario || !loginForm.value.pin) {
       handleError(new Error('Form incomplete'), 'FORM_INCOMPLETE')
       return
     }
@@ -31,12 +31,13 @@ export function useAuthLogin() {
     try {
       isLoading.value = true
 
-      const response = await authService.authLogin(loginForm.value)
+      const { user, token } = await authService.authLogin(loginForm.value)
 
-      console.log('Login response:', response)
+      console.log('Login response:', user)
 
       // Store user data and authentication state
-      $store.user = response.data
+      $store.user = user
+      $store.elysiaToken = token
       $store.isAuth = true
       $store.saveData()
 

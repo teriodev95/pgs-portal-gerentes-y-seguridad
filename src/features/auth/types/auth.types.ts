@@ -18,9 +18,31 @@ export interface IUser {
   usuarioId: number
 }
 
+export interface IUserElysia {
+  Agencia: string;
+  Apellido_Materno: string;
+  Apellido_Paterno: string;
+  Created_at: string;
+  Fecha_ingreso: string;
+  Gerencia: string;
+  Nombre: string;
+  Numero_celular: string;
+  Pin: number;
+  Puede_cobrar: boolean;
+  Puede_verificar_asignaciones: boolean;
+  Status: boolean;
+  sucursales: string[];
+  Telegram_id: string;
+  Tipo: string;
+  token: string;
+  Updated_at: string;
+  Usuario: string;
+  UsuarioID: number;
+} 
+
 export interface IAuthLogin {
-  username: string
-  password: string
+  usuario: string
+  pin: string
 }
 
 export type IUserType = 'Seguridad' | 'Regional' | 'Gerente' | string; 

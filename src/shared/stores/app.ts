@@ -9,6 +9,7 @@ import type { IUser } from '@/features/auth/types'
 interface DataStore {
   user?: IUser
   authPin?: string
+  elysiaToken?: string
 }
 
 const STORE_NAME = 'store'
@@ -39,6 +40,7 @@ export const useStore = defineStore(STORE_NAME, () => {
   const gerenciaSelected = ref<string>()
   const isAuth = ref(false)
   const authPin = ref<string>()
+  const elysiaToken = ref<string>()
   const loading = ref<boolean>(false)
   const sucursales = ref<string[]>([])
   const sucursal = ref<string>()
@@ -65,6 +67,7 @@ export const useStore = defineStore(STORE_NAME, () => {
     sucursal.value = undefined
     user.value = undefined
     authPin.value = undefined
+    elysiaToken.value = undefined
     $storage.remove()
   }
   /**
@@ -76,6 +79,7 @@ export const useStore = defineStore(STORE_NAME, () => {
     if (storage) {
       user.value = storage.user
       authPin.value = storage.authPin
+      elysiaToken.value = storage.elysiaToken
     }
   }
 
@@ -95,7 +99,8 @@ export const useStore = defineStore(STORE_NAME, () => {
   function saveData() {
     $storage.set({
       user: user.value,
-      authPin: authPin.value
+      authPin: authPin.value,
+      elysiaToken: elysiaToken.value
     })
   }
 
@@ -115,6 +120,7 @@ export const useStore = defineStore(STORE_NAME, () => {
     agencyData,
     agencySelected,
     authPin,
+    elysiaToken,
     cobranzas,
     cobranzaSelected,
     cobranzasWithCrtp,

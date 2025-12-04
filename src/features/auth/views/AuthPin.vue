@@ -37,12 +37,12 @@ const onPinComplete = () => {
     <div class="space-y-6">
       <!-- Instruction Text -->
       <div class="flex items-center justify-center gap-4 text-sm text-gray-400">
-        {{ pinForm.username }} inserte su PIN de usuario
+        {{ pinForm.usuario }} inserte su PIN de usuario
       </div>
 
       <!-- PIN Input -->
       <PinInput
-        v-model="pinForm.password"
+        v-model="pinForm.pin"
         :length="PIN_LENGTH"
         :loading="isLoading"
         @complete="onPinComplete"

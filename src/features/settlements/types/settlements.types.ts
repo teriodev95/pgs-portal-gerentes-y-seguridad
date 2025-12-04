@@ -45,3 +45,10 @@ export interface settlementDetails {
   liquida_con: number;
   estado_liquidacion: string;
 }
+
+
+export interface PayloadCreateSettlement {
+  prestamo_id: string;
+  recuperado_por: string;
+  comentario: string;
+}

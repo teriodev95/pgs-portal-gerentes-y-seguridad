@@ -22,22 +22,22 @@ export function useAuthPinForm() {
   // State
   const isLoading = ref<boolean>(false);
   const pinForm = ref<IAuthLogin>({
-    password: '',
-    username: ''
+    pin: '',
+    usuario: ''
   });
 
   // Computed
   const canSubmit = computed(() =>
-    pinForm.value.password.length === PIN_LENGTH && !isLoading.value
+    pinForm.value.pin.length === PIN_LENGTH && !isLoading.value
   );
 
   const isPinComplete = computed(() => 
-    pinForm.value.password.length === PIN_LENGTH
+    pinForm.value.pin.length === PIN_LENGTH
   );
 
   const handleSuccessfulAuth = (): void => {
     $store.isAuth = true;
-    $store.authPin = pinForm.value.password;
+    $store.authPin = pinForm.value.pin;
     $store.saveData();
     $toast.success(AUTH_CONSTANTS.SUCCESS_MESSAGES.LOGIN_SUCCESS);
     void $router.push({ name: ROUTE_NAME.DASHBOARD_HOME });
@@ -49,25 +49,25 @@ export function useAuthPinForm() {
     isLoading.value = true;
 
     try {
-      const response = await authService.authLogin(pinForm.value);
-      $store.user = response.data;
+      const { user} = await authService.authLogin(pinForm.value);
+      $store.user = user;
       handleSuccessfulAuth();
     } catch (error) {
       handleAuthError(error);
     } finally {
-      pinForm.value.password = '';
+      pinForm.value.pin = '';
       isLoading.value = false;
     }
   };
 
   const initializeUsername = (): void => {
     if ($store.user) {
-      pinForm.value.username = $store.user.usuario;
+      pinForm.value.usuario = $store.user.usuario;
     }
   };
 
   const resetPin = (): void => {
-    pinForm.value.password = '';
+    pinForm.value.pin = '';
   };
 
   // Lifecycle
