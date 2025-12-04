@@ -4,7 +4,8 @@ import {
   contentTypeInterceptor,
   apiKeyInterceptor,
   loggingInterceptor,
-  errorHandlerInterceptor
+  errorHandlerInterceptor,
+  elysiaAuthInterceptor
 } from './interceptors'
 
 // Predefined API configurations based on current implementation
@@ -110,7 +111,16 @@ class ApiClientFactory implements IApiClientFactory {
     if (!config) {
       throw new Error(`Unknown API preset: ${preset}`)
     }
-    return this.create(config)
+
+    const instance = this.create(config)
+
+    // Agregar interceptor específico para Elysia
+    if (preset === 'elysia') {
+      const elysiaInterceptors = [elysiaAuthInterceptor()]
+      this.applyInterceptors(instance, elysiaInterceptors)
+    }
+
+    return instance
   }
 }
 
