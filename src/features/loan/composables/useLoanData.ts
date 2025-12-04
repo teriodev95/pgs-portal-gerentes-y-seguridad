@@ -10,7 +10,7 @@ import type { Liquidacion } from '@/features/settlements/types'
 export function useLoanData() {
   const $route = useRoute()
   const $store = useStore()
-  const { handleError, handleAsyncError } = useLoanErrorHandler()
+  const { handleError } = useLoanErrorHandler()
 
   // State
   const isLoading = ref(true)
@@ -52,7 +52,7 @@ export function useLoanData() {
 
   async function fetchSettlementData(id: string) {
     try {
-      const { data } = await settlementsService.getLiquidacion(id)
+      const data = await settlementsService.getLiquidacion(id)
       settlementData.value = data
     } catch (error) {
       handleError(error, 'SETTLEMENT_DATA_LOAD_FAILED', { loanId: id }, false)

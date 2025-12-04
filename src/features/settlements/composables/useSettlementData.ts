@@ -62,7 +62,7 @@ export function useSettlementData() {
 
     try {
       isLoading.value = true
-      const { data } = await settlementsService.getLiquidacion(loanId)
+      const data = await settlementsService.getLiquidacion(loanId)
       settlementData.value = data
     } catch (error) {
       handleError(error, 'SETTLEMENT_LOAD_FAILED')
