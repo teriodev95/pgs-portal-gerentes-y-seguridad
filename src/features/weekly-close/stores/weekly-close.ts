@@ -1,7 +1,7 @@
 // stores/cierreSemanal.ts
 import { ref, computed, readonly } from 'vue'
 import { defineStore } from 'pinia'
-import type { IFastWeeklyClose, IWeeklyCloseWithIncome, IBonusSummary, IIngresosAgente } from '@/features/weekly-close/types'
+import type { IFastWeeklyClose, IWeeklyCloseWithIncome, IBonusSummary } from '@/features/weekly-close/types'
 import type { IAgencyDashboard } from '@/features/weekly-close/types'
 
 
@@ -58,10 +58,8 @@ export const useCierreSemanalStore = defineStore('cierre-semanal', () => {
 
 
   const setAgentsIncome = (data: IAgencyDashboard) => {
-
     if (!weeklyClose.value) return
 
-    console.log('AGENTS INCOME DATA', data)
     weeklyClose.value.ingresosAgente.cobranzaPura = data.totalCobranzaPura
     weeklyClose.value.ingresosAgente.montoExcedente = data.montoExcedente
     weeklyClose.value.ingresosAgente.liquidaciones = data.liquidaciones
