@@ -41,15 +41,13 @@ export const useCierreSemanalCalculations = () => {
     if (!store.weeklyClose) return 0
     
     const { ingresosAgente } = store.weeklyClose
-
-    console.log('INGRESOS AGENTE PARA CÁLCULO', ingresosAgente)
     
     return (
-      (ingresosAgente?.cobranzaPura || 0) +
-      (ingresosAgente?.montoExcedente || 0) +
-      (ingresosAgente?.liquidaciones || 0) +
-      (ingresosAgente?.multas || 0) +
-      (ingresosAgente?.otrosIngresos || 0)
+      (ingresosAgente.cobranzaPura || 0) +
+      (ingresosAgente.montoExcedente || 0) +
+      (ingresosAgente.liquidaciones || 0) +
+      (ingresosAgente.multas || 0) +
+      (ingresosAgente.otrosIngresos || 0)
     )
   })
 
