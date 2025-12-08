@@ -2,18 +2,20 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCierreSemanalStore, useSignStore } from '@/features/weekly-close/stores'
-import { useStore } from '@/shared/stores'
+import { useStore, useErrorDialogStore } from '@/shared/stores'
 import { useCierreSemanalAPI } from './useCierreSemanalAPI'
 import { useCierreSemanalCalculations } from './useCierreSemanalCalculations'
 import { useWeeklyCloseErrorHandler } from './useWeeklyCloseErrorHandler'
 import { transformToCreateCierre } from '../utils/weeklyCloseHelpers'
 import { ROUTE_NAME } from '@/router'
 
+
 export const useCierreSemanal = () => {
   const router = useRouter()
   const store = useCierreSemanalStore()
   const globalStore = useStore()
   const signStore = useSignStore()
+  const errorDialogStore = useErrorDialogStore()
   const calculations = useCierreSemanalCalculations()
   const { handleError } = useWeeklyCloseErrorHandler()
 
@@ -44,17 +46,23 @@ export const useCierreSemanal = () => {
       await loadWeeklyClose()
       await loadAgentsIncome()
 
+      throw new Error('Simulated error for testing') // Línea para probar el manejo de errores
+
       // Configurar nombres para firmas
       if (store.weeklyClose) {
         signStore.nombreAgente = store.weeklyClose.resumenSemanal.agente
         signStore.nombreGerente = store.weeklyClose.resumenSemanal.gerente
       }
     } catch (error) {
-      handleError(error, 'WEEKLY_CLOSE_LOAD_FAILED')
-      store.setError('Error cargando datos del cierre semanal')
+
+      // Mostrar error usando DialogError
+
+      errorDialogStore.showSimpleError('Ocurrió un incidente inesperado al intentar cargar tu cierre. Intenta nuevamente o borra la caché de tu navegador para resolver el problema.', 'Algo no salió como esperábamos')
+
+      // Mantener el error en el store local para manejos internos
+      //store.setError('Error cargando datos del cierre semanal')
     } finally {
       store.setLoading(false)
-      console.log('loading', store.isLoading)
     }
   }
 
@@ -103,6 +111,12 @@ export const useCierreSemanal = () => {
 
       return true
     } catch (error) {
+      console.error('Error en saveWeeklyClose:', error)
+
+      // Mostrar error usando DialogError
+      errorDialogStore.showApiError(error, 'Error al guardar el cierre semanal')
+
+      // Mantener compatibilidad con el manejo anterior
       handleError(error, 'WEEKLY_CLOSE_SAVE_FAILED')
       store.setError('Error guardando el cierre semanal')
       return false

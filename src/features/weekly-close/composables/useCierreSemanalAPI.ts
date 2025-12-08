@@ -47,7 +47,7 @@ export const useCierreSemanalAPI = () => {
       console.log('CIERRE SEMANAL FAST API', data[0])
       return data[0]
     } catch (error) {
-      handleAPIError(error, 'GET')
+      console.error('Error fetching weekly close:', error)
       throw error
     }
   }
