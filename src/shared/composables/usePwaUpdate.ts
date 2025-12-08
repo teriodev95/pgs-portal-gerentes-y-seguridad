@@ -1,8 +1,10 @@
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 export const usePwaUpdate = () => {
   const isUpdating = ref(false)
   const updateAvailable = ref(false)
+  const router = useRouter()
 
   const clearCacheAndReload = async () => {
     try {
@@ -19,13 +21,16 @@ export const usePwaUpdate = () => {
         }
       }
 
-      // Recargar la página
-      window.location.reload()
+      // Navegar al home y hacer reload con bypass de cache
+      await router.push('/')
+
+      // Usar window.location.href con timestamp para bypass total del cache
+      window.location.href = window.location.origin + '/?t=' + Date.now()
 
     } catch (error) {
       console.error('Error al limpiar cachés:', error)
-      // Fallback: recarga normal
-      window.location.reload()
+      // Fallback: navegar al home
+      router.push('/')
     } finally {
       isUpdating.value = false
     }
