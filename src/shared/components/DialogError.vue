@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useErrorDialogStore } from '@/shared/stores/errorDialog'
+import { usePwaUpdate } from '@/shared/composables/usePwaUpdate'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
 import {
   Dialog,
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/dialog'
 
 const errorStore = useErrorDialogStore()
+const { clearCacheAndReload, isUpdating } = usePwaUpdate()
 
 // Computed para facilitar el acceso
 const isOpen = computed(() => errorStore.isOpen)
@@ -40,8 +42,9 @@ function handleClose(): void {
   errorStore.closeDialog()
 }
 
-function handleAccept(): void {
+async function handleAccept(): Promise<void> {
   errorStore.clearError()
+  await clearCacheAndReload()
 }
 </script>
 
@@ -105,8 +108,9 @@ function handleAccept(): void {
             variant="primary"
             @click="handleAccept"
             class="w-full"
+            :disabled="isUpdating"
           >
-            Entendido
+            {{ isUpdating ? 'Actualizando...' : 'Borrar caché y volver a intentar' }}
           </BtnComponent>
         </div>
       </DialogFooter>
