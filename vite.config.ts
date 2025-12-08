@@ -29,6 +29,8 @@ export default defineConfig({
 			globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
 			cleanupOutdatedCaches: false,
 			sourcemap: true,
+			navigateFallback: 'index.html',
+			navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
 		},
 		devOptions: {
 			enabled: false,
