@@ -49,10 +49,12 @@ export const useCierreSemanal = () => {
       throw new Error('Simulated error for testing') // Línea para probar el manejo de errores
 
       // Configurar nombres para firmas
+      /*
       if (store.weeklyClose) {
         signStore.nombreAgente = store.weeklyClose.resumenSemanal.agente
         signStore.nombreGerente = store.weeklyClose.resumenSemanal.gerente
       }
+      */
     } catch (error) {
 
       // Mostrar error usando DialogError
