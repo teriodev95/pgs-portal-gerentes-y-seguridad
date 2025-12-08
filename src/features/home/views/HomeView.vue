@@ -4,6 +4,7 @@ import { onMounted } from 'vue'
 import { useAgencyData } from '@/features/home/composables/useAgencyData'
 import { useCollections } from '@/features/home/composables/useCollections'
 import { useUIState } from '@/features/home/composables/useUIState'
+import { usePwaUpdate } from '@/shared/composables/usePwaUpdate'
 
 // Components import
 import AgencySlider from '@/features/home/components/AgencySlider.vue'
