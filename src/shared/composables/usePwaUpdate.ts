@@ -25,8 +25,7 @@ export const usePwaUpdate = () => {
       await router.push('/')
 
       // Usar window.location.href con timestamp para bypass total del cache
-      window.location.href = window.location.origin + '/?t=' + Date.now()
-
+      window.location.href='/'
     } catch (error) {
       console.error('Error al limpiar cachés:', error)
       // Fallback: navegar al home
