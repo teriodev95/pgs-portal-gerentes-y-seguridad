@@ -22,7 +22,6 @@ const $route = useRoute()
 const {
   settlementData,
   isLoading,
-  hasSettlementData,
   initializeSettlement
 } = useSettlementData()
 
@@ -57,7 +56,12 @@ onBeforeMount(async () => {
     <!-- Navigation Header -->
     <div class="sticky top-0 z-20 w-full bg-white p-2">
       <NavbarTop label="Liquidación"
-        :back="{ name: ROUTE_NAME.DASHBOARD_PRESTAMO, query: { prestamo: $route.query.prestamo } }" />
+        :back="{ name: ROUTE_NAME.DASHBOARD_PRESTAMO, query: { prestamo: $route.query.prestamo } }" 
+        :extra-info="[
+          `${settlementData?.prestamoId}`,
+          `${settlementData?.cliente}`
+        ]"  
+      />
     </div>
 
     <!-- Settlement Content -->
