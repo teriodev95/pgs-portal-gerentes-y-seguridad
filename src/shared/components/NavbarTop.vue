@@ -20,9 +20,10 @@ export interface Emit {
   (e: 'onBack'): void
 }
 export interface Props {
-  back?: RouteLocationRaw | boolean
   label: string
+  back?: RouteLocationRaw | boolean
   user?: string
+  extraInfo?: string[]
 }
 
 const $emit = defineEmits<Emit>()
@@ -61,7 +62,12 @@ function handleBackAction() {
       <p class="title">
         {{ label }} <span>{{ user }}</span>
       </p>
-      <p class="subtitle">{{ getDateTime() }}</p>
+
+      <template v-if="extraInfo?.length">
+        <p class="subtitle" v-for="(info, index) in extraInfo" :key="index">{{ info }}</p>
+      </template>
+
+      <p v-else class="subtitle">{{ getDateTime() }}</p>
     </div>
   </nav>
 </template>

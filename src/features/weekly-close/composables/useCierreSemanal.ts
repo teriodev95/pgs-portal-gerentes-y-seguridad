@@ -46,19 +46,14 @@ export const useCierreSemanal = () => {
       await loadWeeklyClose()
       await loadAgentsIncome()
 
-      throw new Error('Simulated error for testing') // Línea para probar el manejo de errores
 
       // Configurar nombres para firmas
-      /*
       if (store.weeklyClose) {
         signStore.nombreAgente = store.weeklyClose.resumenSemanal.agente
         signStore.nombreGerente = store.weeklyClose.resumenSemanal.gerente
       }
-      */
     } catch (error) {
-
       // Mostrar error usando DialogError
-
       errorDialogStore.showSimpleError('Ocurrió un incidente inesperado al intentar cargar tu cierre. Intenta nuevamente o borra la caché de tu navegador para resolver el problema.', 'Algo no salió como esperábamos')
 
       // Mantener el error en el store local para manejos internos
