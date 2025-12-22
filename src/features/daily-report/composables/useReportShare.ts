@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { useToast } from 'vue-toast-notification'
+import { useShareData } from '@/shared/composables/useShareData'
 import { REPORT_CONFIG, REPORT_MESSAGES } from '../constants'
 import { reportService } from '../services/report.service'
 import { useReportErrorHandler } from './useReportErrorHandler'
@@ -8,21 +8,7 @@ import type { ReportParams, ReportType, ShareResult } from '../types'
 export function useReportShare() {
   const $toast = useToast()
   const { handleError } = useReportErrorHandler()
-
-  const isSharing = ref(false)
-
-  async function shareNatively(file: File): Promise<ShareResult> {
-    try {
-      await navigator.share({
-        title: `Reporte ${file.name}`,
-        text: `Reporte generado`,
-        files: [file],
-      })
-      return { success: true, method: 'native' }
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Native sharing failed')
-    }
-  }
+  const { shareData, isSharing } = useShareData()
 
   function downloadFile(file: File, imageUrl: string): ShareResult {
     try {
@@ -54,8 +40,6 @@ export function useReportShare() {
       return { success: false, error: errorMsg }
     }
 
-    isSharing.value = true
-
     try {
       const filename = reportService.generateFilename(type, params, customFilename)
       const file = new File(
@@ -67,8 +51,14 @@ export function useReportShare() {
       let result: ShareResult
 
       // Try native sharing first
-      if ('share' in navigator && 'canShare' in navigator && navigator.canShare({ files: [file] })) {
-        result = await shareNatively(file)
+      const shareResult = await shareData({
+        title: `Reporte ${file.name}`,
+        text: `Reporte generado`,
+        files: [file],
+      })
+
+      if (shareResult.success) {
+        result = shareResult as ShareResult
       } else {
         // Fallback to download
         result = downloadFile(file, imageUrl)
@@ -83,8 +73,6 @@ export function useReportShare() {
       const errorMessage = err instanceof Error ? err.message : 'Failed to share report'
       handleError(err, 'REPORT_SHARE_FAILED')
       return { success: false, error: errorMessage }
-    } finally {
-      isSharing.value = false
     }
   }
 
