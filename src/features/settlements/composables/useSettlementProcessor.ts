@@ -50,10 +50,11 @@ export function useSettlementProcessor() {
       handleSuccess(`Liquidación exitosa para ${processedData.cliente}`)
       showSuccessCircle.value = true
     } catch (error) {
+      const errorCode = (error as any)?.code || 'UNKNOWN_ERROR'
       errorDialogStore.showSimpleError(
-        "¡Ups! Algo no ocurrió como se esperaba", 
-        "Hubo un problema al procesar la creación de la liquidación", 
-        (error as Error).stack || '')
+        "¡Ups! Algo no ocurrió como se esperaba",
+        "Hubo un problema al procesar la creación de la liquidación",
+        errorCode)
     } finally {
       isProcessing.value = false
     }
