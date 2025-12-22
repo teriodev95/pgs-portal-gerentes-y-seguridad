@@ -2,7 +2,9 @@
 import { computed } from 'vue'
 import { useErrorDialogStore } from '@/shared/stores/errorDialog'
 import { usePwaUpdate } from '@/shared/composables/usePwaUpdate'
+import { useShareData } from '@/shared/composables/useShareData'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
+import CopyError from '@/shared/components/CopyError.vue'
 import {
   Dialog,
   DialogContent,
@@ -14,6 +16,7 @@ import {
 
 const errorStore = useErrorDialogStore()
 const { clearCacheAndReload, isUpdating } = usePwaUpdate()
+const { shareData, isSharing } = useShareData()
 
 // Computed para facilitar el acceso
 const isOpen = computed(() => errorStore.isOpen)
@@ -45,6 +48,20 @@ function handleClose(): void {
 async function handleAccept(): Promise<void> {
   errorStore.clearError()
   await clearCacheAndReload()
+}
+
+async function handleShareError(): Promise<void> {
+  const details = errorInfo.value?.details
+  const title = errorInfo.value?.title || 'Error'
+
+  if (!details) return
+
+  const errorText = `Detalles:\n${details}`
+
+  await shareData({
+    title: `Error - ${title}`,
+    text: errorText
+  })
 }
 </script>
 
@@ -87,23 +104,39 @@ async function handleAccept(): Promise<void> {
         </div>
       </DialogHeader>
 
-      <DialogDescription class="text-left space-y-3">
+      <DialogDescription class="w-full text-left space-y-3">
         <!-- Mensaje principal -->
         <p class="text-gray-700 leading-relaxed">
           {{ errorInfo?.message || 'Ha ocurrido un error inesperado.' }}
         </p>
 
         <!-- Detalles técnicos (colapsible) -->
-        <details v-if="showDetails" class="mt-4">
+        <details v-if="showDetails" class="mt-4 w-full">
           <summary class="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-800">
             Ver detalles técnicos
           </summary>
-          <pre class="mt-2 p-3 bg-gray-100 rounded text-xs overflow-auto max-h-32 text-gray-800 border">{{ errorInfo?.details }}</pre>
+          <div class="mt-2 space-y-2">
+            <div class="flex justify-end">
+              <CopyError :text="errorInfo?.details || ''" />
+            </div>
+            <div class="p-3 bg-gray-100 rounded text-xs overflow-auto max-h-32 w-full min-w-0 text-gray-800 border">
+              <pre class="whitespace-pre-wrap break-all m-0">{{ errorInfo?.details }}</pre>
+            </div>
+          </div>
         </details>
       </DialogDescription>
 
       <DialogFooter>
         <div class="flex flex-col gap-2 w-full">
+          <BtnComponent
+            variant="primary"
+            outline
+            @click="handleShareError"
+            class="w-full"
+            :disabled="isSharing || !showDetails"
+          >
+            {{ isSharing ? 'Compartiendo...' : 'Compartir error' }}
+          </BtnComponent>
           <BtnComponent
             variant="primary"
             @click="handleAccept"

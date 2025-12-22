@@ -3,6 +3,7 @@ import type { Liquidacion } from '../types'
 import { PaymentSource, RecoverySource } from '@/features/loan/types'
 import { settlementsService } from '../services/settlements.service'
 import { useSettlementErrorHandler } from './useSettlementErrorHandler'
+import { useErrorDialogStore } from '@/shared/stores'
 
 interface PaymentFormData {
   amount: number
@@ -13,6 +14,8 @@ interface PaymentFormData {
 export function useSettlementProcessor() {
   // Services and composables
   const { handleError, handleSuccess } = useSettlementErrorHandler()
+  const errorDialogStore = useErrorDialogStore()
+
 
   // State definitions
   const isProcessing = ref(false)
@@ -44,12 +47,13 @@ export function useSettlementProcessor() {
       processedData.recuperadoPor = paymentForm.value.paymentRecovery
 
       await settlementsService.createSettlement(processedData)
-      
       handleSuccess(`Liquidación exitosa para ${processedData.cliente}`)
       showSuccessCircle.value = true
-      
     } catch (error) {
-      handleError(error, 'SETTLEMENT_PROCESS_FAILED')
+      errorDialogStore.showSimpleError(
+        "¡Ups! Algo no ocurrió como se esperaba", 
+        "Hubo un problema al procesar la creación de la liquidación", 
+        (error as Error).stack || '')
     } finally {
       isProcessing.value = false
     }

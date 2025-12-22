@@ -54,10 +54,11 @@ export const useCierreSemanal = () => {
       }
     } catch (error) {
       // Mostrar error usando DialogError
-      errorDialogStore.showSimpleError('Ocurrió un incidente inesperado al intentar cargar tu cierre. Intenta nuevamente o borra la caché de tu navegador para resolver el problema.', 'Algo no salió como esperábamos')
-
-      // Mantener el error en el store local para manejos internos
-      //store.setError('Error cargando datos del cierre semanal')
+      errorDialogStore.showSimpleError(
+        'Algo no salió como esperábamos',
+        'Ocurrió un incidente inesperado al intentar cargar tu cierre. Intenta nuevamente o borra la caché de tu navegador para resolver el problema.',
+        (error as Error).message
+      )
     } finally {
       store.setLoading(false)
     }
@@ -111,7 +112,11 @@ export const useCierreSemanal = () => {
       console.error('Error en saveWeeklyClose:', error)
 
       // Mostrar error usando DialogError
-      errorDialogStore.showApiError(error, 'Error al guardar el cierre semanal')
+      errorDialogStore.showSimpleError(
+        "¡Ups! No pudimos guardar tu cierre semanal",
+        'Ocurrió un problema al intentar guardar tu cierre semanal. Por favor, intenta nuevamente.',
+        (error as Error).message
+      )
 
       // Mantener compatibilidad con el manejo anterior
       handleError(error, 'WEEKLY_CLOSE_SAVE_FAILED')

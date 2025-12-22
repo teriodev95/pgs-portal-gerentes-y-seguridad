@@ -24,15 +24,16 @@ export const useErrorDialogStore = defineStore('errorDialog', () => {
     _isOpen.value = true
   }
 
-  function showSimpleError(message: string, title = 'Error') {
+  function showSimpleError(title = 'Error', message: string, details: string) {
     showError({
-      title,
+      details,
       message,
-      type: 'error'
+      title,
+      type: 'error',
     })
   }
 
-  function showWarning(message: string, title = 'Advertencia') {
+  function showWarning(title = 'Advertencia', message: string) {
     showError({
       title,
       message,
@@ -40,7 +41,7 @@ export const useErrorDialogStore = defineStore('errorDialog', () => {
     })
   }
 
-  function showInfo(message: string, title = 'Información') {
+  function showInfo(title = 'Información', message: string) {
     showError({
       title,
       message,
@@ -57,35 +58,6 @@ export const useErrorDialogStore = defineStore('errorDialog', () => {
     _isOpen.value = false
   }
 
-  // Helper para errores de API
-  function showApiError(error: any, defaultMessage = 'Ha ocurrido un error inesperado') {
-    let title = 'Error de Conexión'
-    let message = defaultMessage
-    let details = ''
-
-    if (error?.response) {
-      // Error de respuesta del servidor
-      title = `Error ${error.response.status}`
-      message = error.response.data?.message || error.response.statusText || defaultMessage
-      details = JSON.stringify(error.response.data, null, 2)
-    } else if (error?.request) {
-      // Error de red
-      title = 'Error de Conexión'
-      message = 'No se pudo conectar con el servidor. Verifica tu conexión a internet.'
-    } else if (error?.message) {
-      // Error genérico
-      message = error.message
-      details = error.stack
-    }
-
-    showError({
-      title,
-      message,
-      type: 'error',
-      details
-    })
-  }
-
   return {
     // Getters
     isOpen,
@@ -97,7 +69,6 @@ export const useErrorDialogStore = defineStore('errorDialog', () => {
     showSimpleError,
     showWarning,
     showInfo,
-    showApiError,
     closeDialog,
     clearError
   }
