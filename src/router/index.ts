@@ -98,6 +98,11 @@ const router = createRouter({
           component: () => import('@/features/settlements/views/SettlementsView.vue')
         },
         {
+          path: 'special-settlement',
+          name: ROUTE_NAME.SPECIAL_SETTLEMENT,
+          component: () => import('@/features/settlements/views/SpecialSettlement.vue')
+        },
+        {
           path: 'no-payments',
           name: ROUTE_NAME.NO_PAYMENTS,
           component: () => import('@/features/no-payment/views/NoPayments.vue')

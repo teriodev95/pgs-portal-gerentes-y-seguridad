@@ -52,3 +52,35 @@ export interface PayloadCreateSettlement {
   recuperado_por: string;
   comentario: string;
 }
+
+export interface ISpecialSettlement {
+  prestamo_id: string;
+  cliente: string;
+  gerencia: string;
+  agente: string;
+  semana_inicio: number;
+  anio_inicio: number;
+  plazo_semanas: number;
+  semanas_transcurridas: number;
+  monto_otorgado: number;
+  total_a_pagar: number;
+  tarifa: number;
+  cobrado: number;
+  saldo: number;
+  ultima_semana_pago: number;
+  ultimo_anio_pago: number;
+  semanas_sin_pagar: number;
+  numero_pagos: number;
+  comision_cobranza: number;
+  comision_venta: number;
+  comision_total: number;
+  por_recuperar: number;
+  faltante: number;
+  descuento_disponible: number;
+  status_recuperacion: string;
+  liquida_con_10_porciento: number;
+  liquida_con_20_porciento: number;
+  liquida_con_30_porciento: number;
+  liquida_con_40_porciento: number;
+  liquida_con_50_porciento: number;
+}

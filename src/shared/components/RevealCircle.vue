@@ -16,12 +16,12 @@ import ArrowRightIcon from '@/shared/components/icons/ArrowRightIcon.vue'
  */
 
 interface Props {
-  ctaText?: string
-  list?: string[]
   mainText: string
-  secondaryText: string
-  subText?: string
   type: 'success' | 'error'
+  secondaryText: string
+  list?: string[]
+  subText?: string
+  ctaText?: string
 }
 
 interface Emit {
