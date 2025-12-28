@@ -26,7 +26,8 @@ import {
   Ticket,
   CalculatorIcon,
   KeyRound,
-  Share
+  Share,
+  Book
 } from 'lucide-vue-next'
 
 /**
@@ -205,6 +206,12 @@ export function useHomeMenu() {
       route: ROUTE_NAME.DAILY_REPORT ,
       icon: Share,
       description: 'Compartir vía Whatsapp'
+    },
+    {
+      id: 'special-settlement',
+      title: 'Liquidación Especial',
+      route: ROUTE_NAME.SPECIAL_SETTLEMENT ,
+      icon: Book,
     },
     {
       id: 'solim',

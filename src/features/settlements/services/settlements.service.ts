@@ -1,5 +1,5 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
-import type { Liquidacion, settlementDetails, PayloadCreateSettlement } from '../types'
+import type { Liquidacion, settlementDetails, PayloadCreateSettlement, ISpecialSettlement } from '../types'
 
 class SettlementsService {
 
@@ -36,6 +36,11 @@ class SettlementsService {
 
     // El interceptor elysiaAuthInterceptor se encarga automáticamente de agregar el token
     return this.apiElysia.post<string>(`/liquidaciones/`, dataMapped)
+  }
+
+
+  async getSpecialSettlement(id : string) {
+    return this.apiJavalin.get<ISpecialSettlement>(`/liquidaciones-especiales/prestamo/${id}`)    
   }
 }
 
