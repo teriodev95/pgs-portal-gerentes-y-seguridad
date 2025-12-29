@@ -111,10 +111,7 @@ async function handleShareError(): Promise<void> {
         </p>
 
         <!-- Detalles técnicos (colapsible) -->
-        <details v-if="showDetails" class="mt-4 w-full">
-          <summary class="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-800">
-            Ver detalles técnicos
-          </summary>
+        <div v-if="showDetails" class="mt-4 w-full">
           <div class="mt-2 space-y-2">
             <div class="flex justify-end">
               <CopyError :text="errorInfo?.details || ''" />
@@ -123,7 +120,7 @@ async function handleShareError(): Promise<void> {
               <pre class="whitespace-pre-wrap break-all m-0">{{ errorInfo?.details }}</pre>
             </div>
           </div>
-        </details>
+        </div>
       </DialogDescription>
 
       <DialogFooter>
