@@ -184,6 +184,11 @@ const router = createRouter({
           name: ROUTE_NAME.TICKETS,
           component: () => import('@/features/iframe/views/TicketsView.vue')
         },
+        {
+          path: 'calendar',
+          name: ROUTE_NAME.CALENDAR,
+          component: () => import('@/features/calendar/views/CalendarView.vue')
+        },
 
       ]
     },
