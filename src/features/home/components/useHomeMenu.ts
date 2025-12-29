@@ -215,6 +215,13 @@ export function useHomeMenu() {
       icon: Book,
     },
     {
+      id: 'calendar',
+      title: 'Calendario',
+      icon: Calendar,
+      route: ROUTE_NAME.CALENDAR,
+      description: 'Ver calendario',
+    },
+    {
       id: 'solim',
       title: 'Admin Solim',
       icon: FileCheck,
@@ -245,13 +252,6 @@ export function useHomeMenu() {
       route: ROUTE_NAME.SECURITY_PIN,
       disabled: isManagerUser.value || isRegionalUser.value,
       description: 'Compartir pin',
-    },
-    {
-      id: 'calendar',
-      title: 'Calendario',
-      icon: Calendar,
-      route: ROUTE_NAME.CALENDAR,
-      description: 'Ver calendario',
     },
   ])
 
