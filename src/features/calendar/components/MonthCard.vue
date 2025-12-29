@@ -51,8 +51,8 @@ interface Props {
 }
 
 interface Emits {
-  selectMonth: [month: string]
-  weekClick: [week: CalendarWeek]
+  (e: 'selectMonth', month: string): void
+  (e: 'weekClick', week: CalendarWeek): void
 }
 
 const props = defineProps<Props>()

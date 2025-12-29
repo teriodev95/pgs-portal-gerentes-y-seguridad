@@ -74,9 +74,9 @@ interface Props {
 }
 
 interface Emits {
-  navigateYear: [direction: 'previous' | 'next']
-  navigateMonth: [direction: 'previous' | 'next']
-  setView: [view: CalendarView]
+  (e: 'navigateYear', direction: 'previous' | 'next'): void
+  (e: 'navigateMonth', direction: 'previous' | 'next'): void
+  (e: 'setView', view: CalendarView): void
 }
 
 const props = defineProps<Props>()

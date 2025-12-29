@@ -40,7 +40,7 @@ interface Props {
 }
 
 interface Emits {
-  click: [week: CalendarWeek]
+  (e: 'click', week: CalendarWeek): void
 }
 
 const props = defineProps<Props>()
