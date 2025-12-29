@@ -27,7 +27,8 @@ import {
   CalculatorIcon,
   KeyRound,
   Share,
-  Book
+  Book,
+  Calendar
 } from 'lucide-vue-next'
 
 /**
@@ -244,6 +245,13 @@ export function useHomeMenu() {
       route: ROUTE_NAME.SECURITY_PIN,
       disabled: isManagerUser.value || isRegionalUser.value,
       description: 'Compartir pin',
+    },
+    {
+      id: 'calendar',
+      title: 'Calendario',
+      icon: Calendar,
+      route: ROUTE_NAME.CALENDAR,
+      description: 'Ver calendario',
     },
   ])
 
