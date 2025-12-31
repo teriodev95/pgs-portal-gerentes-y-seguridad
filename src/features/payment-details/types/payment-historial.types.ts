@@ -16,4 +16,8 @@ export interface IPayment {
   validacion: string;
   tipo: string;
   agente: string;
+  creadoDesde: string;
+  comentario: string;
+  lat?: number;
+  lng?: number;
 }

@@ -31,8 +31,9 @@ const {
 // Methods
 function handlePaymentAction(action: 'showMap' | 'correction', payment: IPayment) {
   if (action === 'showMap') {
-    //const position = latLng(payment.lat, payment.lng)
-    //showMap(position)
+    if (!payment.lat || !payment.lng) return
+    const position = latLng(payment.lat, payment.lng)
+    showMap(position)
   } else if (action === 'correction') {
     $router.push({
       name: ROUTE_NAME.RECORD_CORRECTION,

@@ -59,8 +59,9 @@ export function usePaymentHistory() {
   }
 
   function showPaymentLocation(payment: IPayment): void {
-    //const position = latLng(payment.lat, payment.lng)
-    //showMap(position)
+    if (!payment.lat || !payment.lng) return 
+    const position = latLng(payment.lat, payment.lng)
+    showMap(position)
   }
 
   function clearData(): void {

@@ -62,7 +62,7 @@ function navigateToCorrection() {
         </div>
 
         <!-- Comments -->
-        <div>
+        <div v-if="payment.comentario">
           <p class="font-300 text-gray-400">Comentario</p>
           <p class="font-md-700 text-blue-800">{{ payment.comentario }}</p>
         </div>
@@ -75,7 +75,7 @@ function navigateToCorrection() {
           </div>
           <div class="flex-1">
             <p class="font-300 text-gray-400">¿Quien Pago?</p>
-            <p class="font-md-700 text-blue-800">{{ payment.quienPago }}</p>
+            <p class="font-md-700 text-blue-800"></p>
           </div>
         </div>
       </div>
