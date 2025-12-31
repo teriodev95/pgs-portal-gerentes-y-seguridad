@@ -7,11 +7,11 @@ import {
 } from 'flowbite-vue'
 import { computed } from 'vue'
 import { toCurrency } from '@/shared/utils'
-import type { IPaymentSummary } from '../types'
+import type { IPayment } from '../types'
 import PaymentCard from './PaymentCard.vue'
 
 interface Props {
-  historialList: IPaymentSummary[]
+  historialList: IPayment[]
 }
 
 interface Emits {
@@ -37,11 +37,10 @@ function handlePaymentAction(action: 'showMap' | 'correction', payment: any) {
 
 <template>
   <FwbAccordion>
-    <template v-for="(historyItem, historyIndex) in sortedHistorialList" :key="`historial-${historyIndex}`">
-      <FwbAccordionPanel v-for="(payment, paymentIndex) in historyItem.pagos" :key="`payment-${paymentIndex}`">
+      <FwbAccordionPanel v-for="(payment, paymentIndex) in sortedHistorialList" :key="`payment-${paymentIndex}`">
         <FwbAccordionHeader>
           <div class="flex w-full items-center justify-between">
-            <span>Semana {{ historyItem.semana }} / {{ historyItem.anio }}</span>
+            <span>Semana {{ payment.semana }} / {{ payment.anio }}</span>
             <span>{{ toCurrency(payment.monto) }}</span>
           </div>
         </FwbAccordionHeader>
@@ -49,11 +48,9 @@ function handlePaymentAction(action: 'showMap' | 'correction', payment: any) {
         <FwbAccordionContent>
           <PaymentCard
             :payment="payment"
-            :history-item="historyItem"
             @payment-action="handlePaymentAction"
           />
         </FwbAccordionContent>
       </FwbAccordionPanel>
-    </template>
   </FwbAccordion>
 </template>

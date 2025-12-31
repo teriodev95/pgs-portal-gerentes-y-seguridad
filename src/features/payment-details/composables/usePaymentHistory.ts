@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { useStore } from '@/shared/stores'
 import { latLng, type LatLng } from 'leaflet'
-import type { IPaymentSummary, IPaymentRecord } from '../types'
+import type { IPayment } from '../types'
 import type { ILoan } from '@/features/loan/types'
 import { loanAndPaymentService } from '@/features/loan/services/loan.service'
 import { paymentDetailsService } from '../services/payment-details.service'
@@ -13,7 +13,7 @@ export function usePaymentHistory() {
   const { handleError } = usePaymentDetailsErrorHandler()
 
   // State definitions
-  const historyList = ref<IPaymentSummary[]>([])
+  const historyList = ref<IPayment[]>([])
   const loanData = ref<ILoan>()
   const isMapVisible = ref(false)
   const mapMarker = ref<LatLng>()
@@ -36,11 +36,11 @@ export function usePaymentHistory() {
       // Execute requests in parallel for better performance
       const [loanResponse, historyResponse] = await Promise.all([
         loanAndPaymentService.getLoanById(loanId),
-        paymentDetailsService.getLoanHistoryById(loanId)
+        paymentDetailsService.getLoanPayments(loanId)
       ])
 
       loanData.value = loanResponse.data
-      historyList.value = historyResponse.data.historico
+      historyList.value = historyResponse.data.pagos
     } catch (error) {
       handleError(error, 'LOAD_FAILED')
     } finally {
@@ -58,7 +58,8 @@ export function usePaymentHistory() {
     mapMarker.value = position
   }
 
-  function showPaymentLocation(payment: IPaymentRecord): void {
+  function showPaymentLocation(payment: IPayment): void {
+    if (!payment.lat || !payment.lng) return 
     const position = latLng(payment.lat, payment.lng)
     showMap(position)
   }
