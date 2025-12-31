@@ -76,14 +76,16 @@ defineEmits<Emits>()
       </button>
     </div>
 
-    <div class="mt-2">
-      <button
-        class="text-clue-500 w-full rounded-lg border border-blue-800 p-2 text-center disabled:opacity-50"
-        @click="$emit('navigate-to-special-settlement')"
-        :disabled="isRegionalButtonDisabled"
-      >
-        {{ LOAN_BUTTON_LABELS.SPECIAL_SETTLEMENT }}
-      </button>
-    </div>
+    <!--
+      <div class="mt-2">
+        <button
+          class="text-clue-500 w-full rounded-lg border border-blue-800 p-2 text-center disabled:opacity-50"
+          @click="$emit('navigate-to-special-settlement')"
+          :disabled="isRegionalButtonDisabled"
+        >
+          {{ LOAN_BUTTON_LABELS.SPECIAL_SETTLEMENT }}
+        </button>
+      </div>
+    -->
   </div>
 </template>
