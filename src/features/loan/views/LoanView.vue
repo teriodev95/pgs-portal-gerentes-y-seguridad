@@ -40,14 +40,13 @@ const {
 const {
   isRegionalButtonDisabled,
   navigationBackPath,
-  navigateToPaymentHistory
+  navigateToPaymentHistory,
+  navigateToSpecialSettlement
 } = navigationComposable
 
 const {
   confirmId,
   modalInfo,
-  notificationBottomSheet,
-  settlementOptionsBottomSheet,
   closeNotificationSheet,
 } = modalManagerComposable
 
@@ -77,6 +76,10 @@ function onNavigateToSettlements() {
 
 function onNavigateToPaymentHistory() {
   navigateToPaymentHistory(loanData.value)
+}
+
+function onNavigateToSpecialSettlement() {
+  navigateToSpecialSettlement(loanData.value)
 }
 
 // Computed properties for data sections
@@ -201,6 +204,7 @@ onBeforeMount(initializeLoanData)
         :is-settlement-button-disabled="isSettlementButtonDisabled"
         @navigate-to-history="onNavigateToPaymentHistory"
         @settlement-request="onSettlementRequest"
+        @navigate-to-special-settlement="onNavigateToSpecialSettlement"
       />
 
       <!-- Detailed Information -->

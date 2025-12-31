@@ -32,7 +32,7 @@ export function useNavigation() {
 
   function navigateToSettlements(loanData: ILoan | undefined) {
     if (!loanData) return
-    
+
     void $router.push({
       name: ROUTE_NAME.SETTLEMENTS,
       query: {
@@ -41,13 +41,27 @@ export function useNavigation() {
     })
   }
 
+  function navigateToSpecialSettlement(loanData: ILoan | undefined) {
+    console.log('navigateToSpecialSettlement called', loanData)
+    if (!loanData) return
+
+    console.log('Navigating to special settlement for loan:', loanData.prestamoId)
+    void $router.push({
+      name: ROUTE_NAME.SPECIAL_SETTLEMENT,
+      params: {
+        id: loanData.prestamoId
+      }
+    })
+  }
+
   return {
     // Computed
     isRegionalButtonDisabled,
     navigationBackPath,
-    
+
     // Methods
     navigateToPaymentHistory,
-    navigateToSettlements
+    navigateToSettlements,
+    navigateToSpecialSettlement
   }
 }

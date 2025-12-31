@@ -2,3 +2,4 @@
 export { useSettlementData } from './useSettlementData'
 export { useSettlementProcessor } from './useSettlementProcessor'
 export { useSettlementErrorHandler } from './useSettlementErrorHandler'
+export { useSpecialSettlement } from './useSpecialSettlement'

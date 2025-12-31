@@ -16,6 +16,7 @@ interface Props {
 interface Emits {
   (event: 'navigate-to-history'): void
   (event: 'settlement-request'): void
+  (event: 'navigate-to-special-settlement'): void
 }
 
 defineProps<Props>()
@@ -66,12 +67,22 @@ defineEmits<Emits>()
     </div>
 
     <div class="mt-2">
-      <button 
+      <button
         class="text-clue-500 w-full rounded-lg border border-blue-800 p-2 text-center disabled:opacity-50"
-        @click="$emit('settlement-request')" 
+        @click="$emit('settlement-request')"
         :disabled="isRegionalButtonDisabled || isSettlementButtonDisabled"
       >
         {{ LOAN_BUTTON_LABELS.LIQUIDATE }}
+      </button>
+    </div>
+
+    <div class="mt-2">
+      <button
+        class="text-clue-500 w-full rounded-lg border border-blue-800 p-2 text-center disabled:opacity-50"
+        @click="$emit('navigate-to-special-settlement')"
+        :disabled="isRegionalButtonDisabled"
+      >
+        {{ LOAN_BUTTON_LABELS.SPECIAL_SETTLEMENT }}
       </button>
     </div>
   </div>
