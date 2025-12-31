@@ -3,7 +3,7 @@ import { onBeforeMount } from 'vue'
 import { ROUTE_NAME } from '@/router'
 import { useRoute, useRouter } from 'vue-router'
 import { latLng } from 'leaflet'
-import type { IPaymentRecord } from '../types'
+import type { IPayment } from '../types'
 import { usePaymentHistory } from '../composables'
 
 // Components
@@ -29,8 +29,9 @@ const {
 } = usePaymentHistory()
 
 // Methods
-function handlePaymentAction(action: 'showMap' | 'correction', payment: IPaymentRecord) {
+function handlePaymentAction(action: 'showMap' | 'correction', payment: IPayment) {
   if (action === 'showMap') {
+    if (!payment.lat || !payment.lng) return
     const position = latLng(payment.lat, payment.lng)
     showMap(position)
   } else if (action === 'correction') {
