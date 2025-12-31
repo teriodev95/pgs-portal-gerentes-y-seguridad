@@ -209,12 +209,6 @@ export function useHomeMenu() {
       description: 'Compartir vía Whatsapp'
     },
     {
-      id: 'special-settlement',
-      title: 'Liquidación Especial',
-      route: ROUTE_NAME.SPECIAL_SETTLEMENT ,
-      icon: Book,
-    },
-    {
       id: 'calendar',
       title: 'Calendario',
       icon: Calendar,
