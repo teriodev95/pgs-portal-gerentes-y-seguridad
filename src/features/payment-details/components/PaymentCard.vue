@@ -4,15 +4,14 @@ import EyeIcon from '@/shared/components/icons/EyeIcon.vue'
 import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue'
 import { toCurrency } from '@/shared/utils'
 import { useStore } from '@/shared/stores'
-import type { IPaymentRecord, IPaymentSummary } from '../types'
+import type { IPayment } from '../types'
 
 interface Props {
-  payment: IPaymentRecord
-  historyItem: IPaymentSummary
+  payment: IPayment
 }
 
 interface Emits {
-  (e: 'paymentAction', action: 'showMap' | 'correction', payment: IPaymentRecord): void
+  (e: 'paymentAction', action: 'showMap' | 'correction', payment: IPayment): void
 }
 
 const props = defineProps<Props>()
@@ -82,7 +81,7 @@ function navigateToCorrection() {
       </div>
 
       <!-- Action Buttons (only for the most recent payment) -->
-      <div v-if="historyItem.semana === $store.currentDate.week" class="space-y-2">
+      <div v-if="payment.semana === $store.currentDate.week" class="space-y-2">
         <!-- View Map Button -->
         <button
           @click="showPaymentLocation"
