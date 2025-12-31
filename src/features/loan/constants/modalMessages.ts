@@ -21,6 +21,7 @@ export const LOAN_BUTTON_LABELS = {
   UNDERSTOOD: 'Entendido',
   SETTLEMENT_WITH_DISCOUNT: 'Liquidación con descuento',
   SETTLEMENT_WITHOUT_DISCOUNT: 'Saldar sin descuento',
+  SPECIAL_SETTLEMENT: 'Liquidación especial',
   HISTORY: 'Historial',
   LIQUIDATE: 'Liquidar'
 } as const
