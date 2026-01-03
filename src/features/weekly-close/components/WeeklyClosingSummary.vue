@@ -1,18 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { ROUTE_NAME } from '@/router'
-import { toCurrency } from '@/shared/utils'
+import { toCurrency, getPreviousWeek } from '@/shared/utils'
 import { useCierreSemanal } from '@/features/weekly-close/composables/useCierreSemanal'
-import { useCierreSemanalStore } from '../stores'
 import { useRouter } from 'vue-router'
 import type { ModalConfigKey } from '@/features/weekly-close/types'
-
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-
 import { ArrowRight } from 'lucide-vue-next'
 import DataField from '@/shared/components/DataField.vue'
 import EditableField from './EditableField.vue'
@@ -28,8 +20,6 @@ interface Emits {
  * ------------------------------------------
  */
 const router = useRouter()
-const $store = useCierreSemanalStore()
-const isCollapsed = ref(false)
 
 // Usar el nuevo composable principal
 const {
@@ -53,7 +43,7 @@ const emit = defineEmits<Emits>()
  *	Computed
  * ------------------------------------------
  */
-const currentWeek = computed(() => currentDate.value.week)
+const previousWeek = computed(() => getPreviousWeek(currentDate.value.week, currentDate.value.year))
 
 /**
  * ------------------------------------------
@@ -168,7 +158,7 @@ const handleShowWeekDetails = () => {
         <InfoIcon class="size-6 shrink-0 text-blue-500" />
         <p class="font-sm-700 text-blue-800">
           {{ agency?.agencia }}, estás realizando el pago de comisiones correspondientes a la
-          <span class="btn-manual-number">semana {{ currentWeek - 1 }}</span>
+          <span class="btn-manual-number">semana {{ previousWeek }}</span>
           (semana anterior). Para más detalles, haz clic en el siguiente botón
         </p>
       </div>
@@ -177,7 +167,7 @@ const handleShowWeekDetails = () => {
         @click="handleShowWeekDetails" 
         class="btn-primary-outline !btn-sm flex items-center justify-center gap-2"
       >
-        <span>Ver Detalles de Semana {{ currentWeek - 1 }}</span>
+        <span>Ver Detalles de Semana {{ previousWeek }}</span>
         <ArrowRight class="h-4 w-4" />
       </button>
     </div>
@@ -193,29 +183,6 @@ const handleShowWeekDetails = () => {
       @edit="emit('action:show-modal', $event)"
     />
 
-    <!--
-      <Collapsible v-if="$store.bonusInfo"  v-model:open="isCollapsed">
-        <CollapsibleTrigger class="w-full text-left p-2 hover:bg-gray-50 rounded border border-gray-200 mb-2 flex justify-between items-center">
-          <span class="property-label text-gray-400">Bono calculado por el sistema</span>
-          <svg
-            :class="{ 'rotate-180': isCollapsed }"
-            class="w-4 h-4 transition-transform duration-200"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </CollapsibleTrigger>
-        <CollapsibleContent class="space-y-2">
-          <DataField label="Monto" :value="toCurrency($store.bonusInfo.montoBono)" />
-          <DataField label="Nivel" :value="$store.bonusInfo.nivel" />
-          <DataField label="%" :value="$store.bonusInfo.porcentajeBono" />
-          <DataField label="" size="sm" :value="$store.bonusInfo.criterio" />
-        </CollapsibleContent>
-      </Collapsible>
-    -->
-      
     <hr class="line" />
 
     <div class="flex justify-between gap-2">

@@ -164,3 +164,55 @@ export const getCurrentDay = () => {
   const days = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
   return days[new Date().getDay()];
 };
+
+/**
+ * Obtiene la semana anterior a la semana dada
+ * @param currentWeek - Número de la semana actual (1-53)
+ * @param year - Año para verificar si es bisiesto (opcional, por defecto año actual)
+ * @returns number - Número de la semana anterior
+ */
+export const getPreviousWeek = (currentWeek: number, year?: number): number => {
+  if (currentWeek < 1 || currentWeek > 53) {
+    throw new Error('El número de semana debe estar entre 1 y 53');
+  }
+
+  if (currentWeek > 1) {
+    return currentWeek - 1;
+  }
+
+  const targetYear = year || new Date().getFullYear();
+
+  return getLastWeekOfYear(targetYear - 1);
+};
+
+/**
+ * Obtiene el número de la última semana del año
+ * @param year - Año para verificar
+ * @returns number - Número de la última semana (52 o 53)
+ */
+export const getLastWeekOfYear = (year: number): number => {
+  const jan1 = new Date(year, 0, 1);
+  const dec31 = new Date(year, 11, 31);
+
+  const jan1WeekDay = jan1.getDay();
+  const dec31WeekDay = dec31.getDay();
+
+  if (jan1WeekDay === 4 || (jan1WeekDay === 3 && isLeapYear(year))) {
+    return 53;
+  }
+
+  if (dec31WeekDay === 4 || (dec31WeekDay === 5 && isLeapYear(year))) {
+    return 53;
+  }
+
+  return 52;
+};
+
+/**
+ * Verifica si un año es bisiesto
+ * @param year - Año a verificar
+ * @returns boolean - true si el año es bisiesto
+ */
+export const isLeapYear = (year: number): boolean => {
+  return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+};

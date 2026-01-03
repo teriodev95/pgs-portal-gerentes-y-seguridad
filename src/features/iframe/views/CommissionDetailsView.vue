@@ -4,10 +4,12 @@ import { ROUTE_NAME } from '@/router';
 import NavbarTop from '@/shared/components/NavbarTop.vue'
 import { useStore } from '@/shared/stores';
 import { computed } from 'vue';
+import { getPreviousWeek } from '@/shared/utils';
 
 const $store = useStore()
+const previousWeek = computed(() => getPreviousWeek($store.currentDate.week, $store.currentDate.year))
 const url = computed(() => {
-  return `https://comi.xpress1.cc/agencia?anio=${$store.currentDate.year}&semana=${$store.currentDate.week - 1}&agencia=${$store.agencySelected}`
+  return `https://comi.xpress1.cc/agencia?anio=${$store.currentDate.year}&semana=${previousWeek.value}&agencia=${$store.agencySelected}`
 })
 </script>
 
@@ -15,7 +17,7 @@ const url = computed(() => {
   <main class="min-h-screen bg-slate-100">
     <div class="block p-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
       <div class="sticky top-0 z-20 w-full bg-white p-2">
-        <NavbarTop :label="`Detalles Sem ${$store.currentDate.week - 1}`" :back="{ name: ROUTE_NAME.WEEKLY_CLOSE }" />
+        <NavbarTop :label="`Detalles Sem ${previousWeek}`" :back="{ name: ROUTE_NAME.WEEKLY_CLOSE }" />
       </div>
     </div>
 
