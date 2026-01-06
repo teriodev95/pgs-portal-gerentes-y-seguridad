@@ -86,6 +86,10 @@
   .badget-danger {
     @apply text-red-600 border-red-600 bg-red-100;
   }
+
+  .primary-text {
+    @apply font-light text-sm text-gray-400;
+  }
 }
 
 .title {
@@ -135,6 +139,13 @@
   background-image: url('/form4.svg');
   background-size: cover;
   background-position: center;
+}
+
+
+.primary-text {
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 24px;
 }
 
 

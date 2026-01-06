@@ -17,6 +17,10 @@ import NavbarTop from '@/shared/components/NavbarTop.vue'
 import ConfirmModal from '@/shared/components/ConfirmModal.vue'
 import LoanSummaryCard from '@/features/loan/components/LoanSummaryCard.vue'
 import LoanDataSection from '@/features/loan/components/LoanDataSection.vue'
+import CardContainer from '@/shared/components/CardContainer.vue'
+import SectionContainer from '@/shared/components/SectionContainer.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
 
 // Composables initialization
 const loanDataComposable = useLoanData()
@@ -47,6 +51,8 @@ const {
 const {
   confirmId,
   modalInfo,
+  notificationBottomSheet,
+  settlementOptionsBottomSheet,
   closeNotificationSheet,
 } = modalManagerComposable
 
@@ -55,6 +61,7 @@ const {
   handleSettleWithoutDiscount,
   handleNavigateToSettlements
 } = settlementLogicComposable
+
 
 // Component-specific methods
 function onSettlementRequest() {
@@ -193,7 +200,7 @@ onBeforeMount(initializeLoanData)
     </div>
 
     <!-- Loan Summary -->
-    <div class="p-2" v-if="loanData">
+    <SectionContainer v-if="loanData">
       <LoanSummaryCard
         :cobrado="loanData.cobrado"
         :saldo="loanData.saldo"
@@ -204,17 +211,31 @@ onBeforeMount(initializeLoanData)
         :is-settlement-button-disabled="isSettlementButtonDisabled"
         @navigate-to-history="onNavigateToPaymentHistory"
         @settlement-request="onSettlementRequest"
-        @navigate-to-special-settlement="onNavigateToSpecialSettlement"
       />
 
       <!-- Detailed Information -->
-      <div class="text-[0.95rem]">
-        <LoanDataSection :title="LOAN_SECTION_TITLES.GENERAL_DATA" :items="generalDataItems" />
-        <LoanDataSection :title="LOAN_SECTION_TITLES.CLIENT_DATA" :items="clientDataItems" />
-        <LoanDataSection :title="LOAN_SECTION_TITLES.GUARANTOR_DATA" :items="guarantorDataItems" />
-        <LoanDataSection :title="LOAN_SECTION_TITLES.LOAN_DATA" :items="loanDataItems" />
-      </div>
-    </div>
+      <LoanDataSection :title="LOAN_SECTION_TITLES.GENERAL_DATA" :items="generalDataItems" />
+      <LoanDataSection :title="LOAN_SECTION_TITLES.CLIENT_DATA" :items="clientDataItems" />
+      <LoanDataSection :title="LOAN_SECTION_TITLES.GUARANTOR_DATA" :items="guarantorDataItems" />
+      <LoanDataSection :title="LOAN_SECTION_TITLES.LOAN_DATA" :items="loanDataItems" />
+
+       <!-- Special Settlement Button
+       <CardContainer title="Liquidaciones especiales">
+         <TextCT variante="primary">
+           Utiliza esta opción para gestionar y saldar préstamos con más de un año de antigüedad, aplicando condiciones especiales de liquidación.
+         </TextCT>
+ 
+         <BtnComponent
+           variant="primary"
+           full-width
+           @click="onNavigateToSpecialSettlement"
+           :disabled="isRegionalButtonDisabled"
+         >
+           {{ LOAN_BUTTON_LABELS.SPECIAL_SETTLEMENT }}
+         </BtnComponent>
+       </CardContainer>
+       -->
+    </SectionContainer>
 
     <!-- Loading State -->
     <div v-else-if="isLoading">

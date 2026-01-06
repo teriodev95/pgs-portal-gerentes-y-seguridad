@@ -2,6 +2,7 @@
 import { toCurrency } from '@/shared/utils'
 import ProgressBar from '@/shared/components/ProgressBar.vue'
 import { LOAN_FIELD_LABELS, LOAN_BUTTON_LABELS } from '@/features/loan/constants'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 
 interface Props {
   cobrado: number
@@ -24,7 +25,7 @@ defineEmits<Emits>()
 </script>
 
 <template>
-  <div class="border bg-white p-4">
+  <div class="border bg-white p-4 space-y-2">
     <!-- Payment Summary -->
     <div class="flex justify-between">
       <div>
@@ -38,12 +39,10 @@ defineEmits<Emits>()
     </div>
 
     <!-- Progress Bar -->
-    <div class="mt-2">
-      <ProgressBar :progress="parseInt(porcentajeCobrado.toString())" />
-    </div>
+    <ProgressBar :progress="parseInt(porcentajeCobrado.toString())" />
 
     <!-- Client Summary -->
-    <div class="mt-2">
+    <div>
       <ul class="mt-2 space-y-2">
         <li class="flex justify-between gap-10">
           <div class="font-300 text-gray-400">{{ LOAN_FIELD_LABELS.CLIENT }}</div>
@@ -57,35 +56,24 @@ defineEmits<Emits>()
     </div>
 
     <!-- Action Buttons -->
-    <div class="mt-2">
-      <button 
-        class="text-clue-500 w-full rounded-lg border border-blue-800 p-2 text-center"
+    <div class="space-y-2">
+      <BtnComponent 
+        full-width
+        outline
+        variant="secondary"
         @click="$emit('navigate-to-history')"
       >
         {{ LOAN_BUTTON_LABELS.HISTORY }}
-      </button>
-    </div>
-
-    <div class="mt-2">
-      <button
-        class="text-clue-500 w-full rounded-lg border border-blue-800 p-2 text-center disabled:opacity-50"
-        @click="$emit('settlement-request')"
+      </BtnComponent>
+      <BtnComponent
         :disabled="isRegionalButtonDisabled || isSettlementButtonDisabled"
+        full-width
+        outline
+        variant="secondary"
+        @click="$emit('settlement-request')"
       >
         {{ LOAN_BUTTON_LABELS.LIQUIDATE }}
-      </button>
+      </BtnComponent>
     </div>
-
-    <!--
-      <div class="mt-2">
-        <button
-          class="text-clue-500 w-full rounded-lg border border-blue-800 p-2 text-center disabled:opacity-50"
-          @click="$emit('navigate-to-special-settlement')"
-          :disabled="isRegionalButtonDisabled"
-        >
-          {{ LOAN_BUTTON_LABELS.SPECIAL_SETTLEMENT }}
-        </button>
-      </div>
-    -->
   </div>
 </template>

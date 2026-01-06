@@ -25,6 +25,7 @@
               :id="`option-${option.percentage}`"
               name="liquidation-option"
               type="radio"
+              :disabled="!canSettle"
               :value="option.percentage"
               :checked="selectedDiscountPercentage === option.percentage"
               class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
@@ -53,10 +54,13 @@
       </div>
     </div>
 
+    
     <!-- Action Button -->
-    <div class="mt-6">
+    <div class="mt-6 space-y-2">
+      <AlertMsg v-if="!canSettle" type="danger" message="Este préstamo aún no cumple las 52 semanas requeridas para Liquidación especial"/>
       <button
-        :disabled="selectedDiscountPercentage === 0"
+        @click="$emit('create-settlement')"
+        :disabled="selectedDiscountPercentage === 0 || !canSettle"
         class="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
       >
         Selecciona una Opción
@@ -66,14 +70,16 @@
 </template>
 
 <script setup lang="ts">
+import AlertMsg from '@/shared/components/AlertMsg.vue'
+
 interface LiquidationOption {
   percentage: number
   discount: string
   amount: number
-  payAmount: number
 }
 
 interface Props {
+  canSettle: boolean
   pendingBalance: number
   liquidationOptions: LiquidationOption[]
   selectedDiscountPercentage: number
@@ -82,6 +88,7 @@ interface Props {
 
 interface Emits {
   (e: 'select-option', percentage: number): void
+  (e: 'create-settlement'): void
 }
 
 defineProps<Props>()
