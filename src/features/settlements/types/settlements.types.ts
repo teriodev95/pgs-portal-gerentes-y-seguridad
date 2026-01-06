@@ -84,3 +84,14 @@ export interface ISpecialSettlement {
   liquida_con_40_porciento: number;
   liquida_con_50_porciento: number;
 }
+
+export interface IPayloadCreateSettlement {
+  prestamo_id: string,
+  descuento_dinero: number,
+  descuento_porcentaje: number,
+  liquida_con: number,
+  sem_transcurridas: number,
+  recuperado_por: string,
+  status_recuperacion: string,
+  comentario: string
+}

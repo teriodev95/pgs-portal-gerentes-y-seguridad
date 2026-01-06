@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { ROUTE_NAME } from '@/router'
 import { useSpecialSettlement } from '../composables'
 import NavbarTop from '@/shared/components/NavbarTop.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
@@ -19,15 +18,16 @@ const {
   selectedDiscountPercentage,
 
   // Computed
-  balanceData,
   liquidationOptions,
   hasData,
+  canSettle,
 
   // Methods
+  createSettlementPayload,
   fetchSpecialSettlement,
-  selectLiquidationOption,
   formatCurrency,
-  formatWeekYear
+  formatWeekYear,
+  selectLiquidationOption,
 } = useSpecialSettlement()
 
 function handleSelectOption(percentage: number) {
@@ -72,7 +72,7 @@ onMounted(() => {
       </div>
 
       <!-- Settlement content -->
-      <div v-else-if="hasData && settlement && balanceData">
+      <div v-else-if="hasData && settlement">
         <!-- Settlement Header -->
         <SpecialSettlementHeader
           :settlement="settlement"
@@ -81,18 +81,19 @@ onMounted(() => {
 
         <!-- Balance Card -->
         <BalanceCard
-          :balance-data="balanceData"
           :settlement="settlement"
           :format-currency="formatCurrency"
         />
 
         <!-- Liquidation Proposal -->
         <LiquidationProposal
+          :can-settle="canSettle"
           :pending-balance="settlement.saldo"
           :liquidation-options="liquidationOptions"
           :selected-discount-percentage="selectedDiscountPercentage"
           :format-currency="formatCurrency"
           @select-option="handleSelectOption"
+          @create-settlement="createSettlementPayload"
         />
       </div>
 

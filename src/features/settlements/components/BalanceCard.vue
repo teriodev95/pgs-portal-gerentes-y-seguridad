@@ -19,7 +19,7 @@
           <div class="text-xs text-gray-500">(Préstamo + Comisiones)</div>
         </div>
         <div class="text-lg font-semibold text-gray-900">
-          {{ formatCurrency(balanceData.totalInversion) }}
+          {{ formatCurrency(settlement.por_recuperar) }}
         </div>
       </div>
 
@@ -30,7 +30,7 @@
           <div class="text-xs text-gray-500">(Pagos del Cliente)</div>
         </div>
         <div class="text-lg font-semibold text-green-600">
-          - {{ formatCurrency(balanceData.recuperado) }}
+          {{ formatCurrency(settlement.cobrado) }}
         </div>
       </div>
 
@@ -44,7 +44,7 @@
           <div class="text-xs text-gray-500">Necesario para punto de equilibrio</div>
         </div>
         <div class="text-lg font-bold text-red-600">
-          {{ formatCurrency(balanceData.capitalRiesgo) }}
+          {{ formatCurrency(settlement.faltante) }}
         </div>
       </div>
     </div>
@@ -108,14 +108,8 @@
 import { ref } from 'vue'
 import type { ISpecialSettlement } from '../types'
 
-interface BalanceData {
-  totalInversion: number
-  recuperado: number
-  capitalRiesgo: number
-}
 
 interface Props {
-  balanceData: BalanceData
   settlement: ISpecialSettlement
   formatCurrency: (amount: number) => string
 }

@@ -6,7 +6,7 @@ interface Props {
   rightAligned?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   highlight: false,
   rightAligned: false
 })

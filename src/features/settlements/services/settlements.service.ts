@@ -1,10 +1,11 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
-import type { Liquidacion, settlementDetails, PayloadCreateSettlement, ISpecialSettlement } from '../types'
+import type { Liquidacion, settlementDetails, PayloadCreateSettlement, ISpecialSettlement, IPayloadCreateSettlement } from '../types'
 
 class SettlementsService {
 
   private apiJavalin = createApiClientFromPreset('javalin')
   private apiElysia = createApiClientFromPreset('elysia')
+  private apiFax = createApiClientFromPreset('fastApi')
 
   async getLiquidacion(id: string) {
     const { data } = await this.apiJavalin.get<settlementDetails>(`/liquidaciones/prestamo/${id}`)
@@ -41,6 +42,10 @@ class SettlementsService {
 
   async getSpecialSettlement(id : string) {
     return this.apiJavalin.get<ISpecialSettlement>(`/liquidaciones-especiales/prestamo/${id}`)    
+  }
+
+  async createSpecialSettlement(data: IPayloadCreateSettlement) {
+    return this.apiFax.post<string>(`/liquidaciones-especiales/`, data)
   }
 }
 

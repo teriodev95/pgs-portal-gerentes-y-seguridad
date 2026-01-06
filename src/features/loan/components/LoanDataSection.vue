@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CardContainer from '@/shared/components/CardContainer.vue'
 import LoanInfoItem from './LoanInfoItem.vue'
 
 interface DataItem {
@@ -17,10 +18,8 @@ defineProps<Props>()
 </script>
 
 <template>
-  <div class="mt-2 rounded-md border bg-white p-4">
-    <h2 class="title">{{ title }}</h2>
-    
-    <ul class="mt-2 space-y-2">
+  <CardContainer :title="title">
+    <ul class="space-y-2">
       <template v-for="item in items" :key="item.label">
         <LoanInfoItem 
           v-if="item.show !== false"
@@ -30,5 +29,5 @@ defineProps<Props>()
         />
       </template>
     </ul>
-  </div>
+  </CardContainer>
 </template>
