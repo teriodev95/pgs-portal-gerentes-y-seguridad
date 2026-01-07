@@ -13,6 +13,7 @@ interface PaymentFormData {
 interface Props {
   isProcessing?: boolean
   paymentForm: PaymentFormData
+  disabled?: boolean
 }
 
 interface Emits {
@@ -20,7 +21,7 @@ interface Emits {
   (e: 'process:settlement'): void
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const slideUnlockRef = ref()
@@ -49,7 +50,7 @@ function handleProcessSettlement() {
         ref="slideUnlockRef" 
         :auto-width="true" 
         :circle="true" 
-        :disabled="isProcessing || false" 
+        :disabled="isProcessing || props.disabled || false" 
         :noanimate="false"
         text="Continuar" 
         success-text="Completado" 

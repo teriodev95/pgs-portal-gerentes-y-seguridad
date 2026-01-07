@@ -220,21 +220,21 @@ onBeforeMount(initializeLoanData)
       <LoanDataSection :title="LOAN_SECTION_TITLES.LOAN_DATA" :items="loanDataItems" />
 
        <!-- Special Settlement Button
-       <CardContainer title="Liquidaciones especiales">
-         <TextCT variante="primary">
-           Utiliza esta opción para gestionar y saldar préstamos con más de un año de antigüedad, aplicando condiciones especiales de liquidación.
-         </TextCT>
- 
-         <BtnComponent
-           variant="primary"
-           full-width
-           @click="onNavigateToSpecialSettlement"
-           :disabled="isRegionalButtonDisabled"
-         >
-           {{ LOAN_BUTTON_LABELS.SPECIAL_SETTLEMENT }}
-         </BtnComponent>
-       </CardContainer>
        -->
+      <CardContainer title="Liquidaciones especiales">
+        <TextCT variante="primary">
+          Utiliza esta opción para gestionar y saldar préstamos con más de un año de antigüedad, aplicando condiciones especiales de liquidación.
+        </TextCT>
+
+        <BtnComponent
+          variant="primary"
+          full-width
+          @click="onNavigateToSpecialSettlement"
+          :disabled="isRegionalButtonDisabled"
+        >
+          {{ LOAN_BUTTON_LABELS.SPECIAL_SETTLEMENT }}
+        </BtnComponent>
+      </CardContainer>
     </SectionContainer>
 
     <!-- Loading State -->

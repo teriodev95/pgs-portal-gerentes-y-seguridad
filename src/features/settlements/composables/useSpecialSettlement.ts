@@ -1,12 +1,18 @@
 import { ref, computed, type Ref } from 'vue'
+import type { ISpecialSettlement, IPayloadSpecialSettlement, IPaymentFormData } from '../types'
+import { PaymentSource, RecoverySource } from '@/features/loan/types'
 import { settlementsService } from '../services/settlements.service'
-import type { ISpecialSettlement, IPayloadCreateSettlement } from '../types'
 
 export function useSpecialSettlement() {
   const settlement: Ref<ISpecialSettlement | null> = ref(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
   const selectedDiscountPercentage = ref<number>(0)
+  const paymentForm = ref<IPaymentFormData>({
+    amount: 0,
+    paymentSource: PaymentSource.CLIENT,
+    paymentRecovery: RecoverySource.AGENT,
+  })
 
   const liquidationOptions = computed(() => {
     if (!settlement.value) return []
@@ -52,6 +58,8 @@ export function useSpecialSettlement() {
     settlement.value = null
 
     try {
+
+
       const response = await settlementsService.getSpecialSettlement(loanId)
       console.log('Fetched special settlement:', response.data)
       settlement.value = response.data
@@ -63,9 +71,9 @@ export function useSpecialSettlement() {
     }
   }
 
-  function createSettlementPayload() {
+  async function createSpecialSettlement() {
     if(!settlement.value) return null
-    const payload: IPayloadCreateSettlement = {
+    const payload: IPayloadSpecialSettlement = {
       prestamo_id: settlement.value.prestamo_id,
       descuento_dinero: settlement.value.saldo - (liquidationOptions.value.find(option => option.percentage === selectedDiscountPercentage.value)?.amount || 0),
       descuento_porcentaje: selectedDiscountPercentage.value,
@@ -85,15 +93,6 @@ export function useSpecialSettlement() {
     selectedDiscountPercentage.value = percentage
   }
 
-  function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount).replace('$', '$')
-  }
-
   function formatWeekYear(week: number, year: number): string {
     return `Sem ${week} (${year})`
   }
@@ -110,6 +109,7 @@ export function useSpecialSettlement() {
     loading,
     error,
     selectedDiscountPercentage,
+    paymentForm,
 
     // Computed
     liquidationOptions,
@@ -118,9 +118,8 @@ export function useSpecialSettlement() {
 
     // Methods
     clearData,
-    createSettlementPayload,
+    createSpecialSettlement,
     fetchSpecialSettlement,
-    formatCurrency,
     formatWeekYear,
     selectLiquidationOption,
   }

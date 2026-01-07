@@ -1,3 +1,30 @@
+<script setup lang="ts">
+import { toCurrency } from '@/shared/utils'
+
+interface LiquidationOption {
+  percentage: number
+  discount: string
+  amount: number
+}
+
+interface Props {
+  pendingBalance: number
+  liquidationOptions: LiquidationOption[]
+  selectedDiscountPercentage: number
+}
+
+interface Emits {
+  (e: 'select-option', percentage: number): void
+}
+
+defineProps<Props>()
+const emit = defineEmits<Emits>()
+
+function selectLiquidationOption(percentage: number) {
+  emit('select-option', percentage)
+}
+</script>
+
 <template>
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
     <h3 class="text-lg font-medium text-gray-900 mb-4">Propuesta de Liquidación</h3>
@@ -5,7 +32,7 @@
     <div class="mb-4">
       <p class="text-sm text-gray-600 mb-4">
         El cliente tiene un saldo pendiente de
-        <span class="font-semibold">{{ formatCurrency(pendingBalance) }}</span>.
+        <span class="font-semibold">{{ toCurrency(pendingBalance) }}</span>.
         Las siguientes opciones aplican un descuento sobre este saldo para incentivar el cierre.
       </p>
     </div>
@@ -25,7 +52,7 @@
               :id="`option-${option.percentage}`"
               name="liquidation-option"
               type="radio"
-              :disabled="!canSettle"
+              :disabled="false"
               :value="option.percentage"
               :checked="selectedDiscountPercentage === option.percentage"
               class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
@@ -48,53 +75,21 @@
         <!-- Amount -->
         <div class="text-right">
           <div class="text-lg font-semibold text-gray-900">
-            {{ formatCurrency(option.amount) }}
+            {{ toCurrency(option.amount) }}
           </div>
         </div>
       </div>
     </div>
 
-    
-    <!-- Action Button -->
+    <!-- Settlement Processor Slot -->
+    <div class="mt-4">
+      <slot name="processor" />
+    </div>
+
+    <!-- Alert and Action Slots -->
     <div class="mt-6 space-y-2">
-      <AlertMsg v-if="!canSettle" type="danger" message="Este préstamo aún no cumple las 52 semanas requeridas para Liquidación especial"/>
-      <button
-        @click="$emit('create-settlement')"
-        :disabled="selectedDiscountPercentage === 0 || !canSettle"
-        class="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-      >
-        Selecciona una Opción
-      </button>
+      <slot name="alert" />
+      <slot name="action" :selectedDiscountPercentage="selectedDiscountPercentage" :selectLiquidationOption="selectLiquidationOption" />
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import AlertMsg from '@/shared/components/AlertMsg.vue'
-
-interface LiquidationOption {
-  percentage: number
-  discount: string
-  amount: number
-}
-
-interface Props {
-  canSettle: boolean
-  pendingBalance: number
-  liquidationOptions: LiquidationOption[]
-  selectedDiscountPercentage: number
-  formatCurrency: (amount: number) => string
-}
-
-interface Emits {
-  (e: 'select-option', percentage: number): void
-  (e: 'create-settlement'): void
-}
-
-defineProps<Props>()
-const emit = defineEmits<Emits>()
-
-function selectLiquidationOption(percentage: number) {
-  emit('select-option', percentage)
-}
-</script>

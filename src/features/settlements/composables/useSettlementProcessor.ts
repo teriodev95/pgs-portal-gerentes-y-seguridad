@@ -1,15 +1,9 @@
 import { ref } from 'vue'
-import type { Liquidacion } from '../types'
+import type { IPaymentFormData, Liquidacion } from '../types'
 import { PaymentSource, RecoverySource } from '@/features/loan/types'
 import { settlementsService } from '../services/settlements.service'
 import { useSettlementErrorHandler } from './useSettlementErrorHandler'
 import { useErrorDialogStore } from '@/shared/stores'
-
-interface PaymentFormData {
-  amount: number
-  paymentSource: PaymentSource
-  paymentRecovery: RecoverySource
-}
 
 export function useSettlementProcessor() {
   // Services and composables
@@ -20,7 +14,7 @@ export function useSettlementProcessor() {
   // State definitions
   const isProcessing = ref(false)
   const showSuccessCircle = ref(false)
-  const paymentForm = ref<PaymentFormData>({
+  const paymentForm = ref<IPaymentFormData>({
     amount: 0,
     paymentSource: PaymentSource.CLIENT,
     paymentRecovery: RecoverySource.AGENT,
@@ -60,7 +54,7 @@ export function useSettlementProcessor() {
     }
   }
 
-  function updatePaymentForm(updates: Partial<PaymentFormData>): void {
+  function updatePaymentForm(updates: Partial<IPaymentFormData>): void {
     paymentForm.value = {
       ...paymentForm.value,
       ...updates

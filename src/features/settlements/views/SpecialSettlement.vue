@@ -1,34 +1,49 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useSpecialSettlement } from '../composables'
+import { useSettlement } from '../composables/useSettlement'
 import NavbarTop from '@/shared/components/NavbarTop.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import SpecialSettlementHeader from '../components/SpecialSettlementHeader.vue'
 import BalanceCard from '../components/BalanceCard.vue'
 import LiquidationProposal from '../components/LiquidationProposal.vue'
+import SettlementProcessor from '../components/SettlementProcessor.vue'
+import AlertMsg from '@/shared/components/AlertMsg.vue'
+import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
+import RevealCircle from '@/shared/components/RevealCircle.vue'
 
 const route = useRoute()
 
 const {
-  // State
-  settlement,
-  loading,
-  error,
+  // Special Settlement State
+  specialSettlement: settlement,
   selectedDiscountPercentage,
-
-  // Computed
   liquidationOptions,
-  hasData,
+  hasSpecialData: hasData,
   canSettle,
 
+  // Shared State
+  loading,
+  error,
+  isProcessing,
+  paymentForm,
+
+  // Reveal Circle State
+  isRevealCircleVisible,
+  revealCircleConfig,
+
   // Methods
-  createSettlementPayload,
   fetchSpecialSettlement,
-  formatCurrency,
-  formatWeekYear,
+  processSpecialSettlement,
   selectLiquidationOption,
-} = useSpecialSettlement()
+  updatePaymentForm,
+  formatWeekYear,
+  hideSuccessMessage,
+} = useSettlement()
+
+async function handleProcessSettlement() {
+  await processSpecialSettlement()
+}
 
 function handleSelectOption(percentage: number) {
   selectLiquidationOption(percentage)
@@ -43,7 +58,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="relative min-h-screen bg-slate-100 pb-[6rem]">
+  <main class="relative h-screen bg-slate-100 pb-[6rem]" :class="{ 'overflow-hidden': isRevealCircleVisible }">
+    <!-- Success Notification -->
+    <RevealCircle
+      v-show="isRevealCircleVisible"
+      :type="revealCircleConfig.type"
+      :main-text="revealCircleConfig.mainText"
+      :secondary-text="revealCircleConfig.secondaryText"
+      @action:cancel="hideSuccessMessage"
+    />
     <!-- Navigation Header -->
     <div class="sticky top-0 z-20 w-full bg-white p-2">
       <NavbarTop
@@ -54,12 +77,7 @@ onMounted(() => {
 
     <SectionContainer>
       <!-- Loading state -->
-      <div v-if="loading" class="flex justify-center items-center py-12">
-        <div class="flex items-center gap-3">
-          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <span class="text-gray-600">Cargando liquidación especial...</span>
-        </div>
-      </div>
+       <LoadSkeleton v-if="loading" :items="6"/>
 
       <!-- Error state -->
       <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -80,21 +98,34 @@ onMounted(() => {
         />
 
         <!-- Balance Card -->
-        <BalanceCard
-          :settlement="settlement"
-          :format-currency="formatCurrency"
-        />
+        <BalanceCard :settlement="settlement" />
 
-        <!-- Liquidation Proposal -->
+        <!-- Liquidation Proposal with Slots -->
         <LiquidationProposal
-          :can-settle="canSettle"
           :pending-balance="settlement.saldo"
           :liquidation-options="liquidationOptions"
           :selected-discount-percentage="selectedDiscountPercentage"
-          :format-currency="formatCurrency"
           @select-option="handleSelectOption"
-          @create-settlement="createSettlementPayload"
-        />
+        >
+          <template #processor>
+            <SettlementProcessor
+              :is-processing="isProcessing"
+              :payment-form="paymentForm"
+              :disabled="selectedDiscountPercentage === 0 || !canSettle"
+              @update:paymentForm="updatePaymentForm"
+              @process:settlement="handleProcessSettlement"
+            />
+          </template>
+
+          <template #alert>
+            <AlertMsg
+              v-if="!canSettle"
+              type="danger"
+              message="Este préstamo aún no cumple las 52 semanas requeridas para Liquidación especial"
+            />
+          </template>
+
+        </LiquidationProposal>
       </div>
 
       <!-- Empty state -->

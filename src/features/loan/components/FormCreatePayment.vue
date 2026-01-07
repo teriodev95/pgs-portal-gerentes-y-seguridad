@@ -2,7 +2,6 @@
 import type { ICobranza } from '@/interfaces';
 import { RecoverySource, PaymentSource } from '@/features/loan/types';
 import { computed } from 'vue';
-import ArrowRightIcon from '@/shared/components/icons/ArrowRightIcon.vue';
 
 // Props and emits
 interface PaymentFormModel {
@@ -50,10 +49,6 @@ const isNoPago = computed(() => {
   return model.value.amount === 0;
 });
 
-// Methods
-function onAmountChange(val: number) {
-  model.value.amount = val;
-}
 function onPaymentSourceChange(val: PaymentSource) {
   model.value.paymentSource = val;
 }

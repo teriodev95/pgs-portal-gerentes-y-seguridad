@@ -13,7 +13,8 @@ import DiscountDetails from '../components/DiscountDetails.vue'
 import SettlementProcessor from '../components/SettlementProcessor.vue'
 
 // Composables
-import { useSettlementData, useSettlementProcessor } from '../composables'
+import { useSettlementData } from '../composables'
+import { useSettlement } from '../composables/useSettlement'
 
 // Services and route
 const $route = useRoute()
@@ -28,11 +29,13 @@ const {
 // Use composables for processing logic
 const {
   isProcessing,
-  showSuccessCircle,
+  isRevealCircleVisible,
+  revealCircleConfig,
   paymentForm,
   processSettlement: processSettlementLogic,
-  hideSuccessMessage
-} = useSettlementProcessor()
+  hideSuccessMessage,
+  updatePaymentForm
+} = useSettlement()
 
 // Methods
 async function handleProcessSettlement(): Promise<void> {
@@ -47,11 +50,15 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <main class="relative min-h-screen bg-slate-100" :class="{ 'overflow-hidden': showSuccessCircle }">
+  <main class="relative h-screen bg-slate-100" :class="{ 'overflow-hidden': isRevealCircleVisible }">
     <!-- Success Notification -->
-    <RevealCircle v-show="showSuccessCircle" type="success" main-text="Liquidación exitosa"
-      :secondary-text="'Se guardo con éxito la liquidación de ' + settlementData?.cliente"
-      @action:cancel="hideSuccessMessage" />
+    <RevealCircle
+      v-show="isRevealCircleVisible"
+      :type="revealCircleConfig.type"
+      :main-text="revealCircleConfig.mainText"
+      :secondary-text="revealCircleConfig.secondaryText"
+      @action:cancel="hideSuccessMessage"
+    />
 
     <!-- Navigation Header -->
     <div class="sticky top-0 z-20 w-full bg-white p-2">
@@ -80,7 +87,7 @@ onBeforeMount(async () => {
         <SettlementProcessor 
           :is-processing="isProcessing"
           :payment-form="paymentForm"
-          @update:payment-form="paymentForm = $event"
+          @update:payment-form="updatePaymentForm"
           @process:settlement="handleProcessSettlement"
         />
       </div>
