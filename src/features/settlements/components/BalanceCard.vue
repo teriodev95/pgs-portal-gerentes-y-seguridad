@@ -1,3 +1,22 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { ISpecialSettlement } from '../types'
+import { toCurrency } from '@/shared/utils';
+
+
+interface Props {
+  settlement: ISpecialSettlement
+}
+
+defineProps<Props>()
+
+const showCommissions = ref(false)
+
+function toggleCommissionBreakdown() {
+  showCommissions.value = !showCommissions.value
+}
+</script>
+
 <template>
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
     <div class="flex items-center gap-2 mb-4">
@@ -19,7 +38,7 @@
           <div class="text-xs text-gray-500">(Préstamo + Comisiones)</div>
         </div>
         <div class="text-lg font-semibold text-gray-900">
-          {{ formatCurrency(settlement.por_recuperar) }}
+          {{ toCurrency(settlement.por_recuperar) }}
         </div>
       </div>
 
@@ -30,7 +49,7 @@
           <div class="text-xs text-gray-500">(Pagos del Cliente)</div>
         </div>
         <div class="text-lg font-semibold text-green-600">
-          {{ formatCurrency(settlement.cobrado) }}
+          {{ toCurrency(settlement.cobrado) }}
         </div>
       </div>
 
@@ -44,7 +63,7 @@
           <div class="text-xs text-gray-500">Necesario para punto de equilibrio</div>
         </div>
         <div class="text-lg font-bold text-red-600">
-          {{ formatCurrency(settlement.faltante) }}
+          {{ toCurrency(settlement.faltante) }}
         </div>
       </div>
     </div>
@@ -77,7 +96,7 @@
         <div class="flex justify-between items-center">
           <div class="text-sm text-gray-600">Comisión de Cobranza</div>
           <div class="text-sm font-medium text-gray-900">
-            {{ formatCurrency(settlement.comision_cobranza) }}
+            {{ toCurrency(settlement.comision_cobranza) }}
           </div>
         </div>
 
@@ -85,7 +104,7 @@
         <div class="flex justify-between items-center">
           <div class="text-sm text-gray-600">Comisión de Venta</div>
           <div class="text-sm font-medium text-gray-900">
-            {{ formatCurrency(settlement.comision_venta) }}
+            {{ toCurrency(settlement.comision_venta) }}
           </div>
         </div>
 
@@ -96,7 +115,7 @@
         <div class="flex justify-between items-center">
           <div class="text-sm font-semibold text-gray-900">Total Comisiones</div>
           <div class="text-sm font-bold text-blue-600">
-            {{ formatCurrency(settlement.comision_total) }}
+            {{ toCurrency(settlement.comision_total) }}
           </div>
         </div>
       </div>
@@ -104,21 +123,3 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
-import type { ISpecialSettlement } from '../types'
-
-
-interface Props {
-  settlement: ISpecialSettlement
-  formatCurrency: (amount: number) => string
-}
-
-defineProps<Props>()
-
-const showCommissions = ref(false)
-
-function toggleCommissionBreakdown() {
-  showCommissions.value = !showCommissions.value
-}
-</script>

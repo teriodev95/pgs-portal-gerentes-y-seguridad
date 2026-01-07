@@ -1,19 +1,21 @@
+import type { PaymentSource, RecoverySource } from "@/features/loan/types"
+
 export interface Liquidacion {
-  cargo: number // si
-  cliente: string // si 
-  cobrado: number // si
-  descuentoDinero: number // si
-  descuentoPorcentaje: number // si
+  cargo: number
+  cliente: string 
+  cobrado: number 
+  descuentoDinero: number 
+  descuentoPorcentaje: number 
   entregado: number
-  identificador: string // si
-  liquidaCon: number // si
+  identificador: string 
+  liquidaCon: number 
   montoTotal: number 
-  prestamoId: string // si
-  saldo: number // si
-  semanasTranscurridas: number // si
-  semEntrega: string // si
-  quienPago?: string, // si
-  recuperadoPor?: string, // si
+  prestamoId: string 
+  saldo: number 
+  semanasTranscurridas: number 
+  semEntrega: string 
+  quienPago?: string
+  recuperadoPor?: string
 }
 
 
@@ -53,6 +55,12 @@ export interface PayloadCreateSettlement {
   comentario: string;
 }
 
+export interface IPaymentFormData {
+  amount: number
+  paymentSource: PaymentSource
+  paymentRecovery: RecoverySource
+}
+
 export interface ISpecialSettlement {
   prestamo_id: string;
   cliente: string;
@@ -85,7 +93,7 @@ export interface ISpecialSettlement {
   liquida_con_50_porciento: number;
 }
 
-export interface IPayloadCreateSettlement {
+export interface IPayloadSpecialSettlement {
   prestamo_id: string,
   descuento_dinero: number,
   descuento_porcentaje: number,
