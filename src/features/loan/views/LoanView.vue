@@ -230,7 +230,7 @@ onBeforeMount(initializeLoanData)
           variant="primary"
           full-width
           @click="onNavigateToSpecialSettlement"
-          :disabled="isRegionalButtonDisabled"
+          :disabled="isSettlementButtonDisabled"
         >
           {{ LOAN_BUTTON_LABELS.SPECIAL_SETTLEMENT }}
         </BtnComponent>
