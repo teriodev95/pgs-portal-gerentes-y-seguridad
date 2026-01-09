@@ -15,7 +15,6 @@ import ManagementCard from '@/features/call-center/components/ManagementCard.vue
 import NavbarTop from '@/shared/components/NavbarTop.vue'
 import ReportCard from '@/features/call-center/components/ReportCard.vue'
 import ReportDetailsBS from '@/features/call-center/components/ReportDetailsBS.vue'
-import RevealCircle from '@/shared/components/RevealCircle.vue'
 import SearchIcon from '@/shared/components/icons/SearchIcon.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 
@@ -123,13 +122,8 @@ onMounted(async () => {
     <!-- Report Details Component -->
   </vue-bottom-sheet>
 
-  <!-- Success Notification -->
-  <RevealCircle v-show="callCenter.showRevealCircle.value" type="success" main-text="Visita registrada"
-    :secondary-text="`Se guardó con éxito la visita al cliente ${callCenter.selectedReport.value?.nombres_cliente || ''}`"
-    @action:cancel="callCenter.closeRevealCircleAndReset" />
-
   <!-- Main Content -->
-  <main class="min-h-screen bg-slate-100" :class="{ 'overflow-hidden h-screen': callCenter.showRevealCircle.value }">
+  <main class="min-h-screen bg-slate-100" >
     <!-- Top Navigation Bar -->
     <div class="block dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
       <div class="sticky top-0 z-20 w-full bg-white p-2">

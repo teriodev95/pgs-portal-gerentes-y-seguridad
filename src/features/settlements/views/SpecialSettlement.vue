@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSettlement } from '../composables/useSettlement'
+import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 import NavbarTop from '@/shared/components/NavbarTop.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import SpecialSettlementHeader from '../components/SpecialSettlementHeader.vue'
@@ -10,9 +11,9 @@ import LiquidationProposal from '../components/LiquidationProposal.vue'
 import SettlementProcessor from '../components/SettlementProcessor.vue'
 import AlertMsg from '@/shared/components/AlertMsg.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
-import RevealCircle from '@/shared/components/RevealCircle.vue'
 
 const route = useRoute()
+const revealCircleStore = useRevealCircleStore()
 
 const {
   // Special Settlement State
@@ -28,17 +29,12 @@ const {
   isProcessing,
   paymentForm,
 
-  // Reveal Circle State
-  isRevealCircleVisible,
-  revealCircleConfig,
-
   // Methods
   fetchSpecialSettlement,
   processSpecialSettlement,
   selectLiquidationOption,
   updatePaymentForm,
   formatWeekYear,
-  hideSuccessMessage,
 } = useSettlement()
 
 async function handleProcessSettlement() {
@@ -58,15 +54,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="relative h-screen bg-slate-100 pb-[6rem]" :class="{ 'overflow-hidden': isRevealCircleVisible }">
-    <!-- Success Notification -->
-    <RevealCircle
-      v-show="isRevealCircleVisible"
-      :type="revealCircleConfig.type"
-      :main-text="revealCircleConfig.mainText"
-      :secondary-text="revealCircleConfig.secondaryText"
-      @action:cancel="hideSuccessMessage"
-    />
+  <main class="relative h-screen bg-slate-100 pb-[6rem]" :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
     <!-- Navigation Header -->
     <div class="sticky top-0 z-20 w-full bg-white p-2">
       <NavbarTop

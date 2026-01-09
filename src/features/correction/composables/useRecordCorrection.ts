@@ -4,6 +4,7 @@ import { toCurrency } from '@/shared/utils';
 import type { CorrectionType } from '../types';
 import { correctionService } from '../services/correction.service';
 import { useStore } from '@/shared/stores';
+import { useRevealCircleStore } from '@/shared/stores/revealCircle';
 import { useCorrectionValidation } from './useCorrectionValidation';
 import { useCorrectionData } from './useCorrectionData';
 import { TYPE_LABELS } from '../constants';
@@ -25,6 +26,7 @@ export function useRecordCorrection() {
   // Composables
   const route = useRoute();
   const $store = useStore();
+  const revealCircleStore = useRevealCircleStore();
   const { validationState, validateForm } = useCorrectionValidation();
   const { buildCorrectionData, buildCorrectionRequest, parseAmountFromUrl } = useCorrectionData();
   const { handleError } = useCorrectionErrorHandler();
@@ -42,8 +44,7 @@ export function useRecordCorrection() {
     actionType: '' as ActionType,
     correctionType: correctionType || 'asignacion',
     isSubmitting: false,
-    recordId: recordId || '',
-    showRevealCircle: false
+    recordId: recordId || ''
   });
 
   // Current data state from URL parameters
@@ -133,7 +134,16 @@ export function useRecordCorrection() {
       const response = await correctionService.correctionsCreateOne(correctionRequest);
 
       // Handle successful response
-      state.value.showRevealCircle = true;
+      revealCircleStore.showRevealCircle({
+        type: 'success',
+        mainText: '¡Corrección enviada con éxito! 1',
+        secondaryText: 'Tu corrección ha sido registrada correctamente. La revisaremos y procesaremos lo antes posible.',
+        subText: '¿Tienes dudas? Contáctanos al número de soporte.',
+        ctaText: 'Volver al inicio'
+      }, () => {
+        resetForm();
+        window.history.back();
+      });
       return response.data;
     } catch (error: any) {
       console.error('Error submitting correction:', error);
@@ -145,12 +155,6 @@ export function useRecordCorrection() {
   };
 
   const handleCancel = () => {
-    window.history.back();
-  };
-
-  const handleCancelRevealCircle = () => {
-    state.value.showRevealCircle = false;
-    resetForm();
     window.history.back();
   };
 
@@ -230,24 +234,23 @@ export function useRecordCorrection() {
     state,
     formData,
     currentData,
-    
+
     // Computed
     formTitle,
     isFormValid,
     shouldShowActionSelection,
     shouldShowAmountField,
     shouldShowClosureFields,
-    
+
     // Methods
     resetForm,
     handleSubmit,
     handleCancel,
-    handleCancelRevealCircle,
     updateActionType,
-    
+
     // Utilities
     toCurrency,
-    
+
     // Validation
     errorMessage: computed(() => validationState.value.errorMessage)
   };
