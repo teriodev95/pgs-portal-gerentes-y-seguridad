@@ -247,6 +247,13 @@ export function useHomeMenu() {
       disabled: isManagerUser.value || isRegionalUser.value,
       description: 'Compartir pin',
     },
+    {
+      id: 'pagare',
+      title: 'Pagaré',
+      icon: Book,
+      route: ROUTE_NAME.PROMISSORY_NOTES,
+      description: 'Ver pagarés'
+    }
   ])
 
   /**
