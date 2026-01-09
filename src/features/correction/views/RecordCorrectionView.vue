@@ -1,16 +1,17 @@
 <script setup lang="ts">
+import { useRevealCircleStore } from '@/shared/stores/revealCircle';
+
 // Shared Components
 import CardContainer from '@/shared/components/CardContainer.vue';
 import NavbarTop from '@/shared/components/NavbarTop.vue';
 import SectionContainer from '@/shared/components/SectionContainer.vue';
-import RevealCircle from '@/shared/components/RevealCircle.vue';
 
 // Feature Components
-import { 
-  ActionTypeSelector, 
-  RecordInfoDisplay, 
-  CorrectionFormFields, 
-  FormSubmitActions 
+import {
+  ActionTypeSelector,
+  RecordInfoDisplay,
+  CorrectionFormFields,
+  FormSubmitActions
 } from '../components';
 
 // Composables
@@ -26,7 +27,8 @@ interface Props {
 // Define props
 defineProps<Props>();
 
-// Use the composable
+// Use the composable and store
+const revealCircleStore = useRevealCircleStore();
 const {
   state,
   formData,
@@ -38,18 +40,12 @@ const {
   shouldShowClosureFields,
   handleSubmit,
   handleCancel,
-  handleCancelRevealCircle,
   updateActionType,
   errorMessage
 } = useRecordCorrection();
 </script>
 
 <template>
-  <RevealCircle v-show="state.showRevealCircle" main-text="¡Corrección enviada con éxito!"
-    secondary-text="Tu corrección ha sido registrada correctamente. La revisaremos y procesaremos lo antes posible."
-    sub-text="¿Tienes dudas? Contáctanos al número de soporte." type="success" cta-text="Volver al inicio"
-    @action:cancel="handleCancelRevealCircle" />
-
   <main class="min-h-screen bg-slate-100">
     <div class="sticky top-0 z-20 w-full bg-white p-2">
       <NavbarTop label="Solicitud de corrección" :back="true" />
