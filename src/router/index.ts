@@ -189,6 +189,11 @@ const router = createRouter({
           name: ROUTE_NAME.CALENDAR,
           component: () => import('@/features/calendar/views/CalendarView.vue')
         },
+        {
+          path: 'promissory-notes',
+          name: ROUTE_NAME.PROMISSORY_NOTES,
+          component: () => import('@/features/promissory-note/views/PromissoryNoteView.vue')
+        }
 
       ]
     },
