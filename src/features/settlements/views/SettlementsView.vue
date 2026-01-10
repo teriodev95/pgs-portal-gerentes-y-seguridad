@@ -2,10 +2,10 @@
 import { onBeforeMount } from 'vue'
 import { ROUTE_NAME } from '@/router'
 import { useRoute } from 'vue-router'
+import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 
 // Components
 import NavbarTop from '@/shared/components/NavbarTop.vue'
-import RevealCircle from '@/shared/components/RevealCircle.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import SettlementCard from '../components/SettlementCard.vue'
 import FinancialDetails from '../components/FinancialDetails.vue'
@@ -18,6 +18,7 @@ import { useSettlement } from '../composables/useSettlement'
 
 // Services and route
 const $route = useRoute()
+const revealCircleStore = useRevealCircleStore()
 
 // Use composables for data management
 const {
@@ -29,11 +30,8 @@ const {
 // Use composables for processing logic
 const {
   isProcessing,
-  isRevealCircleVisible,
-  revealCircleConfig,
   paymentForm,
   processSettlement: processSettlementLogic,
-  hideSuccessMessage,
   updatePaymentForm
 } = useSettlement()
 
@@ -50,15 +48,7 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <main class="relative h-screen bg-slate-100" :class="{ 'overflow-hidden': isRevealCircleVisible }">
-    <!-- Success Notification -->
-    <RevealCircle
-      v-show="isRevealCircleVisible"
-      :type="revealCircleConfig.type"
-      :main-text="revealCircleConfig.mainText"
-      :secondary-text="revealCircleConfig.secondaryText"
-      @action:cancel="hideSuccessMessage"
-    />
+  <main class="relative h-screen bg-slate-100" :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
 
     <!-- Navigation Header -->
     <div class="sticky top-0 z-20 w-full bg-white p-2">

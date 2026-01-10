@@ -9,6 +9,7 @@ import { initAccordions, initFlowbite } from 'flowbite'
 import ConnectionAlert from './shared/components/ConnectionAlert.vue'
 import InstallApp from './shared/components/ui/InstallApp.vue'
 import DialogError from './shared/components/DialogError.vue'
+import RevealCircle from './shared/components/RevealCircle.vue'
 
 const $store = useStore()
 const $csvLoaderStore = useCsvLoaderStore()
@@ -28,5 +29,6 @@ onMounted(() => {
   <ConnectionAlert />
   <InstallApp />
   <DialogError />
+  <RevealCircle />
   <RouterView />
 </template>

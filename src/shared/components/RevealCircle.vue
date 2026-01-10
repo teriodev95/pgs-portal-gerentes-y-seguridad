@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 
 /**
  * ------------------------------------------
@@ -9,27 +10,14 @@ import { ref } from 'vue'
 
 import IconCheck from '@/shared/components/icons/CheckIcon.vue'
 import ArrowRightIcon from '@/shared/components/icons/ArrowRightIcon.vue'
+
 /**
  * ------------------------------------------
- *	Utils
+ *	Store
  * ------------------------------------------
  */
 
-interface Props {
-  mainText: string
-  type: 'success' | 'error'
-  secondaryText: string
-  list?: string[]
-  subText?: string
-  ctaText?: string
-}
-
-interface Emit {
-  (e: 'action:cancel'): void
-}
-
-defineProps<Props>()
-const $emit = defineEmits<Emit>()
+const revealCircleStore = useRevealCircleStore()
 
 /**
  * ------------------------------------------
@@ -51,7 +39,6 @@ const colorPalette = {
 }
 
 const transition = ref('circle-enter-active')
-//const transition = ref('circle-leave-active')
 
 /**
  * ------------------------------------------
@@ -66,29 +53,29 @@ const transition = ref('circle-enter-active')
 
 const handleClickTransition = () => {
   transition.value = 'circle-leave-active'
-  $emit('action:cancel')
+  revealCircleStore.hideRevealCircle()
 }
 </script>
 
 <template>
   <transition name="circle">
-    <div v-if="true" class="absolute bottom-0 left-0 right-0 top-0 z-50 bg-black bg-opacity-60">
-      <div class="h-full flex flex-col justify-center items-center " :class="colorPalette[$props.type].bg">
+    <div v-if="revealCircleStore.isVisible" class="absolute bottom-0 left-0 right-0 top-0 z-50 bg-black bg-opacity-60">
+      <div class="h-full flex flex-col justify-center items-center " :class="colorPalette[revealCircleStore.type].bg">
 
         <div>
-          <IconCheck :class="colorPalette[$props.type].icon" class="h-24 w-24 rounded-full border-8 p-6 text-white" />
+          <IconCheck :class="colorPalette[revealCircleStore.type].icon" class="h-24 w-24 rounded-full border-8 p-6 text-white" />
         </div>
 
         <div class="space-y-8 p-4 text-white ">
           <div class="space-y-4 p-4 text-center">
-            <h2 class="text-2xl font-bold">{{ mainText }}</h2>
-            <p v-html="secondaryText"></p>
+            <h2 class="text-2xl font-bold">{{ revealCircleStore.mainText }}</h2>
+            <p v-html="revealCircleStore.secondaryText"></p>
 
 
             <div class="space-y-2">
-              <p v-if="subText" class="font-semibold">{{ subText }}</p>
-              <template v-if="list">
-                <p class="text-center" v-for="item in list" :key="item" v-html="item"></p>
+              <p v-if="revealCircleStore.subText" class="font-semibold">{{ revealCircleStore.subText }}</p>
+              <template v-if="revealCircleStore.list">
+                <p class="text-center" v-for="item in revealCircleStore.list" :key="item" v-html="item"></p>
               </template>
             </div>
 
@@ -96,7 +83,7 @@ const handleClickTransition = () => {
 
           <button class="w-full btn btn-white-outline flex gap-4 items-center justify-center"
             @click="handleClickTransition">
-            {{ $props.ctaText || 'Continuar' }}
+            {{ revealCircleStore.ctaText || 'Continuar' }}
             <ArrowRightIcon class="size-4" />
           </button>
         </div>
