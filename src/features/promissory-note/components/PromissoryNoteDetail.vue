@@ -1,15 +1,22 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { toRef } from 'vue'
 import CardContainer from '@/shared/components/CardContainer.vue'
+import InputGeneric from '@/shared/components/forms/InputGeneric.vue'
+import InputSelect from '@/shared/components/forms/InputSelect.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 import { toCurrency } from '@/shared/utils/currency'
-import { formatToHumanDate } from '@/shared/utils/useDate'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
+  DialogFooter
 } from '@/components/ui/dialog'
 import type { Pagare } from '../types'
+import DataField from '@/shared/components/DataField.vue'
+import BadgetCT from '@/shared/components/ui/BadgetCT.vue'
+import LabelForm from '@/shared/components/forms/LabelForm.vue'
+import { usePromissoryNoteDetail } from '../composables/usePromissoryNoteDetail'
 
 const props = defineProps<{
   isOpen: boolean
@@ -18,29 +25,24 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
+  updated: []
 }>()
+
+const pagareRef = toRef(props, 'pagare')
+
+const { formData, isSaving, error, parentescoOptions, save } = usePromissoryNoteDetail(pagareRef)
 
 const handleClose = () => {
   emit('close')
 }
 
-const semaforoColor = computed(() => {
-  if (!props.pagare?.semaforo) return ''
-
-  const colors: Record<string, string> = {
-    ENTREGADO: 'bg-green-100 text-green-800',
-    RETORNADO_NO_ENCONTRADO: 'bg-yellow-100 text-yellow-800',
-    LIQ_ESPECIAL: 'bg-blue-100 text-blue-800',
-    PERDIDO: 'bg-red-100 text-red-800',
-    ARCHIVO: 'bg-gray-100 text-gray-800',
-    JURIDICO: 'bg-purple-100 text-purple-800',
-    DEMANDA: 'bg-orange-100 text-orange-800',
-    EXPEDIENTE: 'bg-indigo-100 text-indigo-800',
-    FINADO: 'bg-black text-white'
+const handleSave = async () => {
+  const success = await save()
+  if (success) {
+    emit('updated')
+    emit('close')
   }
-
-  return colors[props.pagare.semaforo] || 'bg-gray-100 text-gray-800'
-})
+}
 </script>
 
 <template>
@@ -52,138 +54,147 @@ const semaforoColor = computed(() => {
 
       <div v-if="pagare" class="space-y-4">
         <!-- Cliente Info -->
-        <CardContainer>
-          <h3 class="font-semibold text-lg mb-3 text-gray-700">Información del Cliente</h3>
-          <div class="space-y-2">
-            <div>
-              <p class="text-sm text-gray-500">Nombre</p>
-              <p class="font-medium">{{ pagare.cliente_nombre }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Teléfono</p>
-              <p class="font-medium">{{ pagare.cliente_telefono || 'N/A' }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Domicilio</p>
-              <p class="font-medium">{{ pagare.cliente_domicilio || 'N/A' }}</p>
-            </div>
-          </div>
+        <CardContainer title="Información del Cliente">
+            <DataField label="Nombre" :value="pagare.cliente_nombre" orientation="vertical"/>
+            <DataField label="Teléfono" :value="pagare.cliente_telefono || 'N/A'" orientation="vertical"/>
+            <DataField label="Domicilio" :value="pagare.cliente_domicilio || 'N/A'" orientation="vertical"/>
         </CardContainer>
 
-        <!-- Aval Info -->
-        <CardContainer v-if="pagare.aval_nombre">
-          <h3 class="font-semibold text-lg mb-3 text-gray-700">Información del Aval</h3>
-          <div>
-            <p class="text-sm text-gray-500">Nombre</p>
-            <p class="font-medium">{{ pagare.aval_nombre }}</p>
+        <!-- Estado y Semáforo -->
+        <CardContainer>
+          <h3 class="font-semibold text-lg mb-3 text-gray-700">Estado</h3>
+          <div class="flex justify-between items-center gap-2">
+            <BadgetCT
+              :value="pagare.semaforo as string"
+              :variant="pagare.semaforo === 'ENTREGADO' ? 'green' : 'red'"
+            />
+            <DataField label="Marca Folio" :value="pagare.marca_folio || 'N/A'" orientation="vertical"/>
           </div>
         </CardContainer>
 
         <!-- Préstamo Info -->
-        <CardContainer>
-          <h3 class="font-semibold text-lg mb-3 text-gray-700">Información del Préstamo</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <p class="text-sm text-gray-500">ID Préstamo</p>
-              <p class="font-medium">{{ pagare.prestamo_id }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Folio</p>
-              <p class="font-medium">{{ pagare.folio }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Monto Préstamo</p>
-              <p class="font-medium text-blue-600">{{ toCurrency(pagare.monto_prestamo) }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Cargo</p>
-              <p class="font-medium">{{ toCurrency(pagare.cargo) }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Total a Pagar</p>
-              <p class="font-medium text-green-600">{{ toCurrency(pagare.total_a_pagar) }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Pago Semanal</p>
-              <p class="font-medium">{{ toCurrency(pagare.pago_semanal) }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Plazo</p>
-              <p class="font-medium">{{ pagare.plazo }}</p>
-            </div>
+        <CardContainer title="Información del Préstamo">
+          <div class="grid grid-cols-2 gap-2">
+            <DataField label="ID Préstamo" :value="pagare.prestamo_id" orientation="vertical"/>
+            <DataField label="Folio" :value="pagare.folio" orientation="vertical"/>
+            <DataField label="Monto Préstamo" :value="toCurrency(pagare.monto_prestamo)" orientation="vertical"/>
+            <DataField label="Cargo" :value="toCurrency(pagare.cargo)" orientation="vertical"/>
+            <DataField label="Total a Pagar" :value="toCurrency(pagare.total_a_pagar)" orientation="vertical"/>
+            <DataField label="Pago semanal" :value="toCurrency(pagare.pago_semanal)" orientation="vertical"/>
+            <DataField label="Plazo" :value="pagare.plazo" orientation="vertical"/>
           </div>
         </CardContainer>
 
         <!-- Ubicación -->
         <CardContainer>
           <h3 class="font-semibold text-lg mb-3 text-gray-700">Ubicación</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <p class="text-sm text-gray-500">Gerencia</p>
-              <p class="font-medium">{{ pagare.gerencia }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Sucursal</p>
-              <p class="font-medium">{{ pagare.sucursal }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Agencia</p>
-              <p class="font-medium">{{ pagare.agencia }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Agente</p>
-              <p class="font-medium">{{ pagare.nombre_agente }}</p>
-            </div>
+          <div class="grid grid-cols-2 gap-2">
+            <DataField label="Gerencia" :value="pagare.gerencia" orientation="vertical" />
+            <DataField label="Sucursal" :value="pagare.sucursal" orientation="vertical" />
+            <DataField label="Agencia" :value="pagare.agencia" orientation="vertical" />
+            <DataField label="Agente" :value="pagare.nombre_agente" orientation="vertical" />
           </div>
         </CardContainer>
 
-        <!-- Estado y Semáforo -->
+        <!-- Información de Entrega - EDITABLE -->
         <CardContainer>
-          <h3 class="font-semibold text-lg mb-3 text-gray-700">Estado</h3>
+          <h3 class="font-semibold text-lg mb-3 text-gray-700">Información de Entrega</h3>
           <div class="space-y-3">
-            <div class="flex items-center gap-2">
-              <p class="text-sm text-gray-500">Entregado:</p>
-              <span
-                :class="
-                  pagare.entregado ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'
-                "
-              >
-                {{ pagare.entregado ? 'Sí' : 'No' }}
-              </span>
+            <div>
+              <LabelForm for="lugar_entrega">
+                Lugar de Entrega
+              </LabelForm>
+              <InputGeneric
+                id="lugar_entrega"
+                type="text"
+                v-model="formData.lugar_entrega"
+                placeholder="Ej: Domicilio del cliente"
+                :is-required="false"
+              />
             </div>
 
-            <div v-if="pagare.semaforo" class="flex items-center gap-2">
-              <p class="text-sm text-gray-500">Semáforo:</p>
-              <span :class="`px-3 py-1 text-sm rounded-full ${semaforoColor}`">
-                {{ pagare.semaforo }}
-              </span>
+            <div>
+              <LabelForm for="fecha_entrega">
+                Fecha de Entrega
+              </LabelForm>
+              <InputGeneric
+                id="fecha_entrega"
+                type="date"
+                v-model="formData.fecha_entrega_pagare"
+                :is-required="false"
+              />
             </div>
 
-            <div v-if="pagare.marca_folio">
-              <p class="text-sm text-gray-500">Marca Folio</p>
-              <p class="font-medium">{{ pagare.marca_folio }}</p>
+            <div>
+              <LabelForm for="nombre_recibio">
+                Nombre de quien recibió
+              </LabelForm>
+              <InputGeneric
+                id="nombre_recibio"
+                type="text"
+                v-model="formData.nombre_quien_recibio"
+                placeholder="Nombre completo"
+                :is-required="false"
+              />
+            </div>
+
+            <div>
+              <LabelForm for="parentesco">
+                Parentesco
+              </LabelForm>
+              <InputSelect id="parentesco" v-model="formData.parentesco_quien_recibio" :is-required="false">
+                <option value="">Seleccione un parentesco</option>
+                <option v-for="parentesco in parentescoOptions" :key="parentesco" :value="parentesco">
+                  {{ parentesco }}
+                </option>
+              </InputSelect>
+            </div>
+
+            <div>
+              <LabelForm for="observaciones">
+                Observaciones
+              </LabelForm>
+              <textarea
+                id="observaciones"
+                v-model="formData.observaciones"
+                rows="3"
+                class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-xs text-gray-900 focus:border-[#083040] focus:ring-[#083040]"
+                placeholder="Observaciones adicionales..."
+              />
             </div>
           </div>
         </CardContainer>
 
-        <!-- Fechas -->
-        <CardContainer>
-          <h3 class="font-semibold text-lg mb-3 text-gray-700">Fechas</h3>
-          <div class="space-y-3">
-            <div v-if="pagare.fecha_entrega_pagare">
-              <p class="text-sm text-gray-500">Fecha Entrega Pagaré</p>
-              <p class="font-medium">{{ formatToHumanDate(pagare.fecha_entrega_pagare, true) }}</p>
-            </div>
-            <div v-if="pagare.created_at">
-              <p class="text-sm text-gray-500">Creado</p>
-              <p class="font-medium">{{ formatToHumanDate(pagare.created_at, true) }}</p>
-            </div>
-          </div>
-        </CardContainer>
+
 
         <!-- ID Sistemas -->
         <div class="text-center text-xs text-gray-400">ID Sistema: {{ pagare.id_sistemas }}</div>
       </div>
+
+      <DialogFooter>
+        <div class="flex flex-col gap-2 w-full">
+          <!-- Error message -->
+          <div v-if="error" class="text-red-600 text-sm text-center">
+            {{ error }}
+          </div>
+
+          <div class="flex flex-col md:flex-row gap-2 w-full">
+            <BtnComponent :disabled="isSaving" @click="handleSave" class="flex-1">
+              {{ isSaving ? 'Guardando...' : 'Guardar Cambios' }}
+            </BtnComponent>
+
+            <BtnComponent
+              variant="primary"
+              outline
+              :disabled="isSaving"
+              @click="handleClose"
+              class="flex-1"
+            >
+              Cancelar
+            </BtnComponent>
+          </div>
+        </div>
+      </DialogFooter>
     </DialogContent>
   </Dialog>
 </template>
