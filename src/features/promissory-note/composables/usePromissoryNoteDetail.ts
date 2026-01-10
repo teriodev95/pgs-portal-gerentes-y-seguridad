@@ -1,5 +1,6 @@
 import { ref, watch, type Ref } from 'vue'
 import { useStore } from '@/shared/stores'
+import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 import { promissoryNoteService } from '../services/promissory-note.service'
 import { formatDateTimeToSql } from '../utils/date-formatter'
 import { buildCleanPayload } from '../utils/payload-builder'
@@ -36,6 +37,7 @@ const PARENTESCO_OPTIONS = [
 
 export function usePromissoryNoteDetail(pagareRef: Ref<Pagare | null>) {
   const store = useStore()
+  const revealCircleStore = useRevealCircleStore()
 
   const formData = ref<FormData>({
     lugar_entrega: '',
@@ -94,7 +96,7 @@ export function usePromissoryNoteDetail(pagareRef: Ref<Pagare | null>) {
     }
   }
 
-  const save = async (): Promise<boolean> => {
+  const save = async (onSuccess?: () => void): Promise<boolean> => {
     if (!pagareRef.value?.id) {
       error.value = 'No se puede guardar: falta el ID del pagaré'
       console.error(error.value)
@@ -110,10 +112,40 @@ export function usePromissoryNoteDetail(pagareRef: Ref<Pagare | null>) {
 
       await promissoryNoteService.updatePagare(pagareRef.value.id.toString(), payload)
 
+      // Cerrar modal inmediatamente antes de mostrar RevealCircle
+      if (onSuccess) {
+        onSuccess()
+      }
+
+      // Mostrar RevealCircle de éxito después de cerrar el modal
+      revealCircleStore.showRevealCircle(
+        {
+          type: 'success',
+          mainText: '¡Pagaré actualizado con éxito!',
+          secondaryText: 'La información de entrega del pagaré ha sido registrada correctamente.',
+          ctaText: 'Continuar'
+        }
+      )
+
       return true
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Error al guardar pagaré'
       console.error('Error al guardar pagaré:', err)
+
+      // Mostrar RevealCircle de error
+      revealCircleStore.showRevealCircle(
+        {
+          type: 'error',
+          mainText: 'Error al actualizar el pagaré',
+          secondaryText: error.value || 'No se pudo guardar la información. Por favor, intenta de nuevo.',
+          subText: 'Si el problema persiste, contacta a soporte técnico.',
+          ctaText: 'Cerrar'
+        },
+        () => {
+          // No hacer nada al cerrar el error
+        }
+      )
+
       return false
     } finally {
       isSaving.value = false
