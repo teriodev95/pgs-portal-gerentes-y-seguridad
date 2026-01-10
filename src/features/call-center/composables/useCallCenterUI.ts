@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 import type { ICallCenterUIState, ICallCenterReport } from '../types'
 
 /**
@@ -6,10 +7,11 @@ import type { ICallCenterUIState, ICallCenterReport } from '../types'
  * Separa la lógica de UI del store y componentes
  */
 export const useCallCenterUI = () => {
+  const revealCircleStore = useRevealCircleStore()
+
   // Estado de UI
   const isLoading = ref<boolean>(false)
   const error = ref<string | null>(null)
-  const showRevealCircle = ref<boolean>(false)
   const creatingVisit = ref<boolean>(false)
   const isOverlayClickCloseEnabled = ref<boolean>(true)
   
@@ -29,7 +31,7 @@ export const useCallCenterUI = () => {
     isLoading: isLoading.value,
     isManagementSelected: false, // Se maneja en useCallCenterData
     isOverlayClickCloseEnabled: isOverlayClickCloseEnabled.value,
-    showRevealCircle: showRevealCircle.value,
+    showRevealCircle: revealCircleStore.isVisible,
     creatingVisit: creatingVisit.value,
     error: error.value
   }))
@@ -52,7 +54,7 @@ export const useCallCenterUI = () => {
   /**
    * Verifica si se debe mostrar el círculo de revelación
    */
-  const shouldShowRevealCircle = computed(() => showRevealCircle.value)
+  const shouldShowRevealCircle = computed(() => revealCircleStore.isVisible)
 
   /**
    * Establece el estado de carga
@@ -80,14 +82,17 @@ export const useCallCenterUI = () => {
    * Muestra el círculo de revelación
    */
   const showRevealCircleNotification = () => {
-    showRevealCircle.value = true
+    revealCircleStore.showSuccess(
+      'Visita registrada',
+      `Se guardó con éxito la visita al cliente ${selectedReport.value?.nombres_cliente || ''}`
+    )
   }
 
   /**
    * Oculta el círculo de revelación
    */
   const hideRevealCircleNotification = () => {
-    showRevealCircle.value = false
+    revealCircleStore.hideRevealCircle()
   }
 
   /**
@@ -228,7 +233,7 @@ export const useCallCenterUI = () => {
     // Estado reactivo
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
-    showRevealCircle: computed(() => showRevealCircle.value),
+    showRevealCircle: computed(() => revealCircleStore.isVisible),
     creatingVisit: computed(() => creatingVisit.value),
     isOverlayClickCloseEnabled: computed(() => isOverlayClickCloseEnabled.value),
     selectedReport: computed(() => selectedReport.value),

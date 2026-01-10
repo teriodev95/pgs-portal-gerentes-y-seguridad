@@ -4,13 +4,13 @@ import { PaymentSource, RecoverySource } from '@/features/loan/types'
 import { settlementsService } from '../services/settlements.service'
 import { useSettlementErrorHandler } from './useSettlementErrorHandler'
 import { useErrorDialogStore } from '@/shared/stores'
-import { useRevealCircle } from '@/shared/composables/useRevealCircle'
+import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 
 export function useSettlement() {
   // Services and composables
   const { handleError, handleSuccess } = useSettlementErrorHandler()
   const errorDialogStore = useErrorDialogStore()
-  const { isVisible: isRevealCircleVisible, config: revealCircleConfig, showRevealCircle, hideRevealCircle } = useRevealCircle()
+  const revealCircleStore = useRevealCircleStore()
 
   // === SPECIAL SETTLEMENT STATE ===
   const specialSettlement: Ref<ISpecialSettlement | null> = ref(null)
@@ -126,7 +126,7 @@ export function useSettlement() {
       handleSuccess(`Liquidación exitosa para ${processedData.cliente}`)
 
       // Show success RevealCircle
-      showRevealCircle({
+      revealCircleStore.showRevealCircle({
         type: 'success',
         mainText: 'Liquidación exitosa',
         secondaryText: `Se guardó con éxito la liquidación de ${processedData.cliente}`
@@ -155,7 +155,7 @@ export function useSettlement() {
       await settlementsService.createSpecialSettlement(specialData)
 
       // Show success RevealCircle for special settlement
-      showRevealCircle({
+      revealCircleStore.showRevealCircle({
         type: 'success',
         mainText: 'Liquidación Especial Exitosa',
         secondaryText: `Se procesó exitosamente la liquidación especial de ${specialSettlement.value?.cliente} con ${selectedDiscountPercentage.value}% de descuento`
@@ -181,7 +181,7 @@ export function useSettlement() {
 
   function resetProcessor(): void {
     isProcessing.value = false
-    hideRevealCircle()
+    revealCircleStore.hideRevealCircle()
     paymentForm.value = {
       amount: 0,
       paymentSource: PaymentSource.CLIENT,
@@ -190,7 +190,7 @@ export function useSettlement() {
   }
 
   function hideSuccessMessage(): void {
-    hideRevealCircle()
+    revealCircleStore.hideRevealCircle()
   }
 
   function formatWeekYear(week: number, year: number): string {
@@ -216,10 +216,6 @@ export function useSettlement() {
     error,
     isProcessing,
     paymentForm,
-
-    // === REVEAL CIRCLE STATE ===
-    isRevealCircleVisible,
-    revealCircleConfig,
 
     // === SPECIAL SETTLEMENT METHODS ===
     fetchSpecialSettlement,

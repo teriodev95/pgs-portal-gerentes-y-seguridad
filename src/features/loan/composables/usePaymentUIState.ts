@@ -2,15 +2,19 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/shared/stores'
+import { useRevealCircleStore } from '@/shared/stores/revealCircle'
+import { formatToHumanDate, toCurrency } from '@/shared/utils'
 import type { ICobranza } from '@/interfaces'
 import type VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
 
 export function usePaymentUIState() {
   const $router = useRouter()
   const $store = useStore()
+  const revealCircleStore = useRevealCircleStore()
 
   const formCreatePaymentBS = ref<InstanceType<typeof VueBottomSheet>>()
-  const showRevealCircle = ref(false)
+  const selectedPayment = ref<ICobranza>()
+  const selectedAmount = ref(0)
 
   // Computed properties
   const isFromWeeklyClosureError = computed(() =>
@@ -39,36 +43,43 @@ export function usePaymentUIState() {
   }
 
   /**
-   * Shows the success reveal circle
+   * Shows the success reveal circle with payment details
    */
-  function showSuccessReveal() {
-    showRevealCircle.value = true
-  }
+  function showSuccessReveal(payment: ICobranza, amount: number) {
+    selectedPayment.value = payment
+    selectedAmount.value = amount
 
-  /**
-   * Handles closing the success circle and resetting selected values
-   */
-  function handleCancelRevealCircle(resetCallback: () => void) {
-    showRevealCircle.value = false
+    const transactionDetails = [
+      `- Fecha de aplicación del pago: <span class='font-extrabold'>${formatToHumanDate(new Date(), true)}</span>`,
+      `- Monto abonado: <span class='font-extrabold'>${toCurrency(amount)}</span>`
+    ]
 
-    setTimeout(() => {
-      resetCallback()
-    }, 1000)
+    revealCircleStore.showRevealCircle({
+      type: 'success',
+      mainText: '¡Pago registrado con éxito!',
+      secondaryText: `Se ha registrado correctamente el pago de <span class='font-extrabold'>${payment.nombre}</span>`,
+      subText: 'A continuación, los detalles de la transacción:',
+      list: transactionDetails
+    }, () => {
+      // Reset selected payment after reveal circle closes
+      selectedPayment.value = undefined
+      selectedAmount.value = 0
+    })
   }
 
   return {
     // Refs
     formCreatePaymentBS,
-    showRevealCircle,
-    
+    selectedPayment,
+    selectedAmount,
+
     // Computed
     isFromWeeklyClosureError,
     payments,
-    
+
     // Methods
     openPaymentForm,
     closePaymentForm,
-    showSuccessReveal,
-    handleCancelRevealCircle
+    showSuccessReveal
   }
 }
