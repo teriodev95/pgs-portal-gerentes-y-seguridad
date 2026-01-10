@@ -17,9 +17,9 @@ import SectionContainer from '@/shared/components/SectionContainer.vue'
 import PaymentEmptyState from '@/features/loan/components/PaymentEmptyState.vue'
 import PaymentFilterSection from '@/features/loan/components/PaymentFilterSection.vue'
 import PaymentFormBottomSheet from '@/features/loan/components/PaymentFormBottomSheet.vue'
-import PaymentSuccessReveal from '@/features/loan/components/PaymentSuccessReveal.vue'
 
 // Composables initialization
+
 const {
   filterName,
   filterCheck,
@@ -39,11 +39,9 @@ const {
 } = usePaymentManagement()
 
 const {
-  showRevealCircle,
   isFromWeeklyClosureError,
   payments,
-  showSuccessReveal,
-  handleCancelRevealCircle
+  showSuccessReveal
 } = usePaymentUIState()
 
 // Computed properties
@@ -59,20 +57,17 @@ const paymentForm = ref({
 async function handlePayment() {
   const success = await processPayment(paymentForm.value.amount, paymentForm.value.paymentSource, paymentForm.value.paymentRecovery)
 
-  if (success) {
-    showSuccessReveal()
+  if (success && selectedPayment.value) {
+    showSuccessReveal(selectedPayment.value, selectedAmount.value)
     paymentFormBottomSheetRef.value?.close()
     paymentFormBottomSheetRef.value?.resetSlide()
+    resetSelectedPayment()
   }
 }
 
 function handleSelectPayment(payment: any) {
   selectPaymentForProcessing(payment)
   paymentFormBottomSheetRef.value?.open()
-}
-
-function onCancelRevealCircle() {
-  handleCancelRevealCircle(resetSelectedPayment)
 }
 
 // Lifecycle hooks
@@ -88,22 +83,14 @@ onMounted(async () => {
   <PaymentFormBottomSheet
     ref="paymentFormBottomSheetRef"
     v-model:payment-form="paymentForm"
-    :selectedPayment="selectedPayment" 
+    :selectedPayment="selectedPayment"
     :isProcessing="isProcessing"
     @submit="handlePayment"
     @completed="handlePayment"
   />
 
-  <!-- Success Notification -->
-  <PaymentSuccessReveal
-    :show="showRevealCircle"
-    :selectedPayment="selectedPayment"
-    :selectedAmount="selectedAmount"
-    @cancel="onCancelRevealCircle"
-  />
-
   <!-- Main Content -->
-  <main class="relative min-h-screen space-y-2 bg-slate-100" :class="{ 'overflow-hidden h-screen': showRevealCircle }">
+  <main class="relative min-h-screen space-y-2 bg-slate-100" >
 
     <!-- Navigation Header -->
     <div class="sticky top-0 z-20 w-full bg-white p-2">

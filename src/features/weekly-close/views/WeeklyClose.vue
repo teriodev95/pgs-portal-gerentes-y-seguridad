@@ -4,6 +4,7 @@ import { ROUTE_NAME } from '@/router'
 import { toCurrency } from '@/shared/utils'
 import { useCierreSemanal } from '@/features/weekly-close/composables/useCierreSemanal'
 import { useCierreSemanalModal } from '@/features/weekly-close/composables/useCierreSemanalModal'
+import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 import { useRouter } from 'vue-router'
 
 /**
@@ -14,7 +15,6 @@ import { useRouter } from 'vue-router'
 import EditFieldDialog from '@/features/weekly-close/components/EditFieldDialog.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import NavbarTop from '@/shared/components/NavbarTop.vue'
-import RevealCircle from '@/shared/components/RevealCircle.vue'
 import SignForm from '@/features/weekly-close/components/SignForm.vue'
 import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue'
 import WeeklyClosingHeader from '@/features/weekly-close/components/WeeklyClosingHeader.vue'
@@ -26,6 +26,7 @@ import WeeklyClosingSummary from '@/features/weekly-close/components/WeeklyClosi
  * ------------------------------------------
  */
 const router = useRouter()
+const revealCircleStore = useRevealCircleStore()
 
 // Composable principal del cierre semanal
 const {
@@ -65,7 +66,6 @@ const {
  * ------------------------------------------
  */
 const showForm = ref(false)
-const showRevealCircle = ref(false)
 
 /**
  * ------------------------------------------
@@ -134,17 +134,30 @@ const handleModalCancel = () => {
 }
 
 const handleCompletion = () => {
-  showRevealCircle.value = true
+  if (weeklyClose.value) {
+    const summaryList = [
+      `Comisión por cobranza: ${toCurrency(weeklyClose.value.egresosGerente.comisionCobranzaPagadaEnSemana)}`,
+      `Comisión por ventas: ${toCurrency(weeklyClose.value.egresosGerente.comisionVentasPagadaEnSemana)}`,
+      `Bonos: ${toCurrency(weeklyClose.value.egresosGerente.bonosPagadosEnSemana)}`
+    ]
+
+    revealCircleStore.showRevealCircle({
+      type: 'success',
+      mainText: 'Cierre semanal completado con éxito',
+      secondaryText: `Agencia: <b>${agency.value?.agencia}</b> - Gerencia: <b>${management.value}</b>`,
+      subText: 'Resumen:',
+      list: summaryList
+    })
+  }
   showForm.value = false
 }
 
 /**
  * Watch para el estado de cierre completado
  */
-watch(() => isClosingComplete, (newValue) => {
+watch(() => isClosingComplete.value, (newValue) => {
   if (newValue) {
-    showRevealCircle.value = true
-    showForm.value = false
+    handleCompletion()
   }
 })
 
@@ -163,30 +176,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <EditFieldDialog 
-    v-if="showModal" 
+  <EditFieldDialog
+    v-if="showModal"
     :value="modalValue"
-    :label="modalLabel" 
-    :type="inputType" 
+    :label="modalLabel"
+    :type="inputType"
     @save:value="saveValue"
-    @action:cancel="handleModalCancel" 
+    @action:cancel="handleModalCancel"
   />
 
-  <main class="h-screen bg-slate-100" :class="{ 'overflow-hidden': showRevealCircle }">
-
-    <RevealCircle 
-      v-show="showRevealCircle" 
-      type="success"
-      main-text="Cierre semanal completado con éxito"
-      :secondary-text="`Agencia: <b>${agency?.agencia}</b> - Gerencia: <b>${management}</b>`"
-      sub-text="Resumen:" 
-      :list="weeklyClose ? [
-        `Comisión por cobranza: ${toCurrency(weeklyClose.egresosGerente.comisionCobranzaPagadaEnSemana)}`,
-        `Comisión por ventas: ${toCurrency(weeklyClose.egresosGerente.comisionVentasPagadaEnSemana)}`,
-        `Bonos: ${toCurrency(weeklyClose.egresosGerente.bonosPagadosEnSemana)}`,
-      ] : []" 
-      @action:cancel="showRevealCircle = false" 
-    />
+  <main class="h-screen bg-slate-100" :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
 
     <div class="block p-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
       <div class="sticky top-0 z-20 w-full bg-white p-2">
