@@ -30,18 +30,17 @@ const emit = defineEmits<{
 
 const pagareRef = toRef(props, 'pagare')
 
-const { formData, isSaving, error, parentescoOptions, save } = usePromissoryNoteDetail(pagareRef)
+const { formData, isSaving, parentescoOptions, save } = usePromissoryNoteDetail(pagareRef)
 
 const handleClose = () => {
   emit('close')
 }
 
 const handleSave = async () => {
-  const success = await save()
-  if (success) {
+  await save(() => {
     emit('updated')
     emit('close')
-  }
+  })
 }
 </script>
 
@@ -172,27 +171,20 @@ const handleSave = async () => {
       </div>
 
       <DialogFooter>
-        <div class="flex flex-col gap-2 w-full">
-          <!-- Error message -->
-          <div v-if="error" class="text-red-600 text-sm text-center">
-            {{ error }}
-          </div>
+        <div class="flex flex-col md:flex-row gap-2 w-full">
+          <BtnComponent :disabled="isSaving" @click="handleSave" class="flex-1">
+            {{ isSaving ? 'Guardando...' : 'Guardar Cambios' }}
+          </BtnComponent>
 
-          <div class="flex flex-col md:flex-row gap-2 w-full">
-            <BtnComponent :disabled="isSaving" @click="handleSave" class="flex-1">
-              {{ isSaving ? 'Guardando...' : 'Guardar Cambios' }}
-            </BtnComponent>
-
-            <BtnComponent
-              variant="primary"
-              outline
-              :disabled="isSaving"
-              @click="handleClose"
-              class="flex-1"
-            >
-              Cancelar
-            </BtnComponent>
-          </div>
+          <BtnComponent
+            variant="primary"
+            outline
+            :disabled="isSaving"
+            @click="handleClose"
+            class="flex-1"
+          >
+            Cancelar
+          </BtnComponent>
         </div>
       </DialogFooter>
     </DialogContent>
