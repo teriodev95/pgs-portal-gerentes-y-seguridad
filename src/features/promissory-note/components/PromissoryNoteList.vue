@@ -2,6 +2,7 @@
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import type { Pagare } from '../types'
 import PromissoryNoteCard from './PromissoryNoteCard.vue'
+import SectionContainer from '@/shared/components/SectionContainer.vue';
 
 defineProps<{
   pagares: Pagare[]
@@ -14,15 +15,15 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="p-4">
-    <LoadSkeleton :items="6" v-if="loading" class="text-center py-8" />
+  <SectionContainer >
+    <LoadSkeleton :items="6" v-if="loading" class="text-center" />
 
-    <div v-else-if="pagares.length === 0" class="text-center py-8">
+    <div v-else-if="pagares.length === 0" class="text-center">
       <p class="text-gray-500">No se encontraron pagarés</p>
     </div>
 
-    <div v-else>
-      <p class="mb-4 text-sm text-gray-600">Total: {{ pagares.length }} pagarés</p>
+    <div class="space-y-2" v-else>
+      <p class="text-sm text-gray-600">Total: {{ pagares.length }} pagarés</p>
 
       <div class="space-y-2">
         <PromissoryNoteCard
@@ -33,5 +34,5 @@ const emit = defineEmits<{
         />
       </div>
     </div>
-  </div>
+  </SectionContainer>
 </template>

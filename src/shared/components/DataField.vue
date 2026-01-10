@@ -9,11 +9,13 @@ interface Props {
   variant?: 'default' | 'yellow' | 'green' | 'highlight'
   size?: 'sm' | 'md'
   notice?: string
+  orientation?: 'horizontal' | 'vertical'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'default',
-  size: 'md'
+  size: 'md',
+  orientation: 'horizontal'
 })
 
 const VARIANT_CLASSES = {
@@ -41,10 +43,19 @@ const getValueClass = computed(() => {
 
   return `${baseClass} ${variantClass}`
 })
+
+/**
+ * Computed property that returns the container flex direction class
+ */
+const getContainerClass = computed(() => {
+  return props.orientation === 'vertical'
+    ? 'flex flex-col gap-0.5'
+    : 'flex justify-between gap-2'
+})
 </script>
 
 <template>
-  <div class="flex justify-between gap-4">
+  <div :class="getContainerClass">
     <div v-if="props.label">
       <p class="font-light text-gray-400">
         {{ props.label }}

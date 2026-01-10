@@ -50,12 +50,15 @@ export const elysiaAuthInterceptor = (): InterceptorConfig => ({
           const { useStore } = await import('@/shared/stores')
           const store = useStore()
 
-          if (store.elysiaToken) {
-            ;(config.headers as AxiosRequestHeaders)['Authorization'] = `Bearer ${store.elysiaToken}`
+          // Crear token Bearer con usuario:pin en base64
+          if (store.user?.usuario && store.authPin) {
+            const credentials = `${store.user.usuario}:${store.authPin}`
+            const base64Credentials = btoa(credentials)
+            ;(config.headers as AxiosRequestHeaders)['Authorization'] = `Bearer ${base64Credentials}`
           }
         } catch (error) {
           // Si no se puede acceder al store, continúa sin el token
-          console.warn('Could not access Pinia store for Elysia token:', error)
+          console.warn('Could not access Pinia store for Elysia auth:', error)
         }
       }
       return config

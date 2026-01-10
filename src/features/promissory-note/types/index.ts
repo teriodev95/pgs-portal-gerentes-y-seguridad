@@ -1,5 +1,6 @@
 // Tipo principal de Pagaré (según la respuesta de la API)
 export interface Pagare {
+  id?: number
   id_sistemas: string
   folio: string
   prestamo_id: string
@@ -9,19 +10,35 @@ export interface Pagare {
   sucursal: string
   agencia: string
   nombre_agente: string
+  lugar_entrega: string | null
   monto_prestamo: number
   cargo: number
   total_a_pagar: number
+  primer_pago: number
   pago_semanal: number
   plazo: string
+  tipo_credito: string
+  dia_de_pago: string
+  semana_inicio: number
+  anio_inicio: number
   cliente_nombre: string
   cliente_domicilio: string | null
   cliente_telefono: string | null
   aval_nombre: string | null
+  aval_domicilio: string | null
+  aval_telefono: string | null
+  nombre_quien_recibio: string | null
+  parentesco_quien_recibio: string | null
+  entregado_cliente_at: string | null
+  entregado_cliente_by: string | null
+  recibido_oficina_at: string | null
+  recibido_oficina_by: string | null
   entregado: number
   semaforo: string | null
   marca_folio: string | null
+  observaciones: string | null
   created_at: string | null
+  created_by: string | null
 }
 
 // Payload para buscar pagarés por gerencia

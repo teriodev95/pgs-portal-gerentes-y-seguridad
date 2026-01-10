@@ -90,6 +90,10 @@
   .primary-text {
     @apply font-light text-sm text-gray-400;
   }
+
+  .secondary-text {
+    @apply font-bold text-xs text-blue-800;
+  }
 }
 
 .title {
