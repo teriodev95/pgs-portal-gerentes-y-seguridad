@@ -10,11 +10,11 @@ const {
   pagares,
   loading,
   selectedPagare,
-  isDetailOpen,
   handleSelectPagare,
   closeDetail,
   loadPagares,
-  handleUpdated
+  handleUpdated,
+  handleOnBack
 } = usePromissoryNote()
 
 onMounted(async () => {
@@ -25,13 +25,18 @@ onMounted(async () => {
 <template>
   <main class="bg-slate-100">
     <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop label="Pagarés" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
+      <NavbarTop :label="selectedPagare ? 'Detalle del Pagaré' : 'Pagarés'" @on-back="handleOnBack" />
     </div>
 
-    <PromissoryNoteList :pagares="pagares" :loading="loading" @select-pagare="handleSelectPagare" />
+    <PromissoryNoteList
+      v-if="!selectedPagare"
+      :pagares="pagares"
+      :loading="loading"
+      @select-pagare="handleSelectPagare"
+    />
 
     <PromissoryNoteDetail
-      :is-open="isDetailOpen"
+      v-if="selectedPagare"
       :pagare="selectedPagare"
       @close="closeDetail"
       @updated="handleUpdated"

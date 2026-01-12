@@ -2,21 +2,33 @@ import { ref, computed } from 'vue'
 import { useStore } from '@/shared/stores'
 import { promissoryNoteService } from '../services/promissory-note.service'
 import type { Pagare } from '../types'
+import { useRouter } from 'vue-router'
+import { ROUTE_NAME } from '@/router'
 
 export function usePromissoryNote() {
   const store = useStore()
+  const $router = useRouter()
   const pagares = ref<Pagare[]>([])
   const loading = ref(false)
   const selectedPagare = ref<Pagare | null>(null)
 
   const isDetailOpen = computed(() => selectedPagare.value !== null)
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
+
   const handleSelectPagare = (pagare: Pagare) => {
     selectedPagare.value = pagare
+    scrollToTop()
   }
 
   const closeDetail = () => {
     selectedPagare.value = null
+    scrollToTop()
   }
 
   const loadPagares = async () => {
@@ -47,12 +59,21 @@ export function usePromissoryNote() {
     }
   }
 
+  const handleOnBack = () => {
+  if (selectedPagare.value) {
+    selectedPagare.value = null
+    return
+  }
+
+  $router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
   return {
     pagares,
     loading,
     selectedPagare,
     isDetailOpen,
     handleSelectPagare,
+    handleOnBack,
     closeDetail,
     loadPagares,
     handleUpdated
