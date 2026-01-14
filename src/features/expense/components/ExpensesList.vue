@@ -4,7 +4,7 @@ import type { WeeklyExpense } from '../types'
 // Components
 import WeeklyExpenseCard from './WeeklyExpenseCard.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
-import BoxCloseOutline from '@/shared/components/icons/BoxCloseOutline.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 
 // Interface - Props - Emits
 defineProps<{
@@ -36,14 +36,10 @@ function handleExpenseSelect(expense: WeeklyExpense): void {
 
     <LoadSkeleton v-else-if="isLoading" :items="6" class="mt-4" />
 
-    <div v-else class="flex items-center justify-center">
-      <div class="text-center text-gray-600">
-        <BoxCloseOutline class="mx-auto h-28 w-28" />
-
-        <div class="mt-2 text-center">
-          <h2 class="text-2xl font-semibold">No hay gastos en esta semana</h2>
-        </div>
-      </div>
-    </div>
+    <EmptyCT
+      v-else
+      message="No hay gastos en esta semana"
+      description="Aún no se han registrado gastos para esta semana. Usa el botón de abajo para agregar uno nuevo."
+    />
   </section>
 </template>

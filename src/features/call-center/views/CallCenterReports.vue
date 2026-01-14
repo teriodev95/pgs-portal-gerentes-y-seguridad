@@ -12,7 +12,9 @@ import CreateVisitBS from '@/features/call-center/components/CreateVisitBS.vue'
 import InputSearchFilter from '@/shared/components/forms/InputSearchFilter.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import ManagementCard from '@/features/call-center/components/ManagementCard.vue'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import ReportCard from '@/features/call-center/components/ReportCard.vue'
 import ReportDetailsBS from '@/features/call-center/components/ReportDetailsBS.vue'
 import SearchIcon from '@/shared/components/icons/SearchIcon.vue'
@@ -123,13 +125,13 @@ onMounted(async () => {
   </vue-bottom-sheet>
 
   <!-- Main Content -->
-  <main class="min-h-screen bg-slate-100" >
+  <MainCT>
     <!-- Top Navigation Bar -->
-    <div class="block dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-      <div class="sticky top-0 z-20 w-full bg-white p-2">
-        <NavbarTop label="Reportes del Call Center" @on-back="callCenter.handleBackNavigation" />
-      </div>
-    </div>
+    <NavbarCT
+      title="Reportes del Call Center"
+      :show-back-button="true"
+      @back="callCenter.handleBackNavigation"
+    />
 
     <!-- Loading State -->
     <SectionContainer v-if="callCenter.isLoading.value">
@@ -139,15 +141,17 @@ onMounted(async () => {
     </SectionContainer>
 
     <!-- Empty State -->
-    <SectionContainer v-else-if="callCenter.hasNoReports.value">
-      <h2 class="title p-2 text-center">No hay Reportes</h2>
-    </SectionContainer>
+    <EmptyCT
+      v-else-if="callCenter.hasNoReports.value"
+      message="No hay reportes"
+      description="No se encontraron reportes del call center en este momento."
+    />
 
     <!-- Content State -->
     <template v-else>
       <SectionContainer>
         <!-- Management Selection View -->
-        <template v-if="!callCenter.isManagementSelected.value">
+        <div v-if="!callCenter.isManagementSelected.value">
           <!-- Filter Panel -->
           <CardContainer class="rounded-lg border bg-white p-4 space-y-4">
             <h3 class="title">Filtrar</h3>
@@ -206,7 +210,7 @@ onMounted(async () => {
           <!-- Management Cards -->
           <ManagementCard :tarjetas="callCenter.groupedReportsByManagement.value"
             @select-week-and-management="callCenter.selectWeekAndManagement" />
-        </template>
+        </div>
 
         <!-- Reports List View -->
         <template v-else>
@@ -226,5 +230,5 @@ onMounted(async () => {
         </template>
       </SectionContainer>
     </template>
-  </main>
+  </MainCT>
 </template>

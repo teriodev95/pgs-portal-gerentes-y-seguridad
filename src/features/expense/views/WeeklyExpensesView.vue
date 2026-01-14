@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
 import type { ExpenseFormData, WeeklyExpense } from '../types'
 import { useWeeklyExpenses } from '../composables'
 
 // Components
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
 import FloatBtn from '@/shared/components/FloatBtn.vue'
 import ExpenseBottomSheet from '@/features/expense/components/ExpenseBottomSheet.vue'
 import ExpensesList from '@/features/expense/components/ExpensesList.vue'
+
+const router = useRouter()
 
 // Composables
 const {
@@ -54,10 +58,14 @@ async function handleExpenseSubmit(formData: ExpenseFormData): Promise<void> {
     // Error is handled in the composable
   }
 }
+
+function handleBack(): void {
+  router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
 </script>
 
 <template>
-  <ExpenseBottomSheet 
+  <ExpenseBottomSheet
     ref="expenseBottomSheetRef"
     :selected-expense="selectedExpense"
     :usuario-id="user?.usuarioId || 0"
@@ -72,18 +80,19 @@ async function handleExpenseSubmit(formData: ExpenseFormData): Promise<void> {
     <FloatBtn type="primary" @click="openExpenseForm" />
   </div>
 
-  <main class="min-h-screen bg-slate-100 pb-[6rem]">
-    <div class="block p-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-      <div class="sticky top-0 z-20 w-full bg-white p-2">
-        <NavbarTop :label="'Gastos Semanales'" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
-      </div>
-    </div>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Gastos Semanales"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
-    <ExpensesList 
+    <ExpensesList
       :expenses="weeklyExpenses"
       :is-loading="isLoadingExpenses"
       :has-expenses="hasExpenses"
       @expense:select="handleExpenseSelect"
     />
-  </main>
+  </MainCT>
 </template>

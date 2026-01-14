@@ -1,41 +1,57 @@
 <script lang="ts" setup>
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
 
 // Components
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import ManagementInformation from '@/features/entity/components/ManagementInformation.vue'
 
 // Composables
 import { useGerencyDetails } from '@/features/entity/composables/useGerencyDetails'
 
+const router = useRouter()
 const { dashboardData, management, managementDebts, isLoading } = useGerencyDetails()
+
+// Computed
+const navbarTitle = computed(() => management.value ? `Gerencia ${management.value}` : 'Gerencia')
+
+// Methods
+function handleBack() {
+  router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
 </script>
 
 <template>
-  <main class="min-h-screen bg-slate-100">
-    <div
-      v-if="management"
-      class="block dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
-    >
-      <div class="sticky top-0 z-20 w-full bg-white p-2">
-        <NavbarTop :label="`Gerencia ${management}`" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
-      </div>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      :title="navbarTitle"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
-      <SectionContainer v-if="dashboardData">
-        <ManagementInformation
-          :data="dashboardData"
-          :management-debts="managementDebts"
-          :is-loading="isLoading"
-        />
-      </SectionContainer>
+    <!-- Content with Data -->
+    <SectionContainer v-if="dashboardData && !isLoading">
+      <ManagementInformation
+        :data="dashboardData"
+        :management-debts="managementDebts"
+        :is-loading="isLoading"
+      />
+    </SectionContainer>
 
-      <LoadSkeleton v-else-if="isLoading" :items="6" class="mt-4" />
+    <!-- Loading State -->
+    <LoadSkeleton v-else-if="isLoading" :items="6" class="mt-4" />
 
-      <div class="mt-4 rounded-sm border bg-white p-4 text-center text-blue-900" v-else>
-        <h2 class="text-lg">No hay datos que mostrar</h2>
-      </div>
-    </div>
-  </main>
+    <!-- Empty State -->
+    <EmptyCT
+      v-else
+      message="No hay datos que mostrar"
+      description="No se encontraron datos disponibles para esta gerencia."
+    />
+  </MainCT>
 </template>

@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
 import type { IIncident, IIncidentFormData } from '../types'
 import { useIncidentData } from '../composables'
 
 // Components
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
 import FloatBtn from '@/shared/components/FloatBtn.vue'
 import IncidentBottomSheet from '@/features/incident/components/IncidentBottomSheet.vue'
 import IncidentsList from '@/features/incident/components/IncidentsList.vue'
+
+const router = useRouter()
 
 // Composables
 const {
@@ -54,10 +58,14 @@ async function handleIncidentSubmit(formData: IIncidentFormData): Promise<void> 
     // Error is handled in the composable
   }
 }
+
+function handleBack(): void {
+  router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
 </script>
 
 <template>
-  <IncidentBottomSheet 
+  <IncidentBottomSheet
     ref="incidentBottomSheetRef"
     :selected-incident="selectedIncident"
     :usuario-id="user?.usuarioId || 0"
@@ -72,18 +80,19 @@ async function handleIncidentSubmit(formData: IIncidentFormData): Promise<void> 
     <FloatBtn type="primary" @click="openIncidentForm" />
   </div>
 
-  <main class="min-h-screen bg-slate-100 pb-[6rem]">
-    <div class="block p-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-      <div class="sticky top-0 z-20 w-full bg-white p-2">
-        <NavbarTop label="Incidentes y salidas" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
-      </div>
-    </div>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Incidentes y salidas"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
-    <IncidentsList 
+    <IncidentsList
       :incidents="incidents"
       :is-loading="isLoadingIncidents"
       :has-incidents="hasIncidents"
       @incident:select="handleIncidentSelect"
     />
-  </main>
+  </MainCT>
 </template>
