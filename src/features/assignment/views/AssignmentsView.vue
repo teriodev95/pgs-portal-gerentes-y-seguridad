@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { ROUTE_NAME } from '@/router'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAssignmentsData } from '../composables'
 // Components import
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import AssignmentWidget from '../components/AssignmentWidget.vue'
-import BoxCloseOutline from '@/shared/components/icons/BoxCloseOutline.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 
 // Composables
 const route = useRoute()
+const router = useRouter()
 const {
   assignmentData,
   isLoading,
@@ -23,19 +25,25 @@ const {
 const redirectRoute = computed(() =>
   route.query.from === 'cash-flow' ? ROUTE_NAME.DASHBOARD_CASH_FLOW : ROUTE_NAME.DASHBOARD_HOME
 )
+
+// Methods
+function handleBack() {
+  router.push({ name: redirectRoute.value })
+}
 </script>
 
 <template>
 
-  <main class="min-h-screen bg-slate-100">
+  <MainCT>
     <!-- Top Navigation Bar -->
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop label="Asignaciones" :back="{ name: redirectRoute }" />
-    </div>
+    <NavbarCT
+      title="Asignaciones"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
     <!-- Assignments List -->
     <SectionContainer v-if="hasAssignments">
-
       <AssignmentWidget v-for="(assignment, index) in assignmentData.assignments" :key="`assignment-${index}`" :assignment="assignment"
         type="agency" @action:correction-request="navigateToCorrection"/>
     </SectionContainer>
@@ -46,14 +54,10 @@ const redirectRoute = computed(() =>
     </SectionContainer>
 
     <!-- Empty State -->
-    <div v-else class="flex min-h-[32rem] items-center justify-center">
-      <div class="text-center text-gray-600">
-        <BoxCloseOutline class="mx-auto h-28 w-28" />
-
-        <div class="mt-2 text-center">
-          <h2 class="text-2xl font-semibold">No se encontraron asignaciones</h2>
-        </div>
-      </div>
-    </div>
-  </main>
+    <EmptyCT
+      v-else
+      message="No se encontraron asignaciones"
+      description="Aún no has creado ninguna asignación en esta agencia"
+    />
+  </MainCT>
 </template>
