@@ -14,7 +14,7 @@ defineProps<Props>();
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-4 min-h-screen content-start">
+  <div class="grid grid-cols-2 gap-4 content-start">
     <div v-for="tarjeta in tarjetas" :key="`${tarjeta.gerency}-${tarjeta.week}`"
       class="rounded-lg border bg-white p-4 space-y-4"
       @click="$emit('selectWeekAndManagement', tarjeta.gerency, tarjeta.week)">

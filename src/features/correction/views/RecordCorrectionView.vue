@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { useRevealCircleStore } from '@/shared/stores/revealCircle';
+import { useRouter } from 'vue-router'
 
 // Shared Components
 import CardContainer from '@/shared/components/CardContainer.vue';
-import NavbarTop from '@/shared/components/NavbarTop.vue';
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue';
+import MainCT from '@/shared/components/ui/MainCT.vue';
 import SectionContainer from '@/shared/components/SectionContainer.vue';
 
 // Feature Components
@@ -27,8 +28,9 @@ interface Props {
 // Define props
 defineProps<Props>();
 
+const router = useRouter();
+
 // Use the composable and store
-const revealCircleStore = useRevealCircleStore();
 const {
   state,
   formData,
@@ -43,13 +45,21 @@ const {
   updateActionType,
   errorMessage
 } = useRecordCorrection();
+
+// Methods
+function handleBack() {
+  router.back();
+}
 </script>
 
 <template>
-  <main class="min-h-screen bg-slate-100">
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop label="Solicitud de corrección" :back="true" />
-    </div>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Solicitud de corrección"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
     <SectionContainer>
       <CardContainer>
@@ -96,5 +106,5 @@ const {
         </form>
       </CardContainer>
     </SectionContainer>
-  </main>
+  </MainCT>
 </template>

@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
 import { useReport, useReportDialog } from '../composables'
 import type { ReportType } from '../types'
 
 // Components
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
 import ReportTypeSelector from '../components/ReportTypeSelector.vue'
 import ReportDialog from '../components/ReportDialog.vue'
 
 // Composables
+const router = useRouter()
 const { generateReport, shareReport, cleanup, isLoading, imageUrl, isSharing } = useReport()
 const { isOpen, reportType, openDialog, closeDialog } = useReportDialog()
 
@@ -33,20 +36,28 @@ function handleDialogClose(): void {
   closeDialog()
   cleanup()
 }
+
+function handleBack(): void {
+  router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
 </script>
 
 <template>
-  <main class="min-h-screen p-2 bg-slate-100 space-y-4 pb-[6rem]">
-    <!-- Navigation Header -->
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop label="Reportes Diarios" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
-    </div>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Reportes Diarios"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
     <!-- Report Type Selection -->
-    <ReportTypeSelector
-      :is-generating="isLoading"
-      @report:generate="handleGenerateReport"
-    />
+    <div class="p-2">
+      <ReportTypeSelector
+        :is-generating="isLoading"
+        @report:generate="handleGenerateReport"
+      />
+    </div>
 
     <!-- Report Generation Dialog -->
     <ReportDialog
@@ -58,5 +69,5 @@ function handleDialogClose(): void {
       @dialog:close="handleDialogClose"
       @report:share="handleShareReport"
     />
-  </main>
+  </MainCT>
 </template>

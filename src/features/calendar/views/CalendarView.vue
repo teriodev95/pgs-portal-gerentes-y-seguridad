@@ -1,10 +1,70 @@
+<script setup lang="ts">
+import { onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useCalendar } from '../composables'
+import type { CalendarWeek } from '../types'
+import CalendarNavigation from '../components/CalendarNavigation.vue'
+import MonthCard from '../components/MonthCard.vue'
+import MonthlyWeekCard from '../components/MonthlyWeekCard.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
+import { ROUTE_NAME } from '@/router'
+import SectionContainer from '@/shared/components/SectionContainer.vue'
+
+const router = useRouter()
+
+const {
+  // State
+  currentYear,
+  currentView,
+  selectedMonth,
+  loading,
+  error,
+
+  // Computed
+  monthsGroup,
+  filteredMonths,
+  canNavigatePrevious,
+  canNavigateNext,
+
+  // Methods
+  fetchCalendar,
+  navigateYear,
+  navigateMonth,
+  setView,
+  selectMonth,
+  formatDateRange
+} = useCalendar()
+
+// Computed property for current month's week count
+const currentMonthWeekCount = computed(() => {
+  if (!selectedMonth.value) return 0
+  const month = monthsGroup.value.find(m => m.month === selectedMonth.value)
+  return month?.weekCount || 0
+})
+
+function handleWeekClick(week: CalendarWeek) {
+  console.log('Week clicked:', week)
+}
+
+function handleBack() {
+  router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
+
+onMounted(() => {
+  fetchCalendar()
+})
+</script>
+
 <template>
-  <main class="min-h-screen bg-slate-100 pb-[6rem]">
-    <div class="block p-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-      <div class="sticky top-0 z-20 w-full bg-white p-2">
-        <NavbarTop label="Calendario" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
-      </div>
-    </div>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Calendario"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
     <SectionContainer>
       <!-- Navigation -->
@@ -77,65 +137,11 @@
       </div>
   
       <!-- Empty state -->
-      <div v-else class="text-center py-12">
-        <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No hay datos disponibles</h3>
-        <p class="text-gray-600">No se encontraron semanas para el a�o {{ currentYear }}</p>
-      </div>
+      <EmptyCT
+        v-else
+        message="No hay datos disponibles"
+        :description="`No se encontraron semanas para el año ${currentYear}`"
+      />
     </SectionContainer>
-
-  </main>
-
+  </MainCT>
 </template>
-
-<script setup lang="ts">
-import { onMounted, computed } from 'vue'
-import { useCalendar } from '../composables'
-import type { CalendarWeek } from '../types'
-import CalendarNavigation from '../components/CalendarNavigation.vue'
-import MonthCard from '../components/MonthCard.vue'
-import MonthlyWeekCard from '../components/MonthlyWeekCard.vue'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
-import { ROUTE_NAME } from '@/router'
-import SectionContainer from '@/shared/components/SectionContainer.vue'
-
-const {
-  // State
-  currentYear,
-  currentView,
-  selectedMonth,
-  loading,
-  error,
-
-  // Computed
-  monthsGroup,
-  filteredMonths,
-  canNavigatePrevious,
-  canNavigateNext,
-
-  // Methods
-  fetchCalendar,
-  navigateYear,
-  navigateMonth,
-  setView,
-  selectMonth,
-  formatDateRange
-} = useCalendar()
-
-// Computed property for current month's week count
-const currentMonthWeekCount = computed(() => {
-  if (!selectedMonth.value) return 0
-  const month = monthsGroup.value.find(m => m.month === selectedMonth.value)
-  return month?.weekCount || 0
-})
-
-function handleWeekClick(week: CalendarWeek) {
-  console.log('Week clicked:', week)
-}
-
-onMounted(() => {
-  fetchCalendar()
-})
-</script>
