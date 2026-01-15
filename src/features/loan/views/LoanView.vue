@@ -31,7 +31,7 @@ import TextCT from '@/shared/components/ui/TextCT.vue'
 const loanDataComposable = useLoanData()
 const navigationComposable = useNavigation()
 const modalManagerComposable = useModalManager()
-const settlementLogicComposable = useSettlementLogic(modalManagerComposable, navigationComposable)
+const settlementLogicComposable = useSettlementLogic(modalManagerComposable)
 
 // Destructure composables
 const {
@@ -56,6 +56,8 @@ const {
 const {
   confirmId,
   modalInfo,
+  notificationBottomSheet,
+  settlementOptionsBottomSheet,
   closeNotificationSheet,
 } = modalManagerComposable
 
@@ -68,6 +70,8 @@ const {
 
 // Component-specific methods
 function onSettlementRequest() {
+  console.log("hola")
+  console.log(isWeeklyFeePaid())
   handleSettlementRequest(loanData.value, isWeeklyFeePaid)
 }
 
