@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import '@webzlodimir/vue-bottom-sheet/dist/style.css'
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
 import { PaymentSource, RecoverySource } from '@/features/loan/types'
 
@@ -11,12 +12,16 @@ import { usePaymentUIState } from '@/features/loan/composables/usePaymentUIState
 
 // Components
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import PaymentItem from '@/features/loan/components/PaymentItem.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import PaymentEmptyState from '@/features/loan/components/PaymentEmptyState.vue'
 import PaymentFilterSection from '@/features/loan/components/PaymentFilterSection.vue'
 import PaymentFormBottomSheet from '@/features/loan/components/PaymentFormBottomSheet.vue'
+
+const router = useRouter()
 
 // Composables initialization
 
@@ -70,6 +75,10 @@ function handleSelectPayment(payment: any) {
   paymentFormBottomSheetRef.value?.open()
 }
 
+function handleBack() {
+  router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
+
 // Lifecycle hooks
 onMounted(async () => {
   if (!isFromWeeklyClosureError.value) {
@@ -90,19 +99,19 @@ onMounted(async () => {
   />
 
   <!-- Main Content -->
-  <main class="relative min-h-screen space-y-2 bg-slate-100" >
-
-    <!-- Navigation Header -->
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop :label="isFromWeeklyClosureError ? 'Pagos para habilitar el cierre' : 'Pagos'"
-        :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
-    </div>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      :title="isFromWeeklyClosureError ? 'Pagos para habilitar el cierre' : 'Pagos'"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
     <!-- Loading State -->
     <LoadSkeleton v-if="isLoadingPayments" :items="6" class="mt-4" />
 
     <!-- Content State -->
-    <SectionContainer v-else>
+    <SectionContainer v-else-if="filteredPayments.length > 0">
       <!-- Filter Controls -->
       <PaymentFilterSection
         v-model:filter-value="filterName"
@@ -113,14 +122,21 @@ onMounted(async () => {
 
       <!-- Payments List -->
       <section class="mt-4 space-y-4">
-        <template v-if="filteredPayments.length">
-          <PaymentItem v-for="payment in filteredPayments" :key="`payment-${payment.prestamoId}`" :payment="payment"
-            :is-processing="isProcessing" @action:select-payment="handleSelectPayment" />
-        </template>
-
-        <!-- Empty State -->
-        <PaymentEmptyState v-else />
+        <PaymentItem
+          v-for="payment in filteredPayments"
+          :key="`payment-${payment.prestamoId}`"
+          :payment="payment"
+          :is-processing="isProcessing"
+          @action:select-payment="handleSelectPayment"
+        />
       </section>
     </SectionContainer>
-  </main>
+
+    <!-- Empty State -->
+    <EmptyCT
+      v-else
+      message="No hay pagos disponibles"
+      description="No se encontraron pagos para mostrar en este momento."
+    />
+  </MainCT>
 </template>

@@ -66,7 +66,7 @@ defineEmits<Emits>()
         {{ LOAN_BUTTON_LABELS.HISTORY }}
       </BtnComponent>
       <BtnComponent
-        :disabled="isRegionalButtonDisabled || isSettlementButtonDisabled"
+        :disabled="isSettlementButtonDisabled"
         full-width
         outline
         variant="secondary"
