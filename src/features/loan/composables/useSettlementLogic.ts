@@ -16,7 +16,6 @@ interface INavigation {
 
 export function useSettlementLogic(
   modalManager: IModalManager,
-  navigation: INavigation
 ) {
   
   function handleSettlementRequest(
@@ -25,12 +24,19 @@ export function useSettlementLogic(
   ) {
     if (!loanData) return
 
-    if (!isWeeklyFeePaid()) {
-      modalManager.openNotificationSheet()
-      return
-    }
+    try {
+      const isPaid = isWeeklyFeePaid()
 
-    modalManager.openSettlementOptionsSheet()
+      if (!isPaid) {
+        modalManager.openNotificationSheet()
+        return
+      }
+
+      modalManager.openSettlementOptionsSheet()
+    } catch (error) {
+      console.error('Error checking weekly fee payment:', error)
+      modalManager.openNotificationSheet()
+    }
   }
 
   function handleSettleWithoutDiscount(modalManager: IModalManager) {
