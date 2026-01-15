@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import '@webzlodimir/vue-bottom-sheet/dist/style.css'
 import { onBeforeMount, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { toCurrency } from '@/shared/utils'
 import { LOAN_FIELD_LABELS, LOAN_SECTION_TITLES, LOAN_HOUSE_NUMBER_FORMAT, LOAN_MODAL_MESSAGES, LOAN_BUTTON_LABELS } from '@/features/loan/constants'
 
@@ -10,10 +11,14 @@ import { useNavigation } from '@/features/loan/composables/useNavigation'
 import { useModalManager } from '@/features/loan/composables/useModalManager'
 import { useSettlementLogic } from '@/features/loan/composables/useSettlementLogic'
 
+const router = useRouter()
+
 // Components
 import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import ConfirmModal from '@/shared/components/ConfirmModal.vue'
 import LoanSummaryCard from '@/features/loan/components/LoanSummaryCard.vue'
 import LoanDataSection from '@/features/loan/components/LoanDataSection.vue'
@@ -51,8 +56,6 @@ const {
 const {
   confirmId,
   modalInfo,
-  notificationBottomSheet,
-  settlementOptionsBottomSheet,
   closeNotificationSheet,
 } = modalManagerComposable
 
@@ -87,6 +90,14 @@ function onNavigateToPaymentHistory() {
 
 function onNavigateToSpecialSettlement() {
   navigateToSpecialSettlement(loanData.value)
+}
+
+function handleBack() {
+  if (navigationBackPath.value === true) {
+    router.back()
+  } else {
+    router.push(navigationBackPath.value)
+  }
 }
 
 // Computed properties for data sections
@@ -193,14 +204,16 @@ onBeforeMount(initializeLoanData)
   </vue-bottom-sheet>
 
   <!-- Main Content -->
-  <main class="min-h-screen bg-slate-100">
-    <!-- Header -->
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop label="Préstamo" :back="navigationBackPath" />
-    </div>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Préstamo"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
     <!-- Loan Summary -->
-    <SectionContainer v-if="loanData">
+    <SectionContainer v-if="loanData && !isLoading">
       <LoanSummaryCard
         :cobrado="loanData.cobrado"
         :saldo="loanData.saldo"
@@ -238,13 +251,13 @@ onBeforeMount(initializeLoanData)
     </SectionContainer>
 
     <!-- Loading State -->
-    <div v-else-if="isLoading">
-      <LoadSkeleton :items="8" />
-    </div>
+    <LoadSkeleton v-else-if="isLoading" :items="8" />
 
     <!-- Empty State -->
-    <div v-else class="p-4 text-center text-xl font-bold text-blue-900">
-      No hay datos que mostrar
-    </div>
-  </main>
+    <EmptyCT
+      v-else
+      message="No hay datos que mostrar"
+      description="No se encontró información del préstamo solicitado."
+    />
+  </MainCT>
 </template>
