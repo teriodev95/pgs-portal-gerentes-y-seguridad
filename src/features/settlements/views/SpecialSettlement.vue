@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useSettlement } from '../composables/useSettlement'
 import { useRevealCircleStore } from '@/shared/stores/revealCircle'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import SpecialSettlementHeader from '../components/SpecialSettlementHeader.vue'
 import BalanceCard from '../components/BalanceCard.vue'
@@ -13,6 +15,7 @@ import AlertMsg from '@/shared/components/AlertMsg.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 
 const route = useRoute()
+const router = useRouter()
 const revealCircleStore = useRevealCircleStore()
 
 const {
@@ -45,6 +48,10 @@ function handleSelectOption(percentage: number) {
   selectLiquidationOption(percentage)
 }
 
+function handleBack() {
+  router.back()
+}
+
 onMounted(() => {
   const loanId = route.params.id as string
   if (loanId) {
@@ -54,20 +61,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="relative h-screen bg-slate-100 pb-[6rem]" :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
-    <!-- Navigation Header -->
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop
-        label="Liquidación Especial"
-        :back="true"
-      />
-    </div>
+  <MainCT :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Liquidación Especial"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
     <SectionContainer>
-      <!-- Loading state -->
-       <LoadSkeleton v-if="loading" :items="6"/>
+      <!-- Loading State -->
+      <LoadSkeleton v-if="loading" :items="6"/>
 
-      <!-- Error state -->
+      <!-- Error State -->
       <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
         <div class="flex items-center">
           <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +83,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Settlement content -->
+      <!-- Settlement Content -->
       <div v-else-if="hasData && settlement">
         <!-- Settlement Header -->
         <SpecialSettlementHeader
@@ -112,18 +118,15 @@ onMounted(() => {
               message="Este préstamo aún no cumple las 52 semanas requeridas para Liquidación especial"
             />
           </template>
-
         </LiquidationProposal>
       </div>
 
-      <!-- Empty state -->
-      <div v-else class="text-center py-12">
-        <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-        </svg>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No hay datos disponibles</h3>
-        <p class="text-gray-600">No se pudo cargar la información de la liquidación especial</p>
-      </div>
+      <!-- Empty State -->
+      <EmptyCT
+        v-else
+        message="No hay datos disponibles"
+        description="No se pudo cargar la información de la liquidación especial."
+      />
     </SectionContainer>
-  </main>
+  </MainCT>
 </template>

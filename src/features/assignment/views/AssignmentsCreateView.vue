@@ -9,7 +9,8 @@ import ValidationPin from '@/features/assignment/components/ValidationPin.vue';
 import OptionSelector from '@/features/assignment/components/OptionSelector.vue';
 import CardContainer from '@/shared/components/CardContainer.vue';
 import SectionContainer from '@/shared/components/SectionContainer.vue';
-import NavbarTop from '@/shared/components/NavbarTop.vue';
+import { useRouter } from 'vue-router';
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue';
 
 // Composables
 const {
@@ -39,13 +40,20 @@ const {
 } = useAssignmentForm();
 
 const { slideUnlockStyles } = useAssignmentStyles();
+const $router = useRouter();
+
+function handleBack() {
+  $router.push({ name: ROUTE_NAME.MANAGER_ASSIGNMENTS_VIEW })
+}
 </script>
 
 <template>
   <main class="min-h-screen bg-slate-100 pb-[6rem]">
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop label="Crear asignación" :back="{ name: ROUTE_NAME.MANAGER_ASSIGNMENTS_VIEW }" />
-    </div>
+    <NavbarCT
+      title="Crear asignación"
+      :show-back="true"
+      @back="handleBack"
+    />
 
     <SectionContainer>
       <CardContainer>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { ROUTE_NAME } from '@/router'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
 import PromissoryNoteList from '../components/PromissoryNoteList.vue'
 import PromissoryNoteDetail from '../components/PromissoryNoteDetail.vue'
 import { usePromissoryNote } from '../composables/usePromissoryNote'
@@ -23,11 +24,15 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="bg-slate-100">
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop :label="selectedPagare ? 'Detalle del Pagaré' : 'Pagarés'" @on-back="handleOnBack" />
-    </div>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      :title="selectedPagare ? 'Detalle del Pagaré' : 'Pagarés'"
+      :show-back-button="true"
+      @back="handleOnBack"
+    />
 
+    <!-- Promissory Notes List -->
     <PromissoryNoteList
       v-if="!selectedPagare"
       :pagares="pagares"
@@ -35,11 +40,12 @@ onMounted(async () => {
       @select-pagare="handleSelectPagare"
     />
 
+    <!-- Promissory Note Detail -->
     <PromissoryNoteDetail
       v-if="selectedPagare"
       :pagare="selectedPagare"
       @close="closeDetail"
       @updated="handleUpdated"
     />
-  </main>
+  </MainCT>
 </template>

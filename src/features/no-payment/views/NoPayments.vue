@@ -5,13 +5,17 @@ import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
 
 // Components
 import MapWidget from '@/shared/components/MapWidget.vue'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
 import NoPaymentFilters from '../components/NoPaymentFilters.vue'
 import NoPaymentStats from '../components/NoPaymentStats.vue'
 import NoPaymentsList from '../components/NoPaymentsList.vue'
 
 // Composables
 import { useNoPayments } from '../composables'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import { useRouter } from 'vue-router'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+
+const $router = useRouter()
 
 // Main composable
 const {
@@ -44,16 +48,16 @@ const {
   showMapLocation,
   selectVisit
 } = useNoPayments()
+
+
+function handleBack() {
+  $router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
 </script>
 
 <template>
-  <main class="min-h-screen space-y-2 bg-slate-100">
-    <!-- Header Navigation -->
-    <div class="block p-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-      <div class="sticky top-0 z-20 w-full bg-white p-2">
-        <NavbarTop label="No Pagos" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
-      </div>
-    </div>
+  <MainCT>
+    <NavbarCT title="No Pagos" show-back-button @click:back="handleBack" />
 
     <!-- Filters Section -->
     <NoPaymentFilters
@@ -111,7 +115,7 @@ const {
         </Transition>
       </main>
     </vue-bottom-sheet>
-  </main>
+  </MainCT>
 </template>
 
 <style lang="scss" scoped></style>

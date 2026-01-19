@@ -4,7 +4,7 @@ import type { SaleDetails } from '../types'
 // Components
 import SalesItem from './SalesItem.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
-import BoxCloseOutline from '@/shared/components/icons/BoxCloseOutline.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 
 // Interface - Props - Emits
 defineProps<{
@@ -25,25 +25,24 @@ function handleSaleSelect(sale: SaleDetails): void {
 
 <template>
   <section class="space-y-4 p-2">
+    <!-- Sales List -->
     <template v-if="hasSales">
-      <SalesItem 
-        v-for="sale in sales" 
-        :key="`sale-${sale.id}`" 
+      <SalesItem
+        v-for="sale in sales"
+        :key="`sale-${sale.id}`"
         :sale="sale"
-        @action:show-details="handleSaleSelect" 
+        @action:show-details="handleSaleSelect"
       />
     </template>
 
+    <!-- Loading State -->
     <LoadSkeleton v-else-if="isLoading" :items="6" class="mt-4" />
 
-    <div v-else class="flex items-center justify-center">
-      <div class="text-center text-gray-600">
-        <BoxCloseOutline class="mx-auto h-28 w-28" />
-
-        <div class="mt-2 text-center">
-          <h2 class="text-2xl font-semibold">No se encontraron ventas</h2>
-        </div>
-      </div>
-    </div>
+    <!-- Empty State -->
+    <EmptyCT
+      v-else
+      message="No se encontraron ventas"
+      description="No hay ventas registradas en este momento."
+    />
   </section>
 </template>

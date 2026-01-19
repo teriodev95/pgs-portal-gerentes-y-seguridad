@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import type { Pagare } from '../types'
 import PromissoryNoteCard from './PromissoryNoteCard.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue';
@@ -15,13 +16,18 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <SectionContainer >
-    <LoadSkeleton :items="6" v-if="loading" class="text-center" />
+  <SectionContainer>
+    <!-- Loading State -->
+    <LoadSkeleton :items="6" v-if="loading" />
 
-    <div v-else-if="pagares.length === 0" class="text-center">
-      <p class="text-gray-500">No se encontraron pagarés</p>
-    </div>
+    <!-- Empty State -->
+    <EmptyCT
+      v-else-if="pagares.length === 0"
+      message="No se encontraron pagarés"
+      description="No hay pagarés registrados en este momento."
+    />
 
+    <!-- Promissory Notes List -->
     <div class="space-y-2" v-else>
       <p class="text-sm text-gray-600">Total: {{ pagares.length }} pagarés</p>
 

@@ -6,11 +6,13 @@ import type { SaleDetails, SaleFormData } from '../types'
 // Components
 import '@webzlodimir/vue-bottom-sheet/dist/style.css'
 import FloatBtn from '@/shared/components/FloatBtn.vue'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
 import SaleBottomSheet from '@/features/sale/components/SaleBottomSheet.vue'
 import SaleDetailsContent from '@/features/sale/components/SaleDetailsBottomSheetContent.vue'
 import SalesList from '@/features/sale/components/SalesList.vue'
 import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
+import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 
 // Composables
 import { useSaleData } from '../composables'
@@ -71,10 +73,10 @@ function handleClosedDetailsSheet(): void {
 
 <template>
   <!-- Sale Details Bottom Sheet -->
-  <vue-bottom-sheet 
-    ref="detailsBottomSheet" 
-    :max-width="1000" 
-    :max-height="1500" 
+  <vue-bottom-sheet
+    ref="detailsBottomSheet"
+    :max-width="1000"
+    :max-height="1500"
     @closed="handleClosedDetailsSheet"
   >
     <div v-if="isLoadingDetails" class="p-4 flex items-center justify-center">
@@ -84,22 +86,25 @@ function handleClosedDetailsSheet(): void {
   </vue-bottom-sheet>
 
   <!-- Create Sale Bottom Sheet -->
-  <SaleBottomSheet 
-    ref="createSaleBottomSheet" 
-    :is-saving="isSavingSale" 
+  <SaleBottomSheet
+    ref="createSaleBottomSheet"
+    :is-saving="isSavingSale"
     :gerencia-selected="gerenciaSelected"
-    @submit="handleSaveSale" 
-    @closed="handleClosedCreateSheet" 
+    @submit="handleSaveSale"
+    @closed="handleClosedCreateSheet"
   />
 
-  <main class="min-h-screen p-2 bg-slate-100 space-y-4 pb-[6rem]">
-    <!-- Navigation Header -->
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop label="Ventas" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
-    </div>
+  <!-- Main Content -->
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Ventas"
+      :show-back-button="true"
+      @back="$router.push({ name: ROUTE_NAME.DASHBOARD_HOME })"
+    />
 
     <!-- Sales List Component -->
-    <SalesList 
+    <SalesList
       :sales="sales"
       :is-loading="isLoadingSales"
       :has-sales="hasSales"
@@ -110,7 +115,7 @@ function handleClosedDetailsSheet(): void {
     <div data-dial-init class="group fixed bottom-[1.5rem] right-6 z-50">
       <FloatBtn type="primary" @click="openCreateSaleSheet" />
     </div>
-  </main>
+  </MainCT>
 </template>
 
 <style scoped>

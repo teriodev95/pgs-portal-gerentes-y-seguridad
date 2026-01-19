@@ -14,7 +14,9 @@ import { useRouter } from 'vue-router'
  */
 import EditFieldDialog from '@/features/weekly-close/components/EditFieldDialog.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import SignForm from '@/features/weekly-close/components/SignForm.vue'
 import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue'
 import WeeklyClosingHeader from '@/features/weekly-close/components/WeeklyClosingHeader.vue'
@@ -176,6 +178,7 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <!-- Edit Field Dialog -->
   <EditFieldDialog
     v-if="showModal"
     :value="modalValue"
@@ -185,23 +188,24 @@ onUnmounted(() => {
     @action:cancel="handleModalCancel"
   />
 
-  <main class="h-screen bg-slate-100" :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
+  <!-- Main Content -->
+  <MainCT :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      :title="navbarLabel"
+      :subtitle="userNavbarTop"
+      :show-back-button="true"
+      @back="handleOnBack"
+    />
 
-    <div class="block p-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-      <div class="sticky top-0 z-20 w-full bg-white p-2">
-        <NavbarTop
-          :label="navbarLabel"
-          :user="userNavbarTop" 
-          @onBack="handleOnBack" 
-        />
-      </div>
-    </div>
-
+    <!-- Sign Form View -->
     <div v-if="showForm" class="p-2">
       <SignForm @action:completed="handleCompletion"/>
     </div>
 
+    <!-- Weekly Close Content -->
     <div class="space-y-2 p-2" v-else-if="weeklyClose && !isLoading">
+      <!-- Actions Card -->
       <div class="space-y-2 rounded-lg border bg-white p-4">
         <template v-if="!isClosingLocked">
           <h2 class="title">Acciones</h2>
@@ -213,7 +217,7 @@ onUnmounted(() => {
 
         <div v-else class="space-y-2">
           <p class="title flex items-center justify-between gap-2">
-            Status 
+            Status
             <span class="badget badget-success">Cerrado</span>
           </p>
 
@@ -225,12 +229,15 @@ onUnmounted(() => {
         </div>
       </div>
 
+      <!-- Weekly Closing Header -->
       <WeeklyClosingHeader />
 
+      <!-- Weekly Closing Summary -->
       <WeeklyClosingSummary @action:show-modal="openModalAuto" />
 
-      <button 
-        @click="showForm = true" 
+      <!-- Continue Button -->
+      <button
+        @click="showForm = true"
         class="btn-primary flex w-full items-center justify-center gap-4"
         v-if="!isClosingLocked"
       >
@@ -238,16 +245,21 @@ onUnmounted(() => {
       </button>
     </div>
 
+    <!-- Loading State -->
     <LoadSkeleton v-else-if="isLoading" :items="6" class="mt-4" />
 
-    <template v-else-if="!weeklyClose && !isLoading">
-      <div class="mt-4 rounded-sm border bg-white p-4 text-center text-blue-800" v-if="error">
-        <h2 class="text-lg">{{ error }}</h2>
-      </div>
-      <div class="mt-4 rounded-sm border bg-white p-4 text-center text-blue-800" v-else>
-        <h2 class="text-lg">No hay datos que mostrar</h2>
-      </div>
-    </template>
-
-  </main>
+    <!-- Empty/Error State -->
+    <div v-else-if="!weeklyClose && !isLoading" class="p-2">
+      <EmptyCT
+        v-if="error"
+        message="Error al cargar datos"
+        :description="error"
+      />
+      <EmptyCT
+        v-else
+        message="No hay datos que mostrar"
+        description="No se encontró información del cierre semanal."
+      />
+    </div>
+  </MainCT>
 </template>
