@@ -1,32 +1,41 @@
 <script setup lang="ts">
 import { ROUTE_NAME } from '@/router'
+import { useRouter } from 'vue-router'
 import { useMoneyTabulation } from '../composables'
 
 // Components
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
 import MoneyTabulator from '@/features/tabulator/components/MoneyTabulator.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 
 // Composables
+const router = useRouter()
+
 const {
   // State
   currentTabulationData,
   hasTabulationForCurrentWeek,
   isLoadingTabulation,
-  
+
   // Methods
   saveTabulationData
 } = useMoneyTabulation()
+
+// Methods
+function handleBack() {
+  router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
 </script>
 
 <template>
-  <main class="min-h-screen bg-slate-100">
-    <!-- Header -->
-    <div class="block p-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 text-green-600">
-      <div class="sticky top-0 z-20 w-full bg-white p-2">
-        <NavbarTop label="Tabulador" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
-      </div>
-    </div>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Tabulador"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
     <!-- Content -->
     <section class="space-y-4 p-2">
@@ -34,12 +43,12 @@ const {
       <LoadSkeleton v-if="isLoadingTabulation" :items="6" />
 
       <!-- Tabulation Form -->
-      <MoneyTabulator 
-        v-else 
+      <MoneyTabulator
+        v-else
         @submit:tabulation="saveTabulationData"
-        :has-current-week-tabulation="hasTabulationForCurrentWeek" 
+        :has-current-week-tabulation="hasTabulationForCurrentWeek"
         :tabulation="currentTabulationData"
       />
     </section>
-  </main>
+  </MainCT>
 </template>

@@ -18,8 +18,10 @@ import ArrowUp from '@/shared/components/icons/ArrowUp.vue';
 import CardContainer from '@/shared/components/CardContainer.vue';
 import LoadingButton from '@/features/weekly-close/components/LoadingButton.vue';
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue';
-import NavbarTop from '@/shared/components/NavbarTop.vue';
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue';
+import MainCT from '@/shared/components/ui/MainCT.vue';
 import SectionContainer from '@/shared/components/SectionContainer.vue';
+import { useRouter } from 'vue-router';
 
 /**
  * ------------------------------------------
@@ -27,6 +29,7 @@ import SectionContainer from '@/shared/components/SectionContainer.vue';
  * ------------------------------------------
  */
 const $store = useStore();
+const router = useRouter();
 const { tabulation, weeklyClosingDetails, generalBalance, managementNumbers, isLoading, fetchWeeklyClosingDetails, fetchPdfData } = useWeeklyClosingData()
 const { generateHTMLTemplate } = useWeeklyClosingTemplate()
 const { generatePDF, downloadPDF } = usePdfGenerator()
@@ -98,6 +101,13 @@ const handleGeneratePDF = async (user: userPDF) => {
 }
 
 /**
+ * handleBack
+ */
+const handleBack = () => {
+  router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
+
+/**
  * ------------------------------------------
  *	Lifecycle
  * ------------------------------------------
@@ -109,16 +119,15 @@ onBeforeMount(async () => {
 </script>
 
 <template>
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Detalles de Cierre"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
-  <main class="min-h-screen bg-slate-100">
-    <div class="block p-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-      <div class="sticky top-0 z-20 w-full bg-white p-2">
-        <NavbarTop label="Detalles de Cierre" :back="{ name: ROUTE_NAME.DASHBOARD_HOME }" />
-      </div>
-    </div>
-
-    <!-- <LoadSkeleton v-if="isLoading" :items="6" /> -->
-
+    <!-- Embedded Details View -->
     <iframe
       :src="`https://v0-ui-flujo-efectivo.vercel.app/detalles-cierre?gerencia=${$store.gerenciaSelected}&semana=${$store.currentDate.week}&anio=${$store.currentDate.year}`"
       class="w-full min-h-screen" frameborder="0"></iframe>
@@ -306,6 +315,7 @@ onBeforeMount(async () => {
       </SectionContainer>
     </article>
 
+    <!-- PDF Download Section -->
     <SectionContainer>
       <div v-if="weeklyClosingDetails" class="space-y-2">
         <LoadingButton @click="handleGeneratePDF('managment')" :isLoading="isLoadingManagement"
@@ -317,5 +327,5 @@ onBeforeMount(async () => {
         <p class="text-center text-gray-400">No hay información disponible</p>
       </div>
     </SectionContainer>
-  </main>
+  </MainCT>
 </template>

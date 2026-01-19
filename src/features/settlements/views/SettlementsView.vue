@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { onBeforeMount } from 'vue'
 import { ROUTE_NAME } from '@/router'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 
 // Components
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import SettlementCard from '../components/SettlementCard.vue'
 import FinancialDetails from '../components/FinancialDetails.vue'
@@ -18,6 +19,7 @@ import { useSettlement } from '../composables/useSettlement'
 
 // Services and route
 const $route = useRoute()
+const $router = useRouter()
 const revealCircleStore = useRevealCircleStore()
 
 // Use composables for data management
@@ -41,6 +43,13 @@ async function handleProcessSettlement(): Promise<void> {
   await processSettlementLogic(settlementData.value)
 }
 
+function handleBack(): void {
+  $router.push({
+    name: ROUTE_NAME.DASHBOARD_PRESTAMO,
+    query: { prestamo: $route.query.prestamo }
+  })
+}
+
 // Lifecycle hooks
 onBeforeMount(async () => {
   await initializeSettlement()
@@ -48,18 +57,14 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <main class="relative h-screen bg-slate-100" :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
-
-    <!-- Navigation Header -->
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop label="Liquidación"
-        :back="{ name: ROUTE_NAME.DASHBOARD_PRESTAMO, query: { prestamo: $route.query.prestamo } }" 
-        :extra-info="[
-          `${settlementData?.prestamoId}`,
-          `${settlementData?.cliente}`
-        ]"  
-      />
-    </div>
+  <MainCT :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Liquidación"
+      :subtitle="`${settlementData?.prestamoId || ''} - ${settlementData?.cliente || ''}`"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
     <!-- Settlement Content -->
     <div v-if="settlementData">
@@ -74,7 +79,7 @@ onBeforeMount(async () => {
 
       <!-- Settlement Processor -->
       <div class="space-y-2 p-2">
-        <SettlementProcessor 
+        <SettlementProcessor
           :is-processing="isProcessing"
           :payment-form="paymentForm"
           @update:payment-form="updatePaymentForm"
@@ -85,5 +90,5 @@ onBeforeMount(async () => {
 
     <!-- Loading State -->
     <LoadSkeleton v-else-if="isLoading" :items="6" class="mt-4" />
-  </main>
+  </MainCT>
 </template>

@@ -9,11 +9,12 @@ import { usePaymentHistory } from '../composables'
 // Components
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import MapWidget from '@/shared/components/MapWidget.vue'
-import NavbarTop from '@/shared/components/NavbarTop.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import PaymentAccordion from '@/features/payment-details/components/PaymentAccordion.vue'
 import LoanGeneralInfo from '@/features/payment-details/components/LoanGeneralInfo.vue'
-import EmptyState from '@/features/payment-details/components/EmptyState.vue'
 
 // Composables
 const route = useRoute()
@@ -46,6 +47,13 @@ function handlePaymentAction(action: 'showMap' | 'correction', payment: IPayment
   }
 }
 
+function handleBack() {
+  $router.push({
+    name: ROUTE_NAME.DASHBOARD_PRESTAMO,
+    query: { prestamo: loanData.value?.prestamoId }
+  })
+}
+
 // Lifecycle hooks
 onBeforeMount(async () => {
   const loanId = route.query.prestamo as string
@@ -56,15 +64,17 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <main class="min-h-screen bg-slate-100">
-    <!-- Header Navigation -->
-    <div class="sticky top-0 z-20 w-full bg-white p-2">
-      <NavbarTop label="Historial"
-        :back="{ name: ROUTE_NAME.DASHBOARD_PRESTAMO, query: { prestamo: loanData?.prestamoId } }" />
-    </div>
+  <!-- Main Content -->
+  <MainCT>
+    <!-- Top Navigation Bar -->
+    <NavbarCT
+      title="Historial"
+      :show-back-button="true"
+      @back="handleBack"
+    />
 
     <!-- Loan Data Display -->
-    <SectionContainer class="p-2" v-if="loanData">
+    <SectionContainer v-if="loanData && !isLoading">
       <!-- General Information Card -->
       <LoanGeneralInfo :loan-data="loanData" />
 
@@ -73,13 +83,15 @@ onBeforeMount(async () => {
     </SectionContainer>
 
     <!-- Loading State -->
-    <div class="mt-2" v-else-if="isLoading">
-      <LoadSkeleton :items="9" />
-    </div>
+    <LoadSkeleton v-else-if="isLoading" :items="9" />
 
     <!-- Empty State -->
-    <EmptyState v-else title="No hay datos que mostrar" />
-  </main>
+    <EmptyCT
+      v-else
+      message="No hay datos que mostrar"
+      description="No se encontró información del historial de pagos."
+    />
+  </MainCT>
 
   <!-- Map Display Overlay -->
   <div class="fixed top-0 z-20 h-screen w-screen" v-if="mapMarker">
