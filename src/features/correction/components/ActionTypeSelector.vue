@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import TextCT from '@/shared/components/ui/TextCT.vue';
-import { ACTION_BUTTON_VARIANTS } from '../constants/correction.constants';
+import BtnComponent from '@/shared/components/BtnComponent.vue';
+import { computed } from 'vue';
 
 interface Props {
   correctionType: string;
@@ -12,8 +13,11 @@ interface Emits {
   (event: 'update:action', value: 'correct' | 'delete'): void;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 defineEmits<Emits>();
+
+const isCorrectSelected = computed(() => props.selectedAction === 'correct');
+const isDeleteSelected = computed(() => props.selectedAction === 'delete');
 </script>
 
 <template>
@@ -24,29 +28,23 @@ defineEmits<Emits>();
     </div>
 
     <div class="flex space-x-2 mb-4">
-      <button 
-        type="button" 
-        @click="$emit('update:action', 'correct')" 
-        :class="{
-          [ACTION_BUTTON_VARIANTS.primary]: selectedAction === 'correct',
-          [ACTION_BUTTON_VARIANTS.inactive]: selectedAction !== 'correct'
-        }" 
-        class="px-3 py-1 rounded-md text-sm font-medium"
+      <BtnComponent
+        type="button"
+        :variant="isCorrectSelected ? 'primary' : 'secondary'"
+        size="sm"
+        @click="$emit('update:action', 'correct')"
       >
         Corregir monto
-      </button>
-      
-      <button 
-        type="button" 
-        @click="$emit('update:action', 'delete')" 
-        :class="{
-          [ACTION_BUTTON_VARIANTS.danger]: selectedAction === 'delete',
-          [ACTION_BUTTON_VARIANTS.inactive]: selectedAction !== 'delete'
-        }" 
-        class="px-3 py-1 rounded-md text-sm font-medium"
+      </BtnComponent>
+
+      <BtnComponent
+        type="button"
+        :variant="isDeleteSelected ? 'red' : 'secondary'"
+        size="sm"
+        @click="$emit('update:action', 'delete')"
       >
         Eliminar {{ correctionType }}
-      </button>
+      </BtnComponent>
     </div>
   </div>
 </template>

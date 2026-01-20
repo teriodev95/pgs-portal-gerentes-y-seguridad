@@ -15,9 +15,3 @@ export const VALIDATION_MESSAGES = {
   INVALID_COLLECTION_COMMISSION: 'La comisión de cobro debe ser mayor or igual a cero',
   INVALID_SALES_COMMISSION: 'La comisión de ventas debe ser mayor o igual a cero'
 } as const;
-
-export const ACTION_BUTTON_VARIANTS = {
-  primary: 'btn-primary text-white',
-  danger: 'btn-red text-white',
-  inactive: 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-} as const;
