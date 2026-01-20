@@ -92,7 +92,19 @@
   }
 
   .secondary-text {
-    @apply font-bold text-xs text-blue-800;
+    @apply font-bold text-sm text-blue-800;
+  }
+
+  .paragraph-text {
+    @apply font-normal text-base text-gray-600;
+  }
+
+  .title-text {
+    @apply font-bold text-lg  leading-6 text-black
+  }
+
+  .tertiary-text {
+    @apply text-xs font-light text-gray-400 
   }
 }
 

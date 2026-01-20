@@ -1,17 +1,29 @@
 <script setup lang="ts">
+type TextElement = 'p' | 'span' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'label' | 'div'
+type TextVariant = 'primary' | 'secondary' | 'tertiary' | 'title' | 'paragraph' | 'label' | 'error' | 'success'
+
 interface Props {
-  variante?: 'primary' | 'secondary' | 'title' | 'paragraph'
+  as?: TextElement
+  variant?: TextVariant
 }
 
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  as: 'p',
+  variant: 'paragraph'
+})
 </script>
+
 <template>
-  <p :class="{
-    'primary-text': variante === 'primary',
-    'secondary-text': variante === 'secondary',
-    'title-text': variante === 'title',
-    'paragraph-text': variante === 'paragraph'
+  <component :is="as" :class="{
+    'primary-text': variant === 'primary',
+    'secondary-text': variant === 'secondary',
+    'tertiary-text': variant === 'tertiary',
+    'title-text': variant === 'title',
+    'paragraph-text': variant === 'paragraph',
+    'label-text': variant === 'label',
+    'error-text': variant === 'error',
+    'success-text': variant === 'success'
   }">
     <slot />
-  </p>
+  </component>
 </template>

@@ -11,6 +11,7 @@ import CardContainer from '@/shared/components/CardContainer.vue';
 import InfoIcon from '@/shared/components/icons/InfoIcon.vue';
 import KeyOutline from '@/shared/components/icons/KeyOutline.vue';
 import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 // Interface - Props - Emits
 interface Emits {
@@ -33,7 +34,7 @@ const showAgency = computed(() => $props.assignment.tipo === 'Agente')
 <template>
   <CardContainer>
     <div class="flex justify-between items-center">
-      <h3 class="title">Asignación ({{ assignment.tipo }})</h3>
+      <TextCT as="h3" variant="title">Asignación ({{ assignment.tipo }})</TextCT>
 
       <template v-if="icon">
         <ArrowUp v-if="icon === 'expense'" class="h-6 w-6 text-red-500" />
@@ -42,20 +43,20 @@ const showAgency = computed(() => $props.assignment.tipo === 'Agente')
     </div>
 
     <template v-if="type === 'management'">
-      <div class="text-xs font-light text-gray-400 flex items-center gap-1">
-        <span>{{ assignment.usuarioEntrego.tipo }} {{ showAgency ? `(${assignment.agencia})` : '' }}</span>
+      <div class="flex items-center gap-1">
+        <TextCT variant="tertiary" as="span">{{ assignment.usuarioEntrego.tipo }} {{ showAgency ? `(${assignment.agencia})` : '' }}</TextCT>
         <ArrowRight class="inline-block size-2 " />
-        <span>{{ assignment.usuarioRecibio.tipo }}</span>
+        <TextCT variant="tertiary" as="span">{{ assignment.usuarioRecibio.tipo }}</TextCT>
       </div>
     </template>
 
     <div class="flex items-center justify-between gap-2">
-      <div class="font-md-700 rounded-full bg-slate-100 px-2 py-1 text-blue-800">
-        {{ assignment.createdAt }}
+      <div class="rounded-full bg-slate-100 px-2 py-1 ">
+        <TextCT variant="secondary" as="span">{{ assignment.createdAt }}</TextCT>
       </div>
 
-      <div class="text-md font-md-700 rounded-full bg-slate-100 px-2 py-1 text-blue-800">
-        {{ toCurrency(assignment.monto) }}
+      <div class="rounded-full bg-slate-100 px-2 py-1 ">
+        <TextCT variant="secondary" as="span">{{ toCurrency(assignment.monto) }}</TextCT>
       </div>
     </div>
 
@@ -73,8 +74,10 @@ const showAgency = computed(() => $props.assignment.tipo === 'Agente')
       <template v-if="type === 'agency'">
         <div class="font-300 gap-0.5 text-gray-400">
           <InfoIcon class="inline-block h-[1rem] w-[1rem]" />
-          Asignación recibida por {{ assignment.usuarioRecibio.usuario }} [{{ assignment.usuarioRecibio.tipo }}] en
-          semana {{ assignment.semana }}
+          <TextCT variant="tertiary" as="span">
+            Asignación recibida por {{ assignment.usuarioRecibio.usuario }} [{{ assignment.usuarioRecibio.tipo }}] en
+            semana {{ assignment.semana }}
+          </TextCT>
         </div>
       </template>
 
@@ -92,9 +95,9 @@ const showAgency = computed(() => $props.assignment.tipo === 'Agente')
         </div>
       </template>
 
-      <div class="text-sm font-light space-x-0.5 text-gray-400">
-        <KeyOutline class="inline-block h-[1rem] w-[1rem]" />
-        <span>{{ assignment.id }}</span>
+      <div class="space-x-0.5">
+        <KeyOutline class="inline-block h-[1rem] w-[1rem] text-gray-400" />
+        <TextCT variant="tertiary" as="span">{{ assignment.id }}</TextCT>
       </div>
     </div>
   </CardContainer>
