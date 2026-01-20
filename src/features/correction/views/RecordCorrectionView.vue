@@ -62,9 +62,7 @@ function handleBack() {
     />
 
     <SectionContainer>
-      <CardContainer>
-        <h2 class="font-semibold title">{{ formTitle }}</h2>
-
+      <CardContainer :title="formTitle">
         <!-- Action Type Selection -->
         <ActionTypeSelector
           :correction-type="state.correctionType"

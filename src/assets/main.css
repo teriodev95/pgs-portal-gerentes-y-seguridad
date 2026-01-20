@@ -158,13 +158,6 @@
 }
 
 
-.primary-text {
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 24px;
-}
-
-
 
 @layer base {
   :root {

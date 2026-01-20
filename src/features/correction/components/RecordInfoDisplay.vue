@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DataField from '@/shared/components/DataField.vue';
 import { toCurrency } from '@/shared/utils';
 
 interface CurrentData {
@@ -19,25 +20,16 @@ defineProps<Props>();
 
 <template>
   <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded text-sm">
-    <p><strong>Identificador:</strong> {{ recordId }}</p>
+    <DataField label="Identificador" :value="recordId" />
 
     <template v-if="correctionType !== 'cierre'">
-      <p><strong>Monto (Actual):</strong> {{ toCurrency(currentData.amount || 0) }}</p>
+      <DataField label="Monto (Actual)" :value="toCurrency(currentData.amount || 0)" />
     </template>
 
     <template v-else>
-      <p>
-        <strong>Comisión por cobranza (Actual):</strong>
-        {{ toCurrency(currentData.collectionCommissionPaidInWeek || 0) }}
-      </p>
-      <p>
-        <strong>Comisión por Ventas (Actual):</strong>
-        {{ toCurrency(currentData.salesCommissionPaidInWeek || 0) }}
-      </p>
-      <p>
-        <strong>Bonos (Actuales):</strong>
-        {{ toCurrency(currentData.bonusesPaidInWeek || 0) }}
-      </p>
+      <DataField label="Comisión por cobranza (Actual)" :value="toCurrency(currentData.collectionCommissionPaidInWeek || 0)" />
+      <DataField label="Comisión por Ventas (Actual)" :value="toCurrency(currentData.salesCommissionPaidInWeek || 0)" />
+      <DataField label="Bonos (Actuales)" :value="toCurrency(currentData.bonusesPaidInWeek || 0)" />
     </template>
   </div>
 </template>

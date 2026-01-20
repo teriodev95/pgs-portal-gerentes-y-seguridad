@@ -57,10 +57,7 @@ function handleBack() {
     />
 
     <SectionContainer>
-      <CardContainer>
-        <TextCT as="h1" variant="title">
-          Crea una asignación
-        </TextCT>
+      <CardContainer title="Crea una asignación">
         <TextCT as="h2" >
           Ingresa la información correspondiente para el tipo de asiganción que estás registrando
         </TextCT>
