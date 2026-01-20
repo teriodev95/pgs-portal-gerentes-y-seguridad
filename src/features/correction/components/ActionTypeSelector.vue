@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TextCT from '@/shared/components/ui/TextCT.vue';
 import { ACTION_BUTTON_VARIANTS } from '../constants/correction.constants';
 
 interface Props {
@@ -18,8 +19,8 @@ defineEmits<Emits>();
 <template>
   <div v-if="showSelection" class="space-y-2">
     <div class="space-y-1">
-      <p class="text-sm font-medium">¿Qué deseas hacer?</p>
-      <p class="text-xs">Selecciona si quieres ajustar el monto o eliminar el registro por completo</p>
+      <TextCT variant="secondary">¿Qué deseas hacer?</TextCT>
+      <TextCT variant="primary">Selecciona si quieres ajustar el monto o eliminar el registro por completo</TextCT>
     </div>
 
     <div class="flex space-x-2 mb-4">
