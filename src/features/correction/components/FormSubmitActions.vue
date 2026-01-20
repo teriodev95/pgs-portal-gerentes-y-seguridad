@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import LoadingIcon from '@/shared/components/icons/LoadingIcon.vue';
+import BtnComponent from '@/shared/components/BtnComponent.vue';
+import { computed } from 'vue';
 
 interface Props {
   actionType: string;
@@ -12,36 +13,38 @@ interface Emits {
   (event: 'cancel'): void;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 defineEmits<Emits>();
+
+const submitButtonVariant = computed(() => {
+  return props.actionType === 'delete' ? 'red' : 'primary';
+});
 </script>
 
 <template>
   <div v-if="actionType" class="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-    <button 
-      type="submit" 
-      class="btn w-full sm:w-auto" 
-      :class="{
-        'btn-primary': actionType === 'correct',
-        'btn-red text-white': actionType === 'delete'
-      }" 
+    <BtnComponent
+      type="submit"
+      :variant="submitButtonVariant"
       :disabled="isSubmitting || !isFormValid"
+      :loading="isSubmitting"
+      full-width
+      class="sm:w-auto"
       @click="$emit('submit')"
     >
-      <span v-if="isSubmitting" class="flex gap-2 justify-center">
-        Procesando
-        <LoadingIcon color="green" class="size-5" />
-      </span>
-      <span v-else>Enviar solicitud</span>
-    </button>
+      <span v-if="!isSubmitting">Enviar solicitud</span>
+    </BtnComponent>
 
-    <button 
-      type="button" 
-      @click="$emit('cancel')" 
-      class="btn btn-primary-outline w-full sm:w-auto"
+    <BtnComponent
+      type="button"
+      variant="primary"
+      outline
       :disabled="isSubmitting"
+      full-width
+      class="sm:w-auto"
+      @click="$emit('cancel')"
     >
       Cancelar
-    </button>
+    </BtnComponent>
   </div>
 </template>
