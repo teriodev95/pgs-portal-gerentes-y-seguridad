@@ -11,6 +11,7 @@ import CardContainer from '@/shared/components/CardContainer.vue';
 import SectionContainer from '@/shared/components/SectionContainer.vue';
 import { useRouter } from 'vue-router';
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 // Composables
 const {
@@ -51,21 +52,21 @@ function handleBack() {
   <main class="min-h-screen bg-slate-100 pb-[6rem]">
     <NavbarCT
       title="Crear asignación"
-      :show-back="true"
+      :show-back-button="true"
       @back="handleBack"
     />
 
     <SectionContainer>
       <CardContainer>
-        <h1 class="title">Crea una asiganción</h1>
-        <h2 class="subtitle">
+        <TextCT as="h1" variant="title">
+          Crea una asignación
+        </TextCT>
+        <TextCT as="h2" >
           Ingresa la información correspondiente para el tipo de asiganción que estás registrando
-        </h2>
+        </TextCT>
       </CardContainer>
 
-      <CardContainer>
-        <h1 class="title">Datos</h1>
-
+      <CardContainer title="Datos">
         <!-- Entrada de monto -->
         <div class="flex justify-center items-center gap-2">
           <span class="text-3xl text-blue-700">$</span>
