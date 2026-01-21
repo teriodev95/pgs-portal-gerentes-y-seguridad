@@ -2,7 +2,7 @@
 import type { ReportType } from '../types'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
 import CardContainer from '@/shared/components/CardContainer.vue'
-import CardTitle from '@/shared/components/ui/CardTitle.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 defineProps<{
   isGenerating?: boolean
@@ -19,10 +19,13 @@ function handleGenerateReport(type: ReportType): void {
 
 <template>
   <CardContainer>
-    <CardTitle
-      title="Selecciona el tipo de reporte que deseas generar."
-      subtitle="Este proceso puede tardar unos segundos. Por favor, mantén abierta esta ventana hasta que la generación del reporte haya finalizado. Luego, selecciona el grupo al que deseas enviar la imagen."
-    />
+    <TextCT as="h2" variant="title">
+      Selecciona el tipo de reporte que deseas generar.
+    </TextCT>
+
+    <TextCT>
+      Este proceso puede tardar unos segundos. Por favor, mantén abierta esta ventana hasta que la generación del reporte haya finalizado. Luego, selecciona el grupo al que deseas enviar la imagen.
+    </TextCT>
 
     <div class="grid grid-cols-1 gap-2">
       <BtnComponent

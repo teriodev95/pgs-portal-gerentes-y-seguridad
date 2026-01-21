@@ -12,11 +12,12 @@ import SectionContainer from '@/shared/components/SectionContainer.vue'
 import DatePickerSection from '@/features/entity/components/DatePickerSection.vue'
 import AgencyGeneralData from '@/features/entity/components/AgencyGeneralData.vue'
 import AgencyStatusCard from '@/features/entity/components/AgencyStatusCard.vue'
-import MetricCard from '@/features/entity/components/MetricCard.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 
 // Composables
 import { useAgencyDetails } from '../composables'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
+import DataField from '@/shared/components/DataField.vue'
 
 const router = useRouter()
 
@@ -69,9 +70,7 @@ function handleBack() {
           <AgencyGeneralData :agency="agency" />
         </div>
 
-        <button type="button" @click="navigateToHome" class="btn btn-primary w-full">
-          Aceptar
-        </button>
+        <BtnComponent @click="navigateToHome" full-width>Aceptar</BtnComponent>
       </CardContainer>
 
       <!-- Agency Status Card -->
@@ -83,18 +82,15 @@ function handleBack() {
       </CardContainer>
 
       <!-- Cash in Field Card -->
-      <CardContainer>
-        <MetricCard 
-          title="Efectivo en campo" 
-          :value="toCurrency(agency.efectivoEnCampo)" 
+      <CardContainer title="Resumen">
+        <DataField   
+          label="Efectivo en campo" 
+          :value="toCurrency(agency.efectivoEnCampo)"
         />
-      </CardContainer>
 
-      <!-- Loans Ending Card -->
-      <CardContainer>
-        <MetricCard 
-          title="Prestamos a finalizar" 
-          :value="loansAboutToEnd?.porFinalizar ?? 0" 
+        <DataField 
+          label="Prestamos a finalizar"
+          :value="loansAboutToEnd?.porFinalizar ?? 0"
         />
       </CardContainer>
 

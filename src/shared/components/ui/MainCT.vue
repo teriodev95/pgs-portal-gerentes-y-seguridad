@@ -1,5 +1,5 @@
 <template>
-  <main class="h-screen bg-slate-100">
+  <main class="min-h-screen bg-slate-100">
     <slot />
   </main>
 </template>
