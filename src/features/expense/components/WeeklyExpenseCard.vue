@@ -15,6 +15,7 @@ import IconoCelular from '/icons/phone.svg'
 import IconoGasolina from '/icons/gasolina.svg'
 import IconoMantenimiento from '/icons/mantenimineto2.svg'
 import IconoOtro from '/icons/otros.svg'
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 // Interface - Props - Emits
 interface Props {
@@ -65,13 +66,13 @@ function showExpenseDetails() {
       </figure>
 
       <div class="flex-1 space-y-2">
-        <h1 class="title capitalize">{{ expense.tipoGasto }}</h1>
+        <TextCT variant="title">{{ expense.tipoGasto }}</TextCT>
 
-        <div class="space-y-1">
-          <p v-if="expense.concepto" class="font-300 text-gray-400">Concepto: {{ expense.concepto }}</p>
-          <p v-if="expense.litros !== 0" class="font-300 text-gray-400">{{ expense.litros }} litros</p>
-          <p class="font-300 text-gray-400">{{ formatToHumanDate(expense.fecha) }}</p>
-          <p class="font-md-700 text-blue-800">{{ toCurrency(expense.monto) }}</p>
+        <div class="space-y-2">
+          <TextCT v-if="expense.concepto" variant="primary">Concepto: {{ expense.concepto }}</TextCT>
+          <TextCT v-if="expense.litros" variant="primary">{{ expense.litros }}</TextCT>
+          <TextCT variant="primary">{{ formatToHumanDate(expense.fecha) }}</TextCT>
+          <TextCT variant="secondary">{{ toCurrency(expense.monto) }}</TextCT>
         </div>
       </div>
     </div>
