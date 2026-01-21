@@ -3,6 +3,7 @@ import type { ILoan } from '@/features/loan/types'
 import { ROUTE_NAME } from '@/router'
 import { useRouter } from 'vue-router'
 import DataField from '@/shared/components/DataField.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 
 interface Props {
   loan: ILoan
@@ -36,8 +37,9 @@ function goToPrestamo(id: number | string) {
       <DataField label="Identificador" :value="loan.identificadorCredito" />
     </div>
 
-    <button @click="goToPrestamo(loan.prestamoId)" class="btn-primary-outline w-full">
-      Detalles del préstamo
-    </button>
+
+    <BtnComponent @click="goToPrestamo(loan.prestamoId)" full-width>
+      Detalles del prestamo
+    </BtnComponent>
   </div>
 </template>

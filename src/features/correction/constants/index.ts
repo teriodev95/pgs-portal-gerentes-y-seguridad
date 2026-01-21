@@ -1,7 +1,6 @@
 export {
   TYPE_LABELS,
   VALIDATION_MESSAGES,
-  ACTION_BUTTON_VARIANTS
 } from './correction.constants'
 
 export { 

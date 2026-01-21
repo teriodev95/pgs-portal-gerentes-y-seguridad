@@ -5,6 +5,9 @@ import type { IAgencyFinancialSummary } from '../types/agency.types'
 import CalendarIcon from '@/shared/components/icons/CalendarIcon.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import DataField from '@/shared/components/DataField.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
+import LabelForm from '@/shared/components/forms/LabelForm.vue'
+import InputGeneric from '@/shared/components/forms/InputGeneric.vue'
 
 interface Props {
   isVisible: boolean
@@ -22,6 +25,15 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const hasData = computed(() => !!props.dashboardData)
+
+const handleDateChange = (value: string | number) => {
+  const event = new Event('change')
+  Object.defineProperty(event, 'target', {
+    writable: false,
+    value: { value: value }
+  })
+  emit('dateChange', event)
+}
 </script>
 
 <template>
@@ -41,16 +53,16 @@ const hasData = computed(() => !!props.dashboardData)
     <div v-if="isVisible" class="space-y-4">
       <!-- Date Input -->
       <div class="space-y-2">
-        <label for="date_selector" class="block text-sm font-medium text-gray-900 dark:text-white">
+        <LabelForm for="date_selector">
           Seleccione la fecha
-        </label>
-        <input 
-          type="date" 
-          :value="dateValue" 
-          @change="emit('dateChange', $event)" 
+        </LabelForm>
+
+        <InputGeneric
           id="date_selector"
-          class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
-          required 
+          type="date"
+          :model-value="dateValue || ''"
+          @update:model-value="handleDateChange"
+          :is-required="true"
         />
       </div>
 
@@ -83,9 +95,9 @@ const hasData = computed(() => !!props.dashboardData)
       <LoadSkeleton v-else-if="isLoading" :items="6" />
 
       <!-- Empty State -->
-      <div v-else>
-        <h2 class="text-lg">Por favor inserte la fecha</h2>
-      </div>
+      <TextCT v-else>
+        Por favor, inserte la fecha
+      </TextCT>
     </div>
   </div>
 </template>

@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import TextCT from '@/shared/components/ui/TextCT.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -68,8 +69,8 @@ function handleClose(): void {
       </div>
 
       <div v-else-if="!isLoading && reports.length === 0" class="text-center py-8">
-        <h3 class="text-lg font-medium text-gray-900">No hay datos de débitos</h3>
-        <p class="text-gray-500">No se encontraron reportes para mostrar.</p>
+        <TextCT variant="title">No hay datos de débitos</TextCT>
+        <TextCT variant="primary">No se encontraron reportes para mostrar.</TextCT>
       </div>
 
       <div v-if="isLoading" class="flex justify-center py-8">

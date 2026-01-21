@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TextCT from '@/shared/components/ui/TextCT.vue';
 import { computed } from 'vue'
 
 interface Props {
@@ -22,10 +23,14 @@ const dotClasses = computed(() =>
 
 <template>
   <div class="space-y-2">
-    <h5 class="title">Status de Agencia</h5>
+    <TextCT as="h3" variant="title">
+      Status de agencia
+    </TextCT>
     
     <div class="flex items-center gap-2">
-      <span class="text-gray-400">{{ agencyName }}</span>
+      <TextCT as="span" variant="primary">
+        {{ agencyName }}
+      </TextCT>
       <span 
         class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
         :class="statusClasses"
