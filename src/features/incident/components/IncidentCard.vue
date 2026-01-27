@@ -8,6 +8,7 @@ import type { IIncident } from '../types';
 import IncidentIcon from '@/shared/components/icons/IncidentIcon.vue';
 import ReplenishmentIcon from '@/shared/components/icons/ReplenishmentIcon.vue';
 import PayrollIcon from '@/shared/components/icons/PayrollIcon.vue';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 // Props & Emits definition
 interface Props {
@@ -31,13 +32,12 @@ const categoryIcons: Record<IIncident['categoria'], Component> = {
     </figure>
 
     <div class="flex-1 space-y-2">
-      <h1 class="title capitalize">{{ incident.categoria }}</h1>
+      <TextCT variant="title" class="capitalize">{{ incident.categoria }}</TextCT>
 
-      <div class="space-y-1">
-        <p class="font-300 text-gray-400 capitalize">{{ incident.tipo }}</p>
-        <p class="font-300 text-gray-400 capitalize">{{ incident.usuarioId }}</p>
-        <p class="font-300 text-gray-400">{{ formatToHumanDate(incident.fecha) }}</p>
-        <p class="font-md-700 text-blue-800">{{ toCurrency(incident.monto) }}</p>
+      <div class="space-y-0.5">
+        <TextCT variant="secondary" class="capitalize">{{ incident.tipo }}</TextCT>
+        <TextCT variant="secondary" class="capitalize">{{ toCurrency(incident.monto) }}</TextCT>
+        <TextCT variant="tertiary" class="capitalize">{{ formatToHumanDate(incident.fecha) }}</TextCT>
       </div>
     </div>
   </div>

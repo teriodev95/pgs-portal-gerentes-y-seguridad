@@ -96,7 +96,7 @@
   }
 
   .paragraph-text {
-    @apply font-normal text-base text-gray-600;
+    @apply font-normal text-xs text-gray-600;
   }
 
   .title-text {

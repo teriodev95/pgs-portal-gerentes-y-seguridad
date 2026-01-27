@@ -16,6 +16,8 @@ import HomeMenu from '@/features/home/components/HomeMenu.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import PaymentWidget from '@/features/home/components/PaymentWidget.vue'
 import SearchForm from '@/shared/components/forms/SearchForm.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
 
 // Constants
 const DRAWER_ID = ELEMENT_ID.DRAWER_LEFT
@@ -66,7 +68,7 @@ onMounted(() => {
   <!-- Side Navigation -->
   <DrawerLeft v-if="sucursales.length" />
 
-  <main class="min-h-screen p-2">
+  <MainCT>
     <!-- Top Navigation Bar -->
     <div class="sticky top-0 z-10 w-full bg-white p-2">
       <!-- Gerency Selector Area -->
@@ -107,13 +109,8 @@ onMounted(() => {
     <LoadSkeleton v-else-if="isLoading" :items="5" class="mt-4 px-2" />
 
     <!-- Empty State - Select Agency Prompt -->
-    <div v-else class="flex min-h-[32rem] items-center justify-center p-2">
-      <div class="flex-1 text-blue-900">
-        <CursorArrowIcon class="mx-auto h-24 w-24" />
-        <h3 class="text-center text-xl">Seleccione una Agencia</h3>
-      </div>
-    </div>
-  </main>
+    <EmptyCT v-else message="Seleccione una Agencia" />
+  </MainCT>
 
   <!-- Fixed Menu -->
   <HomeMenu v-if="!isLoading && agencySelected" />
