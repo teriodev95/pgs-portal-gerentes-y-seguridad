@@ -5,6 +5,7 @@ import type { ICobranza } from '@/interfaces'
 
 // Components
 import CheckIcon from '@/shared/components/icons/CheckCircleIcon.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 // Interface - Props - Emits
 const $props = defineProps<{
@@ -27,7 +28,7 @@ const iconStyle = computed(() => {
 </script>
 
 <template>
-  <div class="flex gap-2 border-b-2 pb-2">
+  <div class="flex gap-2 border-b-2 py-1">
     <!-- Icon -->
     <div class="flex-none">
       <CheckIcon class="h-6 w-6" :class="iconStyle" />
@@ -35,14 +36,14 @@ const iconStyle = computed(() => {
 
     <!-- Content -->
     <div class="flex-1 text-sm">
-      <p class="uppercase">{{ cobranza.nombre }}</p>
-      <p class="font-extralight">{{ cobranza.prestamoId }}</p>
+      <TextCT>{{ cobranza.nombre }}</TextCT>
+      <TextCT variant="tertiary">{{ cobranza.prestamoId }}</TextCT>
     </div>
 
     <!-- Icon -->
     <div class="flex-none text-sm">
-      <p class="font-extralight">{{ toCurrency(cobranza.tarifa) }}</p>
-      <p class="font-bold">{{ toCurrency(cobranza.cobradoEnLaSemana) }}</p>
+      <TextCT variant="primary">{{ toCurrency(cobranza.tarifa) }}</TextCT>
+      <TextCT variant="secondary">{{ toCurrency(cobranza.cobradoEnLaSemana) }}</TextCT>
     </div>
   </div>
 </template>
