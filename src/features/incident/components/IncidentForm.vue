@@ -9,7 +9,6 @@ import LabelForm from '@/shared/components/forms/LabelForm.vue'
 
 // Props & Emits definition
 const $props = defineProps<{
-  usuarioId: number
   isSaving?: boolean
   incident?: IIncident
 }>()

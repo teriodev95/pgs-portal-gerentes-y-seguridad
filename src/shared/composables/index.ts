@@ -1,6 +1,7 @@
 export * from './useBottomSheet'
 export * from './useConnectionStatus'
 export * from './useCreditFilter'
+export * from './useDrawer'
 export * from './useGeolocation'
 export * from './useItemRenderer'
 export * from './useDropdownBehavior'
