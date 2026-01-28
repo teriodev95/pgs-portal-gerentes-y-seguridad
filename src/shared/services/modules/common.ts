@@ -13,6 +13,7 @@ class CommonService {
   private expenseImageClient = createApiClientFromPreset('workerUploadExpenseImage')
   private comisionClient = createApiClientFromPreset('n8nCreateComision')
   private faxClient = createApiClientFromPreset('fastApi')
+  private elysiaClient = createApiClientFromPreset('elysia')
 
   async getAgency(params: GetBaseProps) {
     return this.javalinClient.get<IAgencyDashboard>(`/dashboards/agencia?agencia=${params.agency}&anio=${params.year}&semana=${params.week}`)
@@ -23,7 +24,7 @@ class CommonService {
   }
 
   async getCobranza(params: GetBaseProps) {
-    return this.apiClient.get<{ cobranza: ICobranza[] }>(
+    return this.elysiaClient.get<{ cobranza: ICobranza[] }>(
       `/pwa/cobranza/${params.agency}/${params.year}/${params.week}`
     )
   }
