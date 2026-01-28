@@ -3,9 +3,8 @@ import type { ILoan } from '../types'
 import { LOAN_MODAL_MESSAGES } from '../constants'
 
 interface IModalManager {
-  openNotificationSheet: () => void
-  openSettlementOptionsSheet: () => void
-  closeSettlementOptionsSheet: () => void
+  openWeeklyFeeDrawer: (tarifa: number, weeklyPayment: number) => void
+  openSettlementOptionsDrawer: () => void
   showModal: () => void
   setModalInfo: (title: string, message: string) => void
 }
@@ -28,19 +27,18 @@ export function useSettlementLogic(
       const isPaid = isWeeklyFeePaid()
 
       if (!isPaid) {
-        modalManager.openNotificationSheet()
+        modalManager.openWeeklyFeeDrawer(loanData.tarifa, loanData.tarifa)
         return
       }
 
-      modalManager.openSettlementOptionsSheet()
+      modalManager.openSettlementOptionsDrawer()
     } catch (error) {
       console.error('Error checking weekly fee payment:', error)
-      modalManager.openNotificationSheet()
+      modalManager.openWeeklyFeeDrawer(loanData.tarifa, loanData.tarifa)
     }
   }
 
   function handleSettleWithoutDiscount(modalManager: IModalManager) {
-    modalManager.closeSettlementOptionsSheet()
     modalManager.setModalInfo(
       LOAN_MODAL_MESSAGES.SETTLEMENT_WITHOUT_DISCOUNT.title,
       LOAN_MODAL_MESSAGES.SETTLEMENT_WITHOUT_DISCOUNT.message
@@ -55,8 +53,6 @@ export function useSettlementLogic(
     navigation: INavigation
   ) {
     if (!settlementData) return
-    
-    modalManager.closeSettlementOptionsSheet()
 
     /*
     if (settlementData.descuentoDinero < 1) {

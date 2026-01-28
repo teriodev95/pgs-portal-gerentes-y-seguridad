@@ -1,31 +1,39 @@
 import { onMounted, ref } from 'vue'
 import { ELEMENT_ID } from '@/shared/constants'
 import { initModals, Modal } from 'flowbite'
-import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
+import { useDrawer } from '@/shared/composables'
 
 interface IModalInfo {
   title: string
   message: string
 }
 
+interface WeeklyFeeData {
+  tarifa: number
+  weeklyPayment: number
+}
+
 export function useModalManager() {
   const confirmId = ELEMENT_ID.CONFIRM
-  
+
   // State
   const modalInfo = ref<IModalInfo>({
     title: '',
     message: ''
   })
 
-  // Bottom sheet refs
-  const notificationBottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
-  const settlementOptionsBottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
+  // Drawers
+  const weeklyFeeDrawer = useDrawer<WeeklyFeeData>('weeklyFee')
+  const settlementOptionsDrawer = useDrawer('settlementOptions')
 
-  // Bottom sheet methods
-  function openNotificationSheet() { notificationBottomSheet.value?.open() }
-  function closeNotificationSheet() { notificationBottomSheet.value?.close() }
-  function openSettlementOptionsSheet() { settlementOptionsBottomSheet.value?.open() }
-  function closeSettlementOptionsSheet() { settlementOptionsBottomSheet.value?.close() }
+  // Drawer methods
+  function openWeeklyFeeDrawer(tarifa: number, weeklyPayment: number) {
+    weeklyFeeDrawer.openWith({ tarifa, weeklyPayment })
+  }
+
+  function openSettlementOptionsDrawer() {
+    settlementOptionsDrawer.open()
+  }
 
   // Modal methods
   function showModal() {
@@ -34,7 +42,9 @@ export function useModalManager() {
     modal.show()
   }
 
-  function setModalInfo(title: string, message: string) { modalInfo.value = { title, message }}
+  function setModalInfo(title: string, message: string) {
+    modalInfo.value = { title, message }
+  }
 
   // Initialize modals on mount
   onMounted(() => {
@@ -47,14 +57,12 @@ export function useModalManager() {
     // State
     confirmId,
     modalInfo,
-    notificationBottomSheet,
-    settlementOptionsBottomSheet,
-    
-    // Methods
-    openNotificationSheet,
-    closeNotificationSheet,
-    openSettlementOptionsSheet,
-    closeSettlementOptionsSheet,
+
+    // Drawer methods
+    openWeeklyFeeDrawer,
+    openSettlementOptionsDrawer,
+
+    // Modal methods
     showModal,
     setModalInfo
   }

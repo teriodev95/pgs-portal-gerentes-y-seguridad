@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import '@webzlodimir/vue-bottom-sheet/dist/style.css'
-import { onBeforeMount, computed } from 'vue'
+import { onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
-import { toCurrency } from '@/shared/utils'
-import { LOAN_FIELD_LABELS, LOAN_SECTION_TITLES, LOAN_HOUSE_NUMBER_FORMAT, LOAN_MODAL_MESSAGES, LOAN_BUTTON_LABELS } from '@/features/loan/constants'
+import { LOAN_SECTION_TITLES, LOAN_BUTTON_LABELS } from '@/features/loan/constants'
 
 // Composables
 import { useLoanData } from '@/features/loan/composables/useLoanData'
@@ -14,7 +12,6 @@ import { useSettlementLogic } from '@/features/loan/composables/useSettlementLog
 const router = useRouter()
 
 // Components
-import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
@@ -26,6 +23,8 @@ import CardContainer from '@/shared/components/CardContainer.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
 import TextCT from '@/shared/components/ui/TextCT.vue'
+import WeeklyFeeDrawer from '@/features/loan/components/WeeklyFeeDrawer.vue'
+import SettlementOptionsDrawer from '@/features/loan/components/SettlementOptionsDrawer.vue'
 
 // Composables initialization
 const loanDataComposable = useLoanData()
@@ -38,12 +37,13 @@ const {
   isLoading,
   loanData,
   settlementData,
-  clientFullName,
-  avalFullName,
-  weeklyPayment,
   isSettlementButtonDisabled,
   isWeeklyFeePaid,
-  initializeLoanData
+  initializeLoanData,
+  generalDataItems,
+  clientDataItems,
+  guarantorDataItems,
+  loanDataItems
 } = loanDataComposable
 
 const {
@@ -55,10 +55,7 @@ const {
 
 const {
   confirmId,
-  modalInfo,
-  notificationBottomSheet,
-  settlementOptionsBottomSheet,
-  closeNotificationSheet,
+  modalInfo
 } = modalManagerComposable
 
 const {
@@ -70,8 +67,6 @@ const {
 
 // Component-specific methods
 function onSettlementRequest() {
-  console.log("hola")
-  console.log(isWeeklyFeePaid())
   handleSettlementRequest(loanData.value, isWeeklyFeePaid)
 }
 
@@ -104,72 +99,6 @@ function handleBack() {
   }
 }
 
-// Computed properties for data sections
-const generalDataItems = computed(() => {
-  if (!loanData.value) return []
-  return [
-    { label: LOAN_FIELD_LABELS.AGENT, value: loanData.value.agente },
-    { label: LOAN_FIELD_LABELS.CLIENT_ID, value: loanData.value.clienteId },
-    { label: LOAN_FIELD_LABELS.MANAGER, value: loanData.value.gerenteEnTurno },
-    { label: LOAN_FIELD_LABELS.DELIVERY, value: toCurrency(loanData.value.montoOtorgado) }
-  ]
-})
-
-const clientDataItems = computed(() => {
-  if (!loanData.value) return []
-  return [
-    { label: LOAN_FIELD_LABELS.NAME, value: clientFullName.value },
-    { label: LOAN_FIELD_LABELS.NEIGHBORHOOD, value: loanData.value.colonia },
-    { label: LOAN_FIELD_LABELS.STREET, value: loanData.value.direccion, rightAligned: true },
-    {
-      label: LOAN_FIELD_LABELS.HOUSE_NUMBERS,
-      value: [
-        loanData.value.noExterior ? `${LOAN_HOUSE_NUMBER_FORMAT.EXTERIOR} ${loanData.value.noExterior}` : '',
-        loanData.value.noInterior ? `${LOAN_HOUSE_NUMBER_FORMAT.INTERIOR} ${loanData.value.noInterior}` : ''
-      ].filter(Boolean).join('  '),
-      show: !!(loanData.value.noExterior || loanData.value.noInterior)
-    },
-    { label: LOAN_FIELD_LABELS.PHONE, value: loanData.value.telefonoCliente },
-    { label: LOAN_FIELD_LABELS.LEVEL, value: loanData.value.tipoDeCliente },
-    { label: LOAN_FIELD_LABELS.GRANTED, value: toCurrency(loanData.value.montoOtorgado) }
-  ]
-})
-
-const guarantorDataItems = computed(() => {
-  if (!loanData.value) return []
-  return [
-    { label: LOAN_FIELD_LABELS.GUARANTOR_NAME, value: avalFullName.value },
-    { label: LOAN_FIELD_LABELS.GUARANTOR_NEIGHBORHOOD, value: loanData.value.coloniaAval },
-    { label: LOAN_FIELD_LABELS.GUARANTOR_STREET, value: loanData.value.direccionAval, rightAligned: true },
-    {
-      label: LOAN_FIELD_LABELS.GUARANTOR_HOUSE_NUMBERS,
-      value: [
-        loanData.value.noExteriorAval ? `${LOAN_HOUSE_NUMBER_FORMAT.EXTERIOR} ${loanData.value.noExteriorAval}` : '',
-        loanData.value.noInteriorAval ? `${LOAN_HOUSE_NUMBER_FORMAT.INTERIOR} ${loanData.value.noInteriorAval}` : ''
-      ].filter(Boolean).join('  '),
-      show: !!(loanData.value.noExteriorAval || loanData.value.noInteriorAval)
-    },
-    { label: LOAN_FIELD_LABELS.GUARANTOR_PHONE, value: loanData.value.telefonoAval }
-  ]
-})
-
-const loanDataItems = computed(() => {
-  if (!loanData.value) return []
-  return [
-    { label: LOAN_FIELD_LABELS.DELIVERY_DATE, value: `${loanData.value.semana}/${loanData.value.anio}` },
-    { label: LOAN_FIELD_LABELS.LOAN_ID, value: loanData.value.prestamoId },
-    { label: LOAN_FIELD_LABELS.WEEK, value: loanData.value.semana },
-    { label: LOAN_FIELD_LABELS.PAYMENT_DAY, value: loanData.value.diaDePago },
-    { label: LOAN_FIELD_LABELS.TERM, value: loanData.value.plazo },
-    { label: LOAN_FIELD_LABELS.CHARGES, value: toCurrency(loanData.value.cargo) },
-    { label: LOAN_FIELD_LABELS.TOTAL_TO_PAY, value: toCurrency(loanData.value.totalAPagar) },
-    { label: LOAN_FIELD_LABELS.FIRST_PAYMENT, value: toCurrency(loanData.value.primerPago) },
-    { label: LOAN_FIELD_LABELS.WEEKLY_PAYMENT, value: toCurrency(loanData.value.tarifa) },
-    { label: LOAN_FIELD_LABELS.BALANCE_LOAN, value: toCurrency(loanData.value.saldo) },
-    { label: LOAN_FIELD_LABELS.COLLECTED_LOAN, value: toCurrency(loanData.value.cobrado) }
-  ]
-})
-
 // Lifecycle
 onBeforeMount(initializeLoanData)
 </script>
@@ -178,40 +107,12 @@ onBeforeMount(initializeLoanData)
   <!-- Modals -->
   <ConfirmModal :title="modalInfo.title" :message="modalInfo.message" :id="confirmId" />
 
-  <!-- Weekly Fee Notification Bottom Sheet -->
-  <vue-bottom-sheet ref="notificationBottomSheet" :max-width="1000" :max-height="1500">
-    <div class="p-4 space-y-4">
-      <div class="space-y-2">
-        <h1 class="title">{{ LOAN_MODAL_MESSAGES.WEEKLY_FEE_NOT_PAID.title }}</h1>
-        <h2 class="subtitle">
-          {{ LOAN_MODAL_MESSAGES.WEEKLY_FEE_NOT_PAID.message
-            .replace('{tarifa}', toCurrency(loanData?.tarifa || 0))
-            .replace('{weeklyPayment}', toCurrency(weeklyPayment || 0)) }}
-        </h2>
-      </div>
-
-      <button @click="closeNotificationSheet" class="btn btn-primary w-full">
-        {{ LOAN_BUTTON_LABELS.UNDERSTOOD }}
-      </button>
-    </div>
-  </vue-bottom-sheet>
-
-  <!-- Settlement Options Bottom Sheet -->
-  <vue-bottom-sheet ref="settlementOptionsBottomSheet" :max-width="1000" :max-height="1500">
-    <div class="p-4 space-y-4">
-      <h1 class="title">{{ LOAN_MODAL_MESSAGES.SETTLEMENT_OPTIONS.title }}</h1>
-      <h2 class="subtitle">{{ LOAN_MODAL_MESSAGES.SETTLEMENT_OPTIONS.message }}</h2>
-
-      <div class="space-y-2">
-        <button @click="onNavigateToSettlements" class="btn btn-primary w-full">
-          {{ LOAN_BUTTON_LABELS.SETTLEMENT_WITH_DISCOUNT }}
-        </button>
-        <button @click="onSettleWithoutDiscount" class="btn btn-primary-outline w-full">
-          {{ LOAN_BUTTON_LABELS.SETTLEMENT_WITHOUT_DISCOUNT }}
-        </button>
-      </div>
-    </div>
-  </vue-bottom-sheet>
+  <!-- Drawers -->
+  <WeeklyFeeDrawer />
+  <SettlementOptionsDrawer
+    @navigate-to-settlements="onNavigateToSettlements"
+    @settle-without-discount="onSettleWithoutDiscount"
+  />
 
   <!-- Main Content -->
   <MainCT>
@@ -242,8 +143,7 @@ onBeforeMount(initializeLoanData)
       <LoanDataSection :title="LOAN_SECTION_TITLES.GUARANTOR_DATA" :items="guarantorDataItems" />
       <LoanDataSection :title="LOAN_SECTION_TITLES.LOAN_DATA" :items="loanDataItems" />
 
-       <!-- Special Settlement Button
-       -->
+       <!-- Special Settlement Button -->
       <CardContainer title="Liquidaciones especiales">
         <TextCT variante="primary">
           Utiliza esta opción para gestionar y saldar préstamos con más de un año de antigüedad, aplicando condiciones especiales de liquidación.
