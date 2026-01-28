@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import CardContainer from '@/shared/components/CardContainer.vue'
-import LoanInfoItem from './LoanInfoItem.vue'
+import DataField from '@/shared/components/DataField.vue'
 
 interface DataItem {
   label: string
@@ -21,7 +21,7 @@ defineProps<Props>()
   <CardContainer :title="title">
     <ul class="space-y-2">
       <template v-for="item in items" :key="item.label">
-        <LoanInfoItem 
+        <DataField
           v-if="item.show !== false"
           :label="item.label"
           :value="item.value"

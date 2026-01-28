@@ -3,6 +3,7 @@ import { toCurrency } from '@/shared/utils'
 import ProgressBar from '@/shared/components/ProgressBar.vue'
 import { LOAN_FIELD_LABELS, LOAN_BUTTON_LABELS } from '@/features/loan/constants'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
+import DataField from '@/shared/components/DataField.vue'
 
 interface Props {
   cobrado: number
@@ -28,32 +29,17 @@ defineEmits<Emits>()
   <div class="border bg-white p-4 space-y-2">
     <!-- Payment Summary -->
     <div class="flex justify-between">
-      <div>
-        <h3 class="font-300 text-sm text-gray-400">{{ LOAN_FIELD_LABELS.COLLECTED }}</h3>
-        <p class="font-bold text-blue-900">{{ toCurrency(cobrado) }}</p>
-      </div>
-      <div>
-        <h3 class="font-300 text-sm text-gray-400">{{ LOAN_FIELD_LABELS.BALANCE }}</h3>
-        <p class="font-bold text-blue-900">{{ toCurrency(saldo) }}</p>
-      </div>
+      <DataField orientation="vertical" :label="LOAN_FIELD_LABELS.COLLECTED" :value="toCurrency(cobrado)" />
+      <DataField orientation="vertical" :label="LOAN_FIELD_LABELS.BALANCE" :value="toCurrency(saldo)" />
     </div>
 
     <!-- Progress Bar -->
     <ProgressBar :progress="parseInt(porcentajeCobrado.toString())" />
 
     <!-- Client Summary -->
-    <div>
-      <ul class="mt-2 space-y-2">
-        <li class="flex justify-between gap-10">
-          <div class="font-300 text-gray-400">{{ LOAN_FIELD_LABELS.CLIENT }}</div>
-          <div class="font-md-700 text-blue-800">{{ clientName }}</div>
-        </li>
-        <li class="flex justify-between gap-10">
-          <div class="font-300 text-gray-400">{{ LOAN_FIELD_LABELS.STATUS }}</div>
-          <div class="font-md-700 text-blue-800">{{ status }}</div>
-        </li>
-      </ul>
-    </div>
+    <DataField :label="LOAN_FIELD_LABELS.CLIENT" :value="clientName" />
+    <DataField :label="LOAN_FIELD_LABELS.STATUS" :value="status" />
+
 
     <!-- Action Buttons -->
     <div class="space-y-2">

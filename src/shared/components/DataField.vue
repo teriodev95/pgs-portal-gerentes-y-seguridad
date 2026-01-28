@@ -10,12 +10,14 @@ interface Props {
   size?: 'sm' | 'md'
   notice?: string
   orientation?: 'horizontal' | 'vertical'
+  rightAligned?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'default',
   size: 'md',
-  orientation: 'horizontal'
+  orientation: 'horizontal',
+  rightAligned: false
 })
 
 const VARIANT_CLASSES = {
@@ -40,8 +42,9 @@ const getValueClass = computed(() => {
 
   const baseClass = getBasePropertyClass.value
   const variantClass = VARIANT_CLASSES[props.variant]
+  const alignmentClass = props.rightAligned ? 'text-right' : ''
 
-  return `${baseClass} ${variantClass}`
+  return `${baseClass} ${variantClass} ${alignmentClass}`.trim()
 })
 
 /**
