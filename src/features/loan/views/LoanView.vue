@@ -121,9 +121,12 @@ const clientDataItems = computed(() => {
     { label: LOAN_FIELD_LABELS.NAME, value: clientFullName.value },
     { label: LOAN_FIELD_LABELS.NEIGHBORHOOD, value: loanData.value.colonia },
     { label: LOAN_FIELD_LABELS.STREET, value: loanData.value.direccion, rightAligned: true },
-    { 
-      label: LOAN_FIELD_LABELS.HOUSE_NUMBERS, 
-      value: `<span class="space-x-2">${loanData.value.noExterior ? `<span>${LOAN_HOUSE_NUMBER_FORMAT.EXTERIOR} ${loanData.value.noExterior}</span>` : ''}${loanData.value.noInterior ? `<span>${LOAN_HOUSE_NUMBER_FORMAT.INTERIOR} ${loanData.value.noInterior}</span>` : ''}</span>`,
+    {
+      label: LOAN_FIELD_LABELS.HOUSE_NUMBERS,
+      value: [
+        loanData.value.noExterior ? `${LOAN_HOUSE_NUMBER_FORMAT.EXTERIOR} ${loanData.value.noExterior}` : '',
+        loanData.value.noInterior ? `${LOAN_HOUSE_NUMBER_FORMAT.INTERIOR} ${loanData.value.noInterior}` : ''
+      ].filter(Boolean).join('  '),
       show: !!(loanData.value.noExterior || loanData.value.noInterior)
     },
     { label: LOAN_FIELD_LABELS.PHONE, value: loanData.value.telefonoCliente },
@@ -138,9 +141,12 @@ const guarantorDataItems = computed(() => {
     { label: LOAN_FIELD_LABELS.GUARANTOR_NAME, value: avalFullName.value },
     { label: LOAN_FIELD_LABELS.GUARANTOR_NEIGHBORHOOD, value: loanData.value.coloniaAval },
     { label: LOAN_FIELD_LABELS.GUARANTOR_STREET, value: loanData.value.direccionAval, rightAligned: true },
-    { 
-      label: LOAN_FIELD_LABELS.GUARANTOR_HOUSE_NUMBERS, 
-      value: `<span class="space-x-2">${loanData.value.noExteriorAval ? `<span>${LOAN_HOUSE_NUMBER_FORMAT.EXTERIOR} ${loanData.value.noExteriorAval}</span>` : ''}${loanData.value.noInteriorAval ? `<span>${LOAN_HOUSE_NUMBER_FORMAT.INTERIOR} ${loanData.value.noInteriorAval}</span>` : ''}</span>`,
+    {
+      label: LOAN_FIELD_LABELS.GUARANTOR_HOUSE_NUMBERS,
+      value: [
+        loanData.value.noExteriorAval ? `${LOAN_HOUSE_NUMBER_FORMAT.EXTERIOR} ${loanData.value.noExteriorAval}` : '',
+        loanData.value.noInteriorAval ? `${LOAN_HOUSE_NUMBER_FORMAT.INTERIOR} ${loanData.value.noInteriorAval}` : ''
+      ].filter(Boolean).join('  '),
       show: !!(loanData.value.noExteriorAval || loanData.value.noInteriorAval)
     },
     { label: LOAN_FIELD_LABELS.GUARANTOR_PHONE, value: loanData.value.telefonoAval }
