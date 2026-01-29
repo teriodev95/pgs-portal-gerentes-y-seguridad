@@ -5,6 +5,10 @@ import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue'
 import { toCurrency } from '@/shared/utils'
 import { useStore } from '@/shared/stores'
 import type { IPayment } from '../types'
+import TextCT from '@/shared/components/ui/TextCT.vue'
+import SectionContainer from '@/shared/components/SectionContainer.vue'
+import DataField from '@/shared/components/DataField.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 
 interface Props {
   payment: IPayment
@@ -31,74 +35,44 @@ function navigateToCorrection() {
 <template>
   <div class="space-y-2">
     <CardContainer>
-      <div>
-        <!-- Payment ID -->
-        <div>
-          <p class="!text-[9px] font-300 text-gray-400">ID: {{ payment.pagoId }}</p>
+      <SectionContainer>
+        <TextCT variant="tertiary">ID: {{ payment.pagoId }}</TextCT>
+
+        <div class="flex justify-between gap-2">
+          <DataField label="Tarifa" :value="toCurrency(payment.tarifa)" orientation="vertical" />
+          <DataField label="Tipo" :value="payment.tipo" orientation="vertical" />
         </div>
 
-        <!-- Payment Rate and Type -->
-        <div class="flex justify-center gap-2">
-          <div class="flex-1">
-            <p class="font-300 text-gray-400">Tarifa</p>
-            <p class="font-md-700 text-blue-800">{{ toCurrency(payment.tarifa) }}</p>
-          </div>
-          <div class="flex-1">
-            <p class="font-300 text-gray-400">Tipo</p>
-            <p class="font-md-700 text-blue-800">{{ payment.tipo }}</p>
-          </div>
+        <div class="flex justify-between gap-2">
+          <DataField label="Abre con" :value="toCurrency(payment.abreCon)" orientation="vertical" />
+          <DataField label="Cierra con" :value="toCurrency(payment.cierraCon)" orientation="vertical" />
         </div>
 
-        <!-- Opening and Closing Balances -->
-        <div class="flex justify-center gap-2">
-          <div class="flex-1">
-            <p class="font-300 text-gray-400">Abre con</p>
-            <p class="font-md-700 text-blue-800">{{ toCurrency(payment.abreCon) }}</p>
-          </div>
-          <div class="flex-1">
-            <p class="font-300 text-gray-400">Cierra con</p>
-            <p class="font-md-700 text-blue-800">{{ toCurrency(payment.cierraCon) }}</p>
-          </div>
-        </div>
+        <DataField v-if="payment.comentario" label="Comentario" :value="payment.comentario" orientation="vertical" />
 
-        <!-- Comments -->
-        <div v-if="payment.comentario">
-          <p class="font-300 text-gray-400">Comentario</p>
-          <p class="font-md-700 text-blue-800">{{ payment.comentario }}</p>
+        <div class="flex justify-between gap-2">
+          <DataField label="Creado desde" :value="payment.creadoDesde" orientation="vertical" />
+          <DataField label="¿Quien Pago?" :value="''" orientation="vertical" />
         </div>
-
-        <!-- Creation Source and Payer -->
-        <div class="flex justify-center gap-2">
-          <div class="flex-1">
-            <p class="font-300 text-gray-400">Creado desde</p>
-            <p class="font-md-700 text-blue-800">{{ payment.creadoDesde }}</p>
-          </div>
-          <div class="flex-1">
-            <p class="font-300 text-gray-400">¿Quien Pago?</p>
-            <p class="font-md-700 text-blue-800"></p>
-          </div>
-        </div>
-      </div>
+      </SectionContainer>
 
       <!-- Action Buttons (only for the most recent payment) -->
       <div v-if="payment.semana === $store.currentDate.week" class="space-y-2">
         <!-- View Map Button -->
-        <button
-          @click="showPaymentLocation"
-          class="w-full btn rounded-lg bg-blue-700 p-1 text-center text-sm font-medium text-white outline-none flex items-center justify-center gap-2"
-        >
-          <EyeIcon class="size-4" />
+        <BtnComponent @click="showPaymentLocation" variant="primary" full-width size="sm">
+          <template #icon-left>
+            <EyeIcon class="size-4" />
+          </template>
           Ver mapa
-        </button>
+        </BtnComponent>
 
         <!-- Request Correction Button -->
-        <button
-          @click="navigateToCorrection"
-          class="w-full btn rounded-lg border border-blue-700 p-1 text-center text-sm font-medium text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center gap-2"
-        >
-          <ToolsIcon class="size-4" />
+        <BtnComponent @click="navigateToCorrection" variant="primary" outline full-width size="sm">
+          <template #icon-left>
+            <ToolsIcon class="size-4" />
+          </template>
           Solicitar correción
-        </button>
+        </BtnComponent>
       </div>
     </CardContainer>
   </div>
