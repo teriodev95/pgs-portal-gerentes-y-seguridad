@@ -17,7 +17,6 @@ import MainCT from '@/shared/components/ui/MainCT.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import PaymentItem from '@/features/loan/components/PaymentItem.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
-import PaymentEmptyState from '@/features/loan/components/PaymentEmptyState.vue'
 import PaymentFilterSection from '@/features/loan/components/PaymentFilterSection.vue'
 import PaymentFormBottomSheet from '@/features/loan/components/PaymentFormBottomSheet.vue'
 
