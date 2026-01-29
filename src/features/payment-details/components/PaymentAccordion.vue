@@ -9,6 +9,7 @@ import { computed } from 'vue'
 import { toCurrency } from '@/shared/utils'
 import type { IPayment } from '../types'
 import PaymentCard from './PaymentCard.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
 
 interface Props {
   historialList: IPayment[]
@@ -40,8 +41,8 @@ function handlePaymentAction(action: 'showMap' | 'correction', payment: any) {
       <FwbAccordionPanel v-for="(payment, paymentIndex) in sortedHistorialList" :key="`payment-${paymentIndex}`">
         <FwbAccordionHeader>
           <div class="flex w-full items-center justify-between">
-            <span>Semana {{ payment.semana }} / {{ payment.anio }}</span>
-            <span>{{ toCurrency(payment.monto) }}</span>
+            <TextCT variant="primary">Semana {{ payment.semana }} / {{ payment.anio }}</TextCT>
+            <TextCT variant="secondary">{{ toCurrency(payment.monto) }}</TextCT>
           </div>
         </FwbAccordionHeader>
 

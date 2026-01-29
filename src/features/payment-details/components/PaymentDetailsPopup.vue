@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { toCurrency } from '@/shared/utils';
 import type { AgenciaPagosHistorial } from '../types'
+import CardContainer from '@/shared/components/CardContainer.vue';
+import DataField from '@/shared/components/DataField.vue';
 
 interface Props {
   payment?: AgenciaPagosHistorial
@@ -12,26 +14,12 @@ defineProps<Props>()
 <template>
   <Transition name="slide-fade">
     <div class="fixed bottom-1 z-30 w-full p-2" v-if="payment">
-      <div class="rounded-md bg-white p-4">
-        <ul class="spacey-2 list-none">
-          <li class="flex justify-between gap-2">
-            <p>Préstamo</p>
-            <p class="font-bold text-blue-900">{{ payment.prestamoId }}</p>
-          </li>
-          <li class="flex justify-between gap-2">
-            <p>Monto</p>
-            <p class="font-bold text-blue-900">{{ toCurrency(payment.monto) }}</p>
-          </li>
-          <li class="flex justify-between gap-2">
-            <p>Fecha de Pago</p>
-            <p class="font-bold text-blue-900">{{ payment.fechaPago }}</p>
-          </li>
-          <li class="flex justify-between gap-2">
-            <p>Tarifa</p>
-            <p class="font-bold text-blue-900">{{ toCurrency(payment.tarifa) }}</p>
-          </li>
-        </ul>
-      </div>
+      <CardContainer>
+        <DataField label="Préstamo" :value="payment.prestamoId"/>
+        <DataField label="Monto" :value="toCurrency(payment.monto)"/>
+        <DataField label="Fecha de Pago" :value="payment.fechaPago"/>
+        <DataField label="Tarifa" :value="toCurrency(payment.tarifa)"/>
+      </CardContainer>
     </div>
   </Transition>
 </template>
