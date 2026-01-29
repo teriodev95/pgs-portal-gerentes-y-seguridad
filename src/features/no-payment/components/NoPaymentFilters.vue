@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import LabelForm from '@/shared/components/forms/LabelForm.vue'
+import InputSelect from '@/shared/components/forms/InputSelect.vue'
+import CardContainer from '@/shared/components/CardContainer.vue'
+
 interface Props {
   managementList: string[]
   selectedManagement: string
@@ -17,43 +21,52 @@ interface Emit {
 }
 
 defineProps<Props>()
-defineEmits<Emit>()
+const emit = defineEmits<Emit>()
+
+function handleManagementChange(value: string | number) {
+  emit('update:selectedManagement', value as string)
+  emit('managementChange')
+}
+
+function handleAgencyChange(value: string | number) {
+  emit('update:selectedAgency', value as string)
+}
 </script>
 
 <template>
-  <div class="ounded-lg mx-2 flex items-center justify-between space-y-2 border bg-white p-4">
-    <form class="flex gap-2">
+  <CardContainer class="flex items-center justify-between">
+    <form class="flex gap-4">
       <!-- Management Filter -->
       <div>
-        <label for="management_select" class="sr-only">Select management</label>
-        <select
-          :model-value="selectedManagement"
-          @change="$emit('update:selectedManagement', ($event.target as HTMLSelectElement).value); $emit('managementChange')"
+        <LabelForm for="management_select" size="sm">Gerencia</LabelForm>
+        <InputSelect
           id="management_select"
-          class="peer block w-full appearance-none border-0 border-b-2 border-gray-200 bg-transparent px-0 py-2.5 text-sm text-gray-500 focus:border-gray-200 focus:outline-none focus:ring-0 dark:border-gray-700 dark:text-gray-400"
-          :disabled="isUserManager || isFilterDisabled"
+          :model-value="selectedManagement"
+          @update:model-value="handleManagementChange"
+          :is-disabled="isUserManager || isFilterDisabled"
+          :is-required="false"
         >
           <option v-for="management in managementList" :key="management" :value="management">
             {{ management }}
           </option>
-        </select>
+        </InputSelect>
       </div>
 
       <!-- Agency Filter -->
       <div>
-        <label for="agency_select" class="sr-only">Select agency</label>
-        <select
+        <LabelForm for="agency_select" size="sm">Agencia</LabelForm>
+        <InputSelect
           id="agency_select"
-          class="bloc peer w-full appearance-none border-0 border-b-2 border-gray-200 bg-transparent px-0 py-2.5 text-sm text-gray-500 focus:border-gray-200 focus:outline-none focus:ring-0 dark:border-gray-700 dark:text-gray-400"
           :model-value="selectedAgency"
-          @change="$emit('update:selectedAgency', ($event.target as HTMLSelectElement).value)"
-          :disabled="isFilterDisabled"
+          @update:model-value="handleAgencyChange"
+          :is-disabled="isFilterDisabled"
+          :is-required="false"
         >
-          <option selected value="">-- TODAS --</option>
+          <option value="">-- TODAS --</option>
           <option v-for="agency in agencyList" :key="agency" :value="agency">
             {{ agency }}
           </option>
-        </select>
+        </InputSelect>
       </div>
     </form>
 
@@ -71,5 +84,5 @@ defineEmits<Emit>()
       </div>
       <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Visita</span>
     </label>
-  </div>
+  </CardContainer>
 </template>

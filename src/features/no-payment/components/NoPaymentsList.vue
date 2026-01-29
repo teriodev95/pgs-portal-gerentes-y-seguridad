@@ -5,6 +5,7 @@ import type { LatLng } from 'leaflet'
 // Components
 import NoPaymentCard from './NoPaymentCard.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 
 interface Props {
   noPayments: INoPago[]
@@ -31,13 +32,14 @@ function handleVisitSelected(visit: IVisita) {
 
 <template>
   <div v-if="!isLoading">
-    <!-- No Payments Message -->
-    <div v-if="noPaymentsExist" class="title p-2 text-center">
-      No hay Pagos
-    </div>
+    <EmptyCT
+       v-if="!noPaymentsExist"
+       message="Sin NO pagos que coincidan con los filtros seleccionados."
+    />
+
 
     <!-- No Payments List -->
-    <div v-else>
+    <div class="space-y-2" v-else>
       <NoPaymentCard
         v-for="payment in noPayments"
         :key="payment.pagoId"

@@ -14,6 +14,7 @@ import { useNoPayments } from '../composables'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import { useRouter } from 'vue-router'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import SectionContainer from '@/shared/components/SectionContainer.vue'
 
 const $router = useRouter()
 
@@ -59,32 +60,34 @@ function handleBack() {
   <MainCT>
     <NavbarCT title="No Pagos" show-back-button @click:back="handleBack" />
 
-    <!-- Filters Section -->
-    <NoPaymentFilters
-      :management-list="managementList || []"
-      v-model:selected-management="selectedManagement"
-      :agency-list="agencyList || []"
-      v-model:selected-agency="selectedAgency"
-      v-model:has-visit="hasVisit"
-      :is-filter-disabled="isFilterDisabled"
-      :is-user-manager="isUserManager"
-      @management-change="fetchAgencies"
-    />
-
-    <!-- Stats Summary -->
-    <NoPaymentStats
-      :total-count="noPaymentsList?.length || 0"
-      :filtered-count="filteredNoPayments?.length || 0"
-    />
-
-    <!-- No Payments List -->
-    <NoPaymentsList
-      :no-payments="filteredNoPayments"
-      :is-loading="isLoading"
-      :no-payments-exist="noPaymentsExist"
-      @click:map-market="showMapLocation"
-      @click:visit-selected="selectVisit"
-    />
+    <SectionContainer>
+      <!-- Filters Section -->
+      <NoPaymentFilters
+        :management-list="managementList || []"
+        v-model:selected-management="selectedManagement"
+        :agency-list="agencyList || []"
+        v-model:selected-agency="selectedAgency"
+        v-model:has-visit="hasVisit"
+        :is-filter-disabled="isFilterDisabled"
+        :is-user-manager="isUserManager"
+        @management-change="fetchAgencies"
+      />
+  
+      <!-- Stats Summary -->
+      <NoPaymentStats
+        :total-count="noPaymentsList?.length || 0"
+        :filtered-count="filteredNoPayments?.length || 0"
+      />
+  
+      <!-- No Payments List -->
+      <NoPaymentsList
+        :no-payments="filteredNoPayments"
+        :is-loading="isLoading"
+        :no-payments-exist="noPaymentsExist"
+        @click:map-market="showMapLocation"
+        @click:visit-selected="selectVisit"
+      />
+    </SectionContainer>
 
     <!-- Map Bottom Sheet -->
     <vue-bottom-sheet ref="mapBottomSheet" :max-width="1000" :max-height="600">
@@ -117,5 +120,3 @@ function handleBack() {
     </vue-bottom-sheet>
   </MainCT>
 </template>
-
-<style lang="scss" scoped></style>
