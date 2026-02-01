@@ -4,6 +4,7 @@ import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import type { Pagare } from '../types'
 import PromissoryNoteCard from './PromissoryNoteCard.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 defineProps<{
   pagares: Pagare[]
@@ -29,7 +30,7 @@ const emit = defineEmits<{
 
     <!-- Promissory Notes List -->
     <div class="space-y-2" v-else>
-      <p class="text-sm text-gray-600">Total: {{ pagares.length }} pagarés</p>
+      <TextCT variant="tertiary">Total: {{ pagares.length }} pagarés</TextCT>
 
       <div class="space-y-2">
         <PromissoryNoteCard

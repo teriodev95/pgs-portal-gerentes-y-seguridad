@@ -10,8 +10,10 @@ import type { SaleDetails } from '../types';
  * ------------------------------------------
  */
 import CardContainer from '@/shared/components/CardContainer.vue';
+import BtnComponent from '@/shared/components/BtnComponent.vue';
 import EyeIcon from '@/shared/components/icons/EyeIcon.vue';
 import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue';
+import DataField from '@/shared/components/DataField.vue';
 
 /**
  * ------------------------------------------
@@ -49,34 +51,25 @@ const navigateToCorrection = () => {
 
 <template>
   <CardContainer>
-    <div class="flex items-center justify-between gap-2">
-      <p class="font-300 text-gray-400">Agencia</p>
-      <p class="font-md-700 text-blue-800">{{ sale.agencia }}</p>
-    </div>
-    <div class="flex items-center justify-between gap-2">
-      <p class="font-300 text-gray-400">Cliente</p>
-      <p class="font-md-700 text-blue-800">{{ sale.nombreCliente }}</p>
-    </div>
-    <div class="flex items-center justify-between gap-2">
-      <p class="font-300 text-gray-400">Tipo</p>
-      <p class="fon t-md-700 text-blue-800">{{ sale.tipo }}</p>
-    </div>
-    <div class="flex items-center justify-between gap-2">
-      <p class="font-300 text-gray-400">Monto</p>
-      <p class="font-md-700 text-blue-800">{{ toCurrency(sale.monto) }}</p>
-    </div>
+    <DataField label="Agencia" :value="sale.agencia" />
+    <DataField label="Cliente" :value="sale.nombreCliente" />
+    <DataField label="Tipo" :value="sale.tipo" />
+    <DataField label="Monto" :value="toCurrency(sale.monto)" />
 
     <div class="space-y-2">
-      <button @click="$emit('action:show-details', sale)"
-        class="w-full btn rounded-lg bg-blue-700 p-1 text-center text-sm font-medium text-white outline-none flex items-center justify-center gap-2">
-        <EyeIcon class="size-5" />
+      <BtnComponent variant="primary" size="sm" full-width @click="$emit('action:show-details', sale)">
+        <template #icon-left>
+          <EyeIcon class="size-5" />
+        </template>
         Ver detalles
-      </button>
-      <button @click="navigateToCorrection"
-        class="w-full rounded-lg border border-blue-700 p-1 text-center text-sm font-medium text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 flex items-center justify-center gap-2">
-        <ToolsIcon class="size-5" />
+      </BtnComponent>
+
+      <BtnComponent variant="primary" outline size="sm" full-width @click="navigateToCorrection">
+        <template #icon-left>
+          <ToolsIcon class="size-5" />
+        </template>
         Solicitar corrección
-      </button>
+      </BtnComponent>
     </div>
   </CardContainer>
 </template>
