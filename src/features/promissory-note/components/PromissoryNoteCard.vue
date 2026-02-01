@@ -15,21 +15,20 @@ const emit = defineEmits<{
 
 <template>
   <CardContainer class="cursor-pointer hover:shadow-md transition-shadow" @click="emit('click', pagare)">
-    <TextCT variante="title">
+    <TextCT variant="title">
       {{ pagare.cliente_nombre }}
     </TextCT>
 
     <div class="flex justify-between items-start mb-2">
-      <TextCT variante="secondary">
+      <TextCT variant="tertiary">
         {{  pagare.id_sistemas }}
       </TextCT>
-      <span v-if="pagare.semaforo" class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
+      <TextCT as="span" v-if="pagare.semaforo" variant="tertiary" >
         {{ pagare.semaforo }}
-      </span>
+      </TextCT>
     </div>
 
     <div class="grid grid-cols-2 gap-2 justify-between text-sm">
-
       <DataField orientation="vertical" label="Id" :value="pagare.id_sistemas" />
       <DataField class="justify-self-end text-right" orientation="vertical" label="Préstamo" :value="pagare.prestamo_id" />
       <DataField orientation="vertical" label="Agencia" :value="pagare.agencia" />
