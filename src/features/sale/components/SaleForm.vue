@@ -1,27 +1,28 @@
 <script setup lang="ts">
-import { toCurrency } from '@/shared/utils';
-import type { SaleFormData } from '../types';
+import { toCurrency } from '@/shared/utils'
+import type { SaleFormData } from '../types'
 
 // Components
-import InputGeneric from '@/shared/components/forms/InputGeneric.vue';
-import LabelForm from '@/shared/components/forms/LabelForm.vue';
-import InputSelect from '@/shared/components/forms/InputSelect.vue';
+import InputGeneric from '@/shared/components/forms/InputGeneric.vue'
+import LabelForm from '@/shared/components/forms/LabelForm.vue'
+import InputSelect from '@/shared/components/forms/InputSelect.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 
 // Composables
-import { useSaleForm } from '@/features/sale/composables/useSaleForm';
+import { useSaleForm } from '@/features/sale/composables/useSaleForm'
 
 interface Props {
-  isDisabled: boolean;
+  isSaving: boolean
 }
 
-defineProps<Props>();
+defineProps<Props>()
 
 // Emits
 interface Emits {
-  (event: 'action:save', sale: SaleFormData): void;
+  (event: 'submit', sale: SaleFormData): void
 }
 
-const $emits = defineEmits<Emits>();
+const emit = defineEmits<Emits>()
 
 // Inicializar composable
 const {
@@ -32,17 +33,15 @@ const {
   submitForm,
   clearForm
 } = useSaleForm(false, (sale: SaleFormData) => {
-  $emits('action:save', sale);
-});
+  emit('submit', sale)
+})
 
 // Expose methods to parent components
-defineExpose({ clearForm });
+defineExpose({ clearForm })
 </script>
 
 <template>
-  <form @submit.prevent="submitForm" class="p-4 space-y-4">
-    <h1 class="title">Información de la venta</h1>
-
+  <form @submit.prevent="submitForm" class="space-y-4">
     <!-- Date Field -->
     <div class="form-field">
       <LabelForm for="fecha">Fecha</LabelForm>
@@ -119,9 +118,15 @@ defineExpose({ clearForm });
     </div>
 
     <!-- Submit Button -->
-    <button :disabled="isDisabled" class="btn btn-primary w-full disabled:bg-opacity-60">
+    <BtnComponent
+      type="submit"
+      variant="primary"
+      full-width
+      :disabled="isSaving"
+      :loading="isSaving"
+    >
       Guardar
-    </button>
+    </BtnComponent>
   </form>
 </template>
 

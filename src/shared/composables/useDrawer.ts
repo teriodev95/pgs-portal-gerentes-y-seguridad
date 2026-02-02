@@ -1,4 +1,4 @@
-import { onUnmounted, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 
 /**
  * Composable genérico para manejar el estado de un drawer
@@ -103,7 +103,7 @@ export function useDrawer<T = unknown>(key: string) {
     selectedData,
 
     // Computed helpers
-    hasData: ref(selectedData.value !== undefined),
+    hasData: computed(() => selectedData.value !== undefined),
 
     // Métodos
     open,
