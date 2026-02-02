@@ -1,8 +1,9 @@
-import { computed, onBeforeMount, ref } from 'vue'
+import { computed, onBeforeMount } from 'vue'
 import { useStore } from '@/shared/stores'
 import type { SaleDetails, SaleFormData } from '../types'
 import { salesService } from '../services/sale.service'
 import { useSaleErrorHandler } from './useSaleErrorHandler'
+import { useSaleStore } from '../stores'
 
 function validateSaleData(sale: SaleDetails): { isValid: boolean; errors: string[] } {
   const errors: string[] = []
@@ -49,45 +50,55 @@ function validateSaleData(sale: SaleDetails): { isValid: boolean; errors: string
   }
 }
 
+/**
+ * Composable para la lógica de negocio de ventas
+ * El estado se maneja en el store (useSaleStore)
+ * Este composable solo contiene lógica de negocio pura
+ */
 export function useSaleData() {
+  // Services, Composables and Stores initialization
   const $store = useStore()
   const { handleError, handleSuccess } = useSaleErrorHandler()
+  const saleStore = useSaleStore()
 
-  const sales = ref<SaleDetails[]>([])
-  const selectedSale = ref<SaleDetails>()
-  const isLoadingSales = ref(false)
-  const isSavingSale = ref(false)
-  const isLoadingDetails = ref(false)
-
+  // Computed properties (datos del store global)
   const currentDate = computed(() => $store.currentDate)
   const gerenciaSelected = computed(() => $store.gerenciaSelected)
-  
-  const hasSales = computed(() => sales.value.length > 0)
-  const salesCount = computed(() => sales.value.length)
 
-  const isFormValid = computed(() => 
-    selectedSale.value ? true : !isSavingSale.value
-  )
+  // ============================================
+  // Business Logic - Fetch Sales
+  // ============================================
 
+  /**
+   * Obtiene las ventas de la gerencia para la semana actual
+   */
   async function fetchSales(): Promise<void> {
     if (!gerenciaSelected.value) return
 
     try {
-      isLoadingSales.value = true
+      saleStore.setLoadingSales(true)
       const response = await salesService.getSales(
         gerenciaSelected.value,
         currentDate.value.year,
         currentDate.value.week
       )
-      
-      sales.value = response.data
+
+      saleStore.setSales(response.data)
     } catch (error) {
       handleError(error, 'SALES_LOAD_FAILED')
     } finally {
-      isLoadingSales.value = false
+      saleStore.setLoadingSales(false)
     }
   }
 
+  // ============================================
+  // Business Logic - Save Sale
+  // ============================================
+
+  /**
+   * Guarda una nueva venta
+   * Separa la responsabilidad: solo guarda, no refresca
+   */
   async function saveSale(formData: SaleFormData): Promise<void> {
     if (!gerenciaSelected.value) {
       handleError(new Error('Gerencia no seleccionada'), 'VALIDATION_ERROR')
@@ -106,39 +117,32 @@ export function useSaleData() {
       gerencia: gerenciaSelected.value,
     }
 
+    // Validation before mutation
     const validation = validateSaleData(saleData)
     if (!validation.isValid) {
       validation.errors.forEach(error => handleError(new Error(error), 'VALIDATION_ERROR'))
       return Promise.reject(new Error(validation.errors.join(', ')))
     }
 
-    isSavingSale.value = true
+    saleStore.setSavingSale(true)
 
     try {
       await salesService.createSale(saleData)
       handleSuccess('Venta creada exitosamente')
+      // Refrescar la lista después de guardar
       await fetchSales()
       return Promise.resolve()
     } catch (error) {
       handleError(error, 'SALE_SAVE_FAILED')
       return Promise.reject(error)
     } finally {
-      isSavingSale.value = false
+      saleStore.setSavingSale(false)
     }
   }
 
-  function selectSaleForDetails(sale: SaleDetails): void {
-    isLoadingDetails.value = true
-    selectedSale.value = sale
-
-    setTimeout(() => {
-      isLoadingDetails.value = false
-    }, 300)
-  }
-
-  function clearSelectedSale(): void {
-    selectedSale.value = undefined
-  }
+  // ============================================
+  // Lifecycle hooks
+  // ============================================
 
   onBeforeMount(async () => {
     try {
@@ -148,23 +152,17 @@ export function useSaleData() {
     }
   })
 
+  // ============================================
+  // Return
+  // ============================================
+
   return {
-    sales,
-    selectedSale,
-    isLoadingSales,
-    isSavingSale,
-    isLoadingDetails,
-    
+    // Computed - Basic (datos del store global)
     currentDate,
     gerenciaSelected,
-    
-    hasSales,
-    salesCount,
-    isFormValid,
-    
+
+    // Methods
     fetchSales,
     saveSale,
-    selectSaleForDetails,
-    clearSelectedSale
   }
 }

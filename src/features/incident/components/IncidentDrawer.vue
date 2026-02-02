@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button'
 import IncidentForm from './IncidentForm.vue'
 import AlertMsg from '@/shared/components/AlertMsg.vue'
+import SectionContainer from '@/shared/components/SectionContainer.vue'
 
 // Stores & Composables
 const incidentStore = useIncidentStore()
@@ -57,7 +58,7 @@ function handleOpenChange(open: boolean) {
           </DrawerDescription>
         </DrawerHeader>
 
-        <div class="px-4 pb-4 space-y-4">
+        <SectionContainer>
           <AlertMsg
             v-if="!isEditing && isUserManager"
             type="info"
@@ -70,7 +71,7 @@ function handleOpenChange(open: boolean) {
             :is-saving="incidentStore.isSavingIncident"
             @submit="handleSubmit"
           />
-        </div>
+        </SectionContainer>
 
         <DrawerFooter v-if="isEditing">
           <Button variant="outline" @click="incidentDrawer.close()">
