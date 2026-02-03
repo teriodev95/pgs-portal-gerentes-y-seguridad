@@ -6,6 +6,7 @@ interface Props {
 }
 
 import CheckCircleIcon from '@/shared/components/icons/CheckCircleIcon.vue'
+import TextCT from './ui/TextCT.vue';
 
 defineProps<Props>()
 </script>
@@ -19,7 +20,9 @@ defineProps<Props>()
   >
     <CheckCircleIcon class="h-12 w-12 mx-auto" />
 
-    <h2 class="title !text-white">{{ title }}</h2>
-    <p class="subtitle" v-html="msg"></p>
+    <TextCT variant="title" class="!text-white">{{ title }}</TextCT>
+    <TextCT >
+      <span v-html="msg"></span>
+    </TextCT>
   </div>
 </template>

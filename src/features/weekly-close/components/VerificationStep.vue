@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import InputValidation from '@/shared/components/forms/InputValidation.vue'
 import CameraVideoCapture from './CameraVideoCapture.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 
 interface Props {
   userType: 'agente' | 'gerente'
@@ -25,11 +27,11 @@ defineEmits<Emit>()
   <div class="space-y-8">
     <div class="space-y-6">
       <div class="space-y-2">
-        <h2 class="title">Proceso de verificación</h2>
-        <p class="subtitle">
+        <TextCT class="title">Proceso de verificación</TextCT>
+        <TextCT>
           Añade los métodos de validación para el usuario {{ userName }}: PIN,
           reconocimiento facial y autenticación por voz.
-        </p>
+        </TextCT>
       </div>
 
       <InputValidation
@@ -43,12 +45,12 @@ defineEmits<Emit>()
       <CameraVideoCapture v-if="isPasswordCorrect" :mode="userType" />
     </div>
 
-    <button
+    <BtnComponent
       @click="$emit('continue')"
-      class="btn-primary-outline flex w-full items-center justify-center gap-2"
+      full-width
       v-show="isVerificationCompleted"
     >
       Continuar
-    </button>
+    </BtnComponent>
   </div>
 </template>

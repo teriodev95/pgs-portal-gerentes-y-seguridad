@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onBeforeMount, ref } from 'vue';
 import { ROUTE_NAME } from '@/router';
-import { toCurrency } from '@/shared/utils';
 import { usePdfGenerator } from '@/features/weekly-details/composables/usePdfGenerator';
 import { useStore } from '@/shared/stores';
 import { useWeeklyClosingData } from '@/features/weekly-details/composables/useWeeklyClosingData';
@@ -13,11 +12,7 @@ import type { userPDF, IAsignacion } from '@/interfaces';
  *	Components
  * ------------------------------------------
  */
-import ArrowDown from '@/shared/components/icons/ArrowDown.vue';
-import ArrowUp from '@/shared/components/icons/ArrowUp.vue';
-import CardContainer from '@/shared/components/CardContainer.vue';
 import LoadingButton from '@/features/weekly-close/components/LoadingButton.vue';
-import LoadSkeleton from '@/shared/components/LoadSkeleton.vue';
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue';
 import MainCT from '@/shared/components/ui/MainCT.vue';
 import SectionContainer from '@/shared/components/SectionContainer.vue';
@@ -30,7 +25,7 @@ import { useRouter } from 'vue-router';
  */
 const $store = useStore();
 const router = useRouter();
-const { tabulation, weeklyClosingDetails, generalBalance, managementNumbers, isLoading, fetchWeeklyClosingDetails, fetchPdfData } = useWeeklyClosingData()
+const { tabulation, weeklyClosingDetails, generalBalance, managementNumbers, fetchWeeklyClosingDetails, fetchPdfData } = useWeeklyClosingData()
 const { generateHTMLTemplate } = useWeeklyClosingTemplate()
 const { generatePDF, downloadPDF } = usePdfGenerator()
 
@@ -41,15 +36,7 @@ const { generatePDF, downloadPDF } = usePdfGenerator()
  */
 const isLoadingAdmin = ref(false)
 const isLoadingManagement = ref(false)
-const sortDetailsByType = (details: IAsignacion[]) => {
-  return details.sort((a, b) => {
-    const typeA = a.tipo.toLowerCase();
-    const typeB = b.tipo.toLowerCase();
-    if (typeA < typeB) return -1;
-    if (typeA > typeB) return 1;
-    return 0;
-  });
-};
+
 
 /**
  * ------------------------------------------
@@ -59,14 +46,7 @@ const sortDetailsByType = (details: IAsignacion[]) => {
 /**
  * formatKey
  */
-const formatKey = (key: string): string => {
-  return key
-    .replace(/([A-Z])/g, ' $1')
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-    .trim();
-};
+
 
 /**
  * handleGeneratePDF
@@ -132,188 +112,6 @@ onBeforeMount(async () => {
       :src="`https://v0-ui-flujo-efectivo.vercel.app/detalles-cierre?gerencia=${$store.gerenciaSelected}&semana=${$store.currentDate.week}&anio=${$store.currentDate.year}`"
       class="w-full min-h-screen" frameborder="0"></iframe>
 
-    <article class="hidden">
-      <SectionContainer v-if="weeklyClosingDetails">
-
-        <!-- RESUMEN -->
-        <CardContainer>
-          <h2 class="title">Resumen</h2>
-
-          <div class="flex justify-between gap-2">
-            <p class="font-300 text-gray-400">Egresos</p>
-            <p class="badget badget-danger">
-              <ArrowUp class="size-4" />
-              {{ toCurrency(weeklyClosingDetails.egresos.total) }}
-            </p>
-          </div>
-          <div class="flex justify-between gap-2">
-            <p class="font-300 text-gray-400">Ingresos</p>
-            <p class="badget badget-success">
-              <ArrowDown class="size-4" />
-              {{ toCurrency(weeklyClosingDetails.ingresos.total) }}
-            </p>
-          </div>
-          <hr class="line" />
-          <div class="flex justify-between gap-2">
-            <p class="font-300 text-gray-400">Efectivo a Entregar</p>
-            <p class="font-md-700 text-blue-800">
-              {{ toCurrency(weeklyClosingDetails.efectivoAEntregar) }}
-            </p>
-          </div>
-        </CardContainer>
-        <!-- / RESUMEN -->
-
-        <!-- OTROS -->
-        <CardContainer>
-          <h2 class="title">Asignaciones</h2>
-
-          <div class="space-y-2">
-
-            <p class="font-300 !font-semibold text-gray-400">Detalles:</p>
-
-            <div
-              v-for="(detail, index) in sortDetailsByType(weeklyClosingDetails.ingresos.asignaciones.asignacionesList)"
-              :key="index" class="flex justify-between gap-2">
-              <p class="font-300 text-gray-400">
-                {{ detail.tipo }}
-              </p>
-              <p class="font-md-700 text-blue-800">
-                {{ toCurrency(detail.monto) }}
-              </p>
-            </div>
-
-            <div class="flex justify-between gap-2">
-              <p class="font-300 text-gray-400">Subtotal</p>
-              <p class="font-md-700 text-blue-800">
-                {{ toCurrency(weeklyClosingDetails.ingresos.asignaciones.subTotal) }}
-              </p>
-            </div>
-
-            <hr class="line" />
-
-            <div class="flex justify-between gap-2">
-              <p class="font-300 text-gray-400">Total</p>
-              <p class="badget badget-success">
-                <ArrowDown class="size-4" />
-                {{ toCurrency(weeklyClosingDetails.ingresos.asignaciones.total) }}
-              </p>
-            </div>
-          </div>
-        </CardContainer>
-
-        <CardContainer>
-          <h2 class="title">Cobranza</h2>
-
-          <div class="space-y-2">
-            <div v-for="[key, value] in Object.entries(weeklyClosingDetails.ingresos.cobranza)" :key="key"
-              class="flex justify-between gap-2" v-show="key !== 'total'">
-              <p class="font-300 text-gray-400">{{ formatKey(key) }}</p>
-              <p class="font-md-700 text-blue-800">
-                {{ toCurrency(value) }}
-              </p>
-            </div>
-
-            <hr class="line" />
-
-            <div class="flex justify-between gap-2">
-              <p class="font-300 text-gray-400">Total</p>
-              <p class="badget badget-success">
-                <ArrowDown class="size-4" />
-                {{ toCurrency(weeklyClosingDetails.ingresos.cobranza.total) }}
-              </p>
-            </div>
-          </div>
-        </CardContainer>
-
-        <CardContainer>
-          <h2 class="title">Asignaciones</h2>
-
-          <div class="space-y-2">
-
-            <p class="font-300 !font-semibold text-gray-400">Detalles:</p>
-
-            <div
-              v-for="(detail, index) in sortDetailsByType(weeklyClosingDetails.egresos.asignaciones.asignacionesList)"
-              :key="index" class="flex justify-between gap-2">
-              <p class="font-300 text-gray-400">
-                {{ detail.tipo }}
-              </p>
-              <p class="font-md-700 text-blue-800">
-                {{ toCurrency(detail.monto) }}
-              </p>
-            </div>
-
-            <div class="flex justify-between gap-2">
-              <p class="font-300 text-gray-400">Subtotal</p>
-              <p class="font-md-700 text-blue-800">
-                {{ toCurrency(weeklyClosingDetails.egresos.asignaciones.subTotal) }}
-              </p>
-            </div>
-
-            <hr class="line" />
-
-            <div class="flex justify-between gap-2">
-              <p class="font-300 text-gray-400">Total</p>
-              <p class="badget badget-danger">
-                <ArrowUp class="size-4" />
-                {{ toCurrency(weeklyClosingDetails.egresos.asignaciones.total) }}
-              </p>
-            </div>
-          </div>
-        </CardContainer>
-
-        <CardContainer>
-          <h2 class="title">Bonos y Comisiones</h2>
-
-          <div class="space-y-2">
-            <div v-for="[key, value] in Object.entries(weeklyClosingDetails.egresos.bonosYComisiones)" :key="key"
-              class="flex justify-between gap-2"
-              v-show="key !== 'total' && key !== 'totalVentas' && key !== 'detalles'">
-              <p class="font-300 text-gray-400">{{ formatKey(key) }}</p>
-              <p class="font-md-700 text-blue-800">
-                {{ toCurrency(value) }}
-              </p>
-            </div>
-
-            <hr class="line" />
-
-            <div class="flex justify-between gap-2">
-              <p class="font-300 text-gray-400">Total</p>
-              <p class="badget badget-danger">
-                <ArrowUp class="size-4" />
-                {{ toCurrency(weeklyClosingDetails.egresos.bonosYComisiones.total) }}
-              </p>
-            </div>
-          </div>
-        </CardContainer>
-
-        <CardContainer>
-          <h2 class="title">Gastos</h2>
-
-          <div class="space-y-2">
-            <div v-for="(detail, index) in weeklyClosingDetails.egresos.gastos.gastosList" :key="index"
-              class="flex justify-between gap-2">
-              <p class="font-300 text-gray-400">
-                {{ detail.tipo_gasto }}
-              </p>
-              <p class="font-md-700 text-blue-800">
-                {{ toCurrency(Number(detail.monto) || 0) }}
-              </p>
-            </div>
-
-            <hr class="line" />
-
-            <div class="flex justify-between gap-2">
-              <p class="font-300 text-gray-400">Total</p>
-              <p class="badget badget-danger">
-                <ArrowUp class="size-4" />
-                {{ toCurrency(weeklyClosingDetails.egresos.gastos.total) }}
-              </p>
-            </div>
-          </div>
-        </CardContainer>
-      </SectionContainer>
-    </article>
 
     <!-- PDF Download Section -->
     <SectionContainer>

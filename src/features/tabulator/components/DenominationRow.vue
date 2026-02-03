@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { toCurrency } from '@/shared/utils';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 interface Props {
   value: number
@@ -42,12 +43,12 @@ function handleQuantityChange(event: Event): void {
         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5 disabled:bg-gray-100 disabled:cursor-not-allowed"
         required
       />
-      <span class="font-300 text-gray-400">x</span>
-      <span class="font-300 text-gray-400">{{ value }}</span>
-      <span class="font-300 text-gray-400">&#61;</span>
+      <TextCT as="span" variant="tertiary">x</TextCT>
+      <TextCT as="span" variant="tertiary">{{ value }}</TextCT>
+      <TextCT as="span" variant="tertiary">&#61;</TextCT>
     </div>
-    <span class="font-md-700 text-blue-800">
+    <TextCT as="span" variant="secondary">
       {{ toCurrency(total) }}
-    </span>
+    </TextCT>
   </div>
 </template>

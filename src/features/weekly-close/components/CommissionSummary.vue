@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataField from '@/shared/components/DataField.vue';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 import { toCurrency } from '@/shared/utils';
 
 interface Commission {
@@ -16,29 +18,12 @@ defineProps<Props>()
 
 <template>
   <div class="space-y-2">
-    <h1 class="title">Comisiones pagadas en la semana:</h1>
+    <TextCT variant="title">
+      Comisiones pagadas en la semana
+    </TextCT>
 
-    <div class="space-y-1">
-      <div class="flex justify-between gap-2">
-        <p class="font-300 text-gray-400">Comisión por cobranza</p>
-        <p class="font-md-700 text-blue-800">
-          {{ toCurrency(commissions.comisionCobranzaPagadaEnSemana) }}
-        </p>
-      </div>
-
-      <div class="flex justify-between gap-2">
-        <p class="font-300 text-gray-400">Comisión por Ventas</p>
-        <p class="font-md-700 text-blue-800">
-          {{ toCurrency(commissions.comisionVentasPagadaEnSemana) }}
-        </p>
-      </div>
-
-      <div class="flex justify-between gap-2">
-        <p class="font-300 text-gray-400">Bonos</p>
-        <p class="font-md-700 text-blue-800">
-          {{ toCurrency(commissions.bonosPagadosEnSemana) }}
-        </p>
-      </div>
-    </div>
+    <DataField label="Comisión por cobranza" :value="toCurrency(commissions.comisionCobranzaPagadaEnSemana)"/>
+    <DataField label="Comisión por Ventas" :value="toCurrency(commissions.comisionVentasPagadaEnSemana)"/>
+    <DataField label="Bonos" :value="toCurrency(commissions.bonosPagadosEnSemana)"/>
   </div>
 </template>

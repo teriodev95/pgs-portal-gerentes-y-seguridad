@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useStore } from '@/shared/stores';
 import { ROUTE_NAME } from '@/router';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 // Store initialization
 const $store = useStore();
@@ -10,13 +11,13 @@ const $store = useStore();
   <section class="h-screen flex justify-center items-center">
     <div class="p-8 space-y-4">
       <div class="space-y-2">
-        <h1 class="title text-center">Clientes pendientes de pago</h1>
+        <TextCT variant="title" class="text-center">Clientes pendientes de pago</TextCT>
 
-        <h2 class="subtitle text-center">
+        <TextCT variant="tertiary" class="text-center">
           Hay {{ $store.cobranzasWithCrtp.length }} clientes con pagos pendientes en la agencia
           {{ $store.agencySelected }}. Registra los pagos o ingresa "0" en
           los clientes que no realizaron pago esta semana para continuar con el cierre.
-        </h2>
+        </TextCT>
       </div>
 
       <div class="space-y-2">

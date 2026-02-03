@@ -2,17 +2,15 @@
 import { useCierreSemanalStore } from '@/features/weekly-close/stores';
 import { toCurrency } from '@/shared/utils';
 import DataField from '@/shared/components/DataField.vue';
+import CardContainer from '@/shared/components/CardContainer.vue';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 const $weeklyCloseStore = useCierreSemanalStore()
 </script>
 
 <template>
-  <div v-if="$weeklyCloseStore.weeklyClose" class="space-y-3 rounded-lg border bg-white p-4">
-    <div class="mb-4">
-      <h2 class="title">Resumen Semanal</h2>
-      <p class="subtitle">Detalle de las métricas de rendimiento de la semana</p>
-    </div>
-
+  <CardContainer v-if="$weeklyCloseStore.weeklyClose" title="Resumen Semanal">
+    <TextCT>Detalle de las métricas de rendimiento de la semana</TextCT>
     <DataField label="Semana" :value="$weeklyCloseStore.weeklyClose.resumenSemanal.semana" />
     <DataField label="Gerencia" :value="$weeklyCloseStore.weeklyClose.resumenSemanal.gerencia" />
     <DataField label="Gerente" :value="$weeklyCloseStore.weeklyClose.resumenSemanal.gerente" />
@@ -33,5 +31,5 @@ const $weeklyCloseStore = useCierreSemanalStore()
       :value="$weeklyCloseStore.weeklyClose.resumenSemanal.pagosReducidos" />
 
     <DataField label="Clientes Liquidados" :value="$weeklyCloseStore.weeklyClose.resumenSemanal.clientesLiquidados ?? 0"/>
-  </div>
+  </CardContainer>
 </template>

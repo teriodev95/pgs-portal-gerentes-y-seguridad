@@ -72,7 +72,7 @@ const showAgency = computed(() => $props.assignment.tipo === 'Agente')
 
     <div class="space-y-1">
       <template v-if="type === 'agency'">
-        <div class="font-300 gap-0.5 text-gray-400">
+        <div class="gap-0.5">
           <InfoIcon class="inline-block h-[1rem] w-[1rem]" />
           <TextCT variant="tertiary" as="span">
             Asignación recibida por {{ assignment.usuarioRecibio.usuario }} [{{ assignment.usuarioRecibio.tipo }}] en
