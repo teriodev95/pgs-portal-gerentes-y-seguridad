@@ -1,6 +1,6 @@
 <script setup lang="ts">
 type TextElement = 'p' | 'span' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'label' | 'div'
-type TextVariant = 'primary' | 'secondary' | 'tertiary' | 'title' | 'paragraph' | 'label' | 'error' | 'success'
+type TextVariant = 'primary' | 'secondary' | 'tertiary' | 'title' | 'paragraph' |  'paragraph-bold' | 'label' | 'error' | 'success'
 
 interface Props {
   as?: TextElement
@@ -20,6 +20,7 @@ withDefaults(defineProps<Props>(), {
     'tertiary-text': variant === 'tertiary',
     'title-text': variant === 'title',
     'paragraph-text': variant === 'paragraph',
+    'paragraph-bold-text': variant === 'paragraph-bold',
     'label-text': variant === 'label',
     'error-text': variant === 'error',
     'success-text': variant === 'success'

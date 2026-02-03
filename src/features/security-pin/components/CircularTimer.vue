@@ -5,6 +5,7 @@ import { TIMER_COLORS, TIMER_CONFIG } from '../constants'
 import CircularProgressRing from '@/shared/components/CircularProgressRing.vue'
 import TimerDisplay from './TimerDisplay.vue'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
+import CardContainer from '@/shared/components/CardContainer.vue'
 
 export interface CircularTimerProps {
   pin?: string
@@ -62,7 +63,7 @@ defineExpose({
 </script>
 
 <template>
-  <section class="space-y-8  ">
+  <CardContainer class="space-y-8  ">
     <CircularProgressRing
       :progress="progress"
       :color="currentColor"
@@ -74,10 +75,8 @@ defineExpose({
       />
     </CircularProgressRing>
 
-    <div>
-      <BtnComponent v-if="isExpired" @click="emit('action:new-pin')" full-width>
-        Generar nuevo Pin
-      </BtnComponent>
-    </div>
-  </section>
+    <BtnComponent v-if="isExpired" @click="emit('action:new-pin')" full-width>
+      Generar nuevo Pin
+    </BtnComponent>
+  </CardContainer>
 </template>

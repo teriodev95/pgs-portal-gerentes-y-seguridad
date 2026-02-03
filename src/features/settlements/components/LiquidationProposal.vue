@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import CardContainer from '@/shared/components/CardContainer.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
 import { toCurrency } from '@/shared/utils'
 
 interface LiquidationOption {
@@ -26,16 +28,12 @@ function selectLiquidationOption(percentage: number) {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-    <h3 class="text-lg font-medium text-gray-900 mb-4">Propuesta de Liquidación</h3>
-
-    <div class="mb-4">
-      <p class="text-sm text-gray-600 mb-4">
-        El cliente tiene un saldo pendiente de
-        <span class="font-semibold">{{ toCurrency(pendingBalance) }}</span>.
-        Las siguientes opciones aplican un descuento sobre este saldo para incentivar el cierre.
-      </p>
-    </div>
+  <card-container title="Propuesta de Liquidación">
+    <text-c-t>
+      El cliente tiene un saldo pendiente de
+      <span class="font-semibold">{{ toCurrency(pendingBalance) }}</span>.
+      Las siguientes opciones aplican un descuento sobre este saldo para incentivar el cierre.
+    </text-c-t>
 
     <div class="space-y-3">
       <div
@@ -91,5 +89,5 @@ function selectLiquidationOption(percentage: number) {
       <slot name="alert" />
       <slot name="action" :selectedDiscountPercentage="selectedDiscountPercentage" :selectLiquidationOption="selectLiquidationOption" />
     </div>
-  </div>
+  </card-container>
 </template>

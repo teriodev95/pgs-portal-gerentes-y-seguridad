@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CardContainer from '@/shared/components/CardContainer.vue';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 import { computed } from 'vue';
 
 interface Props {
@@ -24,11 +25,11 @@ const formattedEndTime = computed(() => {
 
 </script>
 <template>
-  <CardContainer>
-    <h2 class="property-value">🔐 PIN de Seguridad Temporal</h2>
-    <p class="property-label">El PIN {{ pin }}, generado por el usuario {{ user }}, será válido hasta las {{ formattedEndTime }} para los cierres de la gerencia {{ management }}.</p>
-    <h2 class="property-value">⚠️ Importante: este PIN no es un comodín y debe utilizarse solo en casos específicos y justificados.</h2>
-    <p class="property-label">Toda acción relacionada quedará registrada para auditorías y control interno. En caso de solicitudes recurrentes o uso indebido, oficina y dirección podrán revisar los registros y aplicar sanciones correspondientes.</p>
-    <h2 class="property-value">🔒 Utilice este código con precaución y discreción.</h2>
+  <CardContainer title="🔐 PIN de Seguridad Temporal">
+    <TextCT>
+      El PIN 🔒 {{ pin }}, generado por el usuario {{ user }}, será válido hasta las {{ formattedEndTime }} para los cierres de la gerencia {{ management }}.
+    </TextCT>
+    <TextCT variant="primary">Toda acción relacionada quedará registrada para auditorías y control interno. En caso de solicitudes recurrentes o uso indebido, oficina y dirección podrán revisar los registros y aplicar sanciones correspondientes.</TextCT>
+    <TextCT variant="tertiary">⚠️  Este PIN no es un comodín y debe utilizarse solo en casos específicos y justificados. Utilice este código con precaución y discreción.</TextCT>
   </CardContainer>
 </template>

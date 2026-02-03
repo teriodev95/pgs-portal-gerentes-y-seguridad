@@ -98,6 +98,10 @@
   .paragraph-text {
     @apply font-normal text-xs text-gray-600;
   }
+  
+  .paragraph-bold-text {
+    @apply font-bold text-sm text-gray-600;
+  }
 
   .title-text {
     @apply font-bold text-lg  leading-6 text-black
@@ -106,6 +110,7 @@
   .tertiary-text {
     @apply text-xs font-light text-gray-400 
   }
+
 }
 
 .title {
