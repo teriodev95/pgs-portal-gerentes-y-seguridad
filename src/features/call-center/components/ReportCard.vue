@@ -6,6 +6,10 @@ import type { IQuestion, CallStatus, ICallCenterReport } from '../types'
 import RatingCount from '@/features/call-center/components/RatingCount.vue'
 import PhoneIcon from '@/shared/components/icons/PhoneIcon.vue'
 import BanIcon from '@/shared/components/icons/BanIcon.vue'
+import CardContainer from '@/shared/components/CardContainer.vue'
+import DataField from '@/shared/components/DataField.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 
 // Interface - Props - Emits
 interface Props {
@@ -59,7 +63,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="space-y-4 rounded-lg border bg-white p-4">
+  <CardContainer>
     <div class="flex justify-between items-center">
       <div class="flex items-center space-x-2">
         <span v-if="reporte.tieneVisitas"
@@ -84,22 +88,20 @@ onUnmounted(() => {
         #{{ reporte.semana }}</span>
     </div>
 
-    <div class="space-y-2">
-      <p class="font-300 flex justify-between text-gray-400">Prestamo</p>
-      <p class="font-md-700 flex justify-between text-blue-800">{{ reporte.prestamoId }}</p>
-    </div>
+
+    <DataField label="Prestamo" :value="reporte.prestamoId"/>
+
 
     <!-- Cliente -->
     <div v-if="reporte.status_llamada_cliente === 'Contestado'" class="space-y-2">
-      <p class="font-300 flex justify-between text-gray-400">Cliente</p>
-      <p class="font-md-700 flex justify-between text-blue-800">{{ reporte?.nombres_cliente }}</p>
+      <DataField label="Cliente" :value="reporte?.nombres_cliente" />
 
-      <div class="font-300 flex items-center gap-6 text-gray-400">
+      <div class="flex items-center gap-6 text-gray-400">
         <div class="flex w-2/5 items-center gap-2">
           <component :is="StatusLlamada[reporte?.status_llamada_cliente]?.component"
             :class="StatusLlamada[reporte?.status_llamada_cliente]?.class" />
 
-          <p>{{ reporte?.status_llamada_cliente }}</p>
+          <TextCT>{{ reporte?.status_llamada_cliente }}</TextCT>
         </div>
         <RatingCount :puntuacion="puntuacion(reporte?.preguntas_cliente)" />
       </div>
@@ -108,27 +110,26 @@ onUnmounted(() => {
 
     <!-- Aval -->
     <div v-else-if="reporte.status_llamada_aval === 'Contestado'" class="space-y-2">
-      <p class="font-300 flex justify-between text-gray-400">Aval</p>
-      <p class="font-md-700 flex justify-between text-blue-800">{{ reporte?.nombres_aval }}</p>
+      <DataField label="Aval" :value="reporte?.nombres_aval" />
 
-      <div class="font-300 flex items-center gap-6 text-gray-400">
+      <div class="flex items-center gap-6 text-gray-400">
         <div class="flex w-2/5 items-center gap-2">
           <component :is="StatusLlamada[reporte?.status_llamada_aval]?.component"
             :class="StatusLlamada[reporte?.status_llamada_aval]?.class" />
 
-          <p>{{ reporte?.status_llamada_aval }}</p>
+          <TextCT>{{ reporte?.status_llamada_aval }}</TextCT>
         </div>
         <RatingCount :puntuacion="puntuacion(reporte?.preguntas_aval)" />
       </div>
     </div>
     <!-- / Aval -->
 
-    <div v-else class="font-300 text-gray-400">
+    <TextCT v-else variant="tertiary">
       Ninguna parte contestó la llamada
-    </div>
+    </TextCT>
 
-    <button class="btn btn-primary-outline mt-6 w-full" @click="$emit('selectReport', reporte)">
+    <BtnComponent @click="$emit('selectReport', reporte)" outline full-width>
       Ver detalles
-    </button>
-  </div>
+    </BtnComponent>
+  </CardContainer>
 </template>

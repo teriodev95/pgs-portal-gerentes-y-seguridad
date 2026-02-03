@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import CardContainer from '@/shared/components/CardContainer.vue';
 import type { IManagementCard } from '../types';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 // Interface - Props - Emits
 interface Props {
@@ -15,17 +17,15 @@ defineProps<Props>();
 
 <template>
   <div class="grid grid-cols-2 gap-4 content-start">
-    <div v-for="tarjeta in tarjetas" :key="`${tarjeta.gerency}-${tarjeta.week}`"
-      class="rounded-lg border bg-white p-4 space-y-4"
+    <CardContainer v-for="tarjeta in tarjetas" :key="`${tarjeta.gerency}-${tarjeta.week}`"
+      :title="tarjeta.gerency"
       @click="$emit('selectWeekAndManagement', tarjeta.gerency, tarjeta.week)">
-      <div class="flex flex-col">
-        <h4 class="text-base font-semibold">{{ tarjeta.gerency }}</h4>
-
-        <p class="text-sm font-extralight">Reportes: {{ tarjeta.count }}</p>
+      <TextCT variant="tertiary">Reportes: {{ tarjeta.count }}</TextCT>
+      <div class="flex justify-between gap-2">
+        <TextCT>AÑO {{ tarjeta.year }}</TextCT>
+        <TextCT>#SEM {{ tarjeta.week }}</TextCT>
       </div>
-      <p class="text-lg font-extralight">#SEM {{ tarjeta.week }}</p>
-      <p class="text-lg font-extralight">AÑO {{ tarjeta.year }}</p>
-    </div>
+    </CardContainer>
   </div>
 </template>
 

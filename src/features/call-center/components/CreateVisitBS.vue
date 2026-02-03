@@ -4,6 +4,8 @@ import useGeolocation from '@/shared/composables/useGeolocation';
 
 // Components
 import MapWidget from '@/shared/components/MapWidget.vue';
+import TextCT from '@/shared/components/ui/TextCT.vue';
+import BtnComponent from '@/shared/components/BtnComponent.vue';
 
 // Interface - Props - Emits
 type VisitStatus =
@@ -138,8 +140,10 @@ const closeBottomSheet = () => emit('action:close-bottom-sheet');
       </div>
 
       <!-- Status Selector -->
-      <div class="font-300 flex items-center justify-between text-gray-400">
-        Status
+      <div class="flex items-center justify-between">
+        <TextCT variant="primary">
+          Status
+        </TextCT>
         <select v-model="visitStatus" id="visit-status"
           class="block rounded-lg border border-gray-300 p-2.5 text-sm text-gray-900 focus:outline-none" :class="[
             statusStyleConfig[visitStatus].bgClass,
@@ -167,21 +171,21 @@ const closeBottomSheet = () => emit('action:close-bottom-sheet');
       </div>
 
       <!-- Notes Textarea -->
-      <div class="flex-1">
-        <label for="notes" class="font-300 mb-2 block text-gray-400">Observaciones</label>
+      <div class="flex-1 space-y-2">
+        <TextCT for="notes" variant="primary">Observaciones</TextCT>
         <textarea id="notes" rows="8" v-model="notes"
-          class="font-md-700 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-blue-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+          class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-blue-800 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
           placeholder="Escribe tus observaciones"></textarea>
       </div>
 
       <!-- Action Buttons -->
       <div class="space-y-2 flex-none">
-        <button class="btn btn-primary-outline mt-6 w-full" @click="cancelVisit">
+        <BtnComponent outline full-width @click="cancelVisit">
           Cancelar
-        </button>
-        <button class="btn btn-primary mt-6 w-full" @click="createVisit">
+        </BtnComponent>
+        <BtnComponent full-width @click="createVisit">
           Registrar
-        </button>
+        </BtnComponent>
       </div>
     </div>
   </section>
