@@ -116,7 +116,7 @@ const closeBottomSheet = () => emit('action:close-bottom-sheet');
 <template>
   <section class="container-bottom-sheet-data">
     <!-- Location Error UI -->
-    <div v-if="!hasPermission" class="h-full flex flex-col justify-between gap-4 px-4 pt-1 pb-4">
+    <div v-if="!hasPermission" class="h-full flex flex-col justify-between gap-4 pt-1 pb-4">
       <div class="flex-1 space-y-6">
         <h1 class="title">Permiso de Ubicación Requerido</h1>
         <p class="font-value">

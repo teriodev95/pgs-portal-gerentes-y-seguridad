@@ -101,7 +101,6 @@ export interface ICallCenterUIState {
   isLoading: boolean
   isManagementSelected: boolean
   isOverlayClickCloseEnabled: boolean
-  showRevealCircle: boolean
   creatingVisit: boolean
   error: string | null
 }

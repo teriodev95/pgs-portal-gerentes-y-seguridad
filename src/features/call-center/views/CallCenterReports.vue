@@ -1,14 +1,13 @@
 <script lang="ts" setup>
-import '@webzlodimir/vue-bottom-sheet/dist/style.css'
-import { onMounted, ref, nextTick } from 'vue'
-import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
+import { onMounted } from 'vue'
 
 // Composables
 import { useCallCenter } from '@/features/call-center/composables/useCallCenter'
+import { useDrawer } from '@/shared/composables'
+import type { ICallCenterReport } from '@/features/call-center/types'
 
 // Components
 import CardContainer from '@/shared/components/CardContainer.vue'
-import CreateVisitBS from '@/features/call-center/components/CreateVisitBS.vue'
 import InputSearchFilter from '@/shared/components/forms/InputSearchFilter.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import ManagementCard from '@/features/call-center/components/ManagementCard.vue'
@@ -16,7 +15,7 @@ import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import ReportCard from '@/features/call-center/components/ReportCard.vue'
-import ReportDetailsBS from '@/features/call-center/components/ReportDetailsBS.vue'
+import ReportDrawer from '@/features/call-center/components/ReportDrawer.vue'
 import SearchIcon from '@/shared/components/icons/SearchIcon.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import LabelForm from '@/shared/components/forms/LabelForm.vue'
@@ -26,50 +25,12 @@ import BtnComponent from '@/shared/components/BtnComponent.vue'
 
 // Services, Composables and Stores initialization
 const callCenter = useCallCenter()
-
-// State definitions
-const reportBottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
-const reportDetailsComponent = ref<InstanceType<typeof ReportDetailsBS>>()
+const reportDrawer = useDrawer<ICallCenterReport>('call-center-report')
 
 // Methods
-function closeReportBottomSheet(): void {
-  reportBottomSheet.value?.close()
-}
-
 async function openReportDetails(report: any): Promise<void> {
   callCenter.openReportDetails(report)
-
-  await nextTick()
-
-  if (!reportBottomSheet.value) {
-    return
-  }
-
-  try {
-    if (reportBottomSheet.value.isMounted) {
-      reportBottomSheet.value.open()
-    } else {
-      await nextTick()
-      reportBottomSheet.value.open()
-    }
-  } catch (error) {
-    console.error('Error opening bottom sheet:', error)
-  }
-}
-
-async function handleCreateVisit(observations: string, visitStatus: string): Promise<void> {
-  try {
-    closeReportBottomSheet()
-    await callCenter.createCallCenterVisit(observations, visitStatus)
-    console.log('Visita creada exitosamente dxed')
-  } catch (error) {
-    console.error('Error creating visit:', error)
-  }
-}
-
-function cancelVisitCreation(): void {
-  callCenter.cancelVisitCreation()
-  closeReportBottomSheet()
+  reportDrawer.openWith(report)
 }
 
 // Lifecycle hooks
@@ -79,18 +40,7 @@ onMounted(async () => {
 
     // Verificar si hay un reporte seleccionado desde navegación
     if (callCenter.selectedReport.value) {
-      await nextTick()
-
-      if (reportBottomSheet.value) {
-        if (reportBottomSheet.value.isMounted) {
-          reportBottomSheet.value.open()
-        } else {
-          await nextTick()
-          reportBottomSheet.value.open()
-        }
-      } else {
-        console.warn('Bottom sheet reference is not available')
-      }
+      reportDrawer.openWith(callCenter.selectedReport.value)
     }
   } catch (error) {
     console.error('Error initializing call center reports view:', error)
@@ -99,34 +49,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <!-- Overlay de creación de visita -->
-  <div v-if="callCenter.creatingVisit.value" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 transition-opacity">
-    <div class="bg-white rounded-lg shadow-lg px-8 py-6 flex flex-col items-center">
-      <span class="text-lg font-semibold mb-2">Creando visita...</span>
-      <span class="text-gray-500 text-sm">Por favor espera un momento</span>
-      <svg class="animate-spin h-8 w-8 text-blue-500 mt-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-      </svg>
-    </div>
-  </div>
-  
-  <!-- Report Details Bottom Sheet -->
-  <vue-bottom-sheet ref="reportBottomSheet" :max-width="1000" @closed="reportDetailsComponent?.resetSheetButtonFlags"
-    :overlay-click-close="callCenter.isOverlayClickCloseEnabled.value"
-    :can-swipe="callCenter.isOverlayClickCloseEnabled.value">
-    <div class="min-h-screen">
-      <ReportDetailsBS ref="reportDetailsComponent"
-        v-if="!callCenter.creatingVisit.value && callCenter.selectedReport.value"
-        :report="callCenter.selectedReport.value" @action:close-bottom-sheet="closeReportBottomSheet"
-        @action:create-visit="callCenter.startCreatingVisit" />
-  
-      <!-- Visit Creation Component -->
-      <CreateVisitBS v-else @action:cancel-visit="callCenter.cancelVisitCreation"
-        @action:close-bottom-sheet="cancelVisitCreation" @action:create-visit="handleCreateVisit" />
-    </div>
-    <!-- Report Details Component -->
-  </vue-bottom-sheet>
+  <!-- Report Drawer -->
+  <ReportDrawer />
 
   <!-- Main Content -->
   <MainCT>

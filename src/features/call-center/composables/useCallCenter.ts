@@ -143,7 +143,6 @@ export const useCallCenter = () => {
 
       await api.createCallCenterVisit(visit)
       ui.finishVisitCreation()
-      ui.showRevealCircleNotification()
       
       // Recargar reportes para actualizar el estado
       await loadCallCenterReports()
@@ -271,7 +270,6 @@ export const useCallCenter = () => {
     // Estado de UI (desde useCallCenterUI)
     isLoading: ui.isLoading,
     error: ui.error,
-    showRevealCircle: ui.showRevealCircle,
     creatingVisit: ui.creatingVisit,
     isOverlayClickCloseEnabled: ui.isOverlayClickCloseEnabled,
     selectedReport: computed(() => cloneReport(ui.selectedReport.value || callCenterStore.selectedReport)),
@@ -301,9 +299,6 @@ export const useCallCenter = () => {
     setLoading: ui.setLoading,
     setError: ui.setError,
     clearError: ui.clearError,
-    showRevealCircleNotification: ui.showRevealCircleNotification,
-    hideRevealCircleNotification: ui.hideRevealCircleNotification,
-    closeRevealCircleAndReset: ui.closeRevealCircleAndReset,
     selectReport: ui.selectReport,
     activateGoToLoan: ui.activateGoToLoan,
     clearLoanValues: ui.clearLoanValues
