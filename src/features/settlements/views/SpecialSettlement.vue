@@ -84,7 +84,7 @@ onMounted(() => {
       </div>
 
       <!-- Settlement Content -->
-      <div v-else-if="hasData && settlement">
+      <template v-else-if="hasData && settlement">
         <!-- Settlement Header -->
         <SpecialSettlementHeader
           :settlement="settlement"
@@ -119,7 +119,7 @@ onMounted(() => {
             />
           </template>
         </LiquidationProposal>
-      </div>
+      </template>
 
       <!-- Empty State -->
       <EmptyCT

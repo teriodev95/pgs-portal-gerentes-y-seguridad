@@ -11,6 +11,8 @@ import MainCT from '@/shared/components/ui/MainCT.vue'
 import CardContainer from '@/shared/components/CardContainer.vue'
 import PinDetails from '../components/PinDetails.vue'
 import { useStore } from '@/shared/stores'
+import SectionContainer from '@/shared/components/SectionContainer.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
 
 
 const $store = useStore()
@@ -47,27 +49,29 @@ const goBack = () => {
     />
 
     <!-- Content -->
-    <template v-if="!isLoading">
-      <!-- Management Selection View -->
-      <template v-if="!selectedManagement">
-        <CardContainer>
-          <h2 class="title">¿Qué es el PIN de Seguridad?</h2>
-          <p class="subtitle">
-            Permite a los gerentes cerrar la semana de una agencia en casos urgentes cuando el agente no está disponible. Cada gerencia genera un PIN único que es válido por 10 minutos. Después de este tiempo, deberás generar uno nuevo.
-          </p>
-        </CardContainer>
-
-        <ManagementList :management-list="managementList" @selectManagement="handleSelectManagement" />
+    <SectionContainer>
+      <template v-if="!isLoading">
+        <!-- Management Selection View -->
+        <template v-if="!selectedManagement">
+          <CardContainer title="¿Qué es el PIN de Seguridad?">
+            <TextCT>
+              Permite a los gerentes cerrar la semana de una agencia en casos urgentes cuando el agente no está disponible. Cada gerencia genera un PIN único que es válido por 10 minutos. Después de este tiempo, deberás generar uno nuevo.
+            </TextCT>
+          </CardContainer>
+  
+          <ManagementList :management-list="managementList" @selectManagement="handleSelectManagement" />
+        </template>
+  
+        <!-- PIN Details View -->
+        <template v-if="timer && selectedManagement">
+          <PinDetails :pin="`${timer?.pin}`" :user="`${$store.user?.usuario}`" :to-end="`${timer.expiresAt}`" :management="selectedManagement"/>
+          <CircularTimer v-bind="timer" @action:new-pin="handleNewPin" />
+        </template>
       </template>
 
-      <!-- PIN Details View -->
-      <template v-if="timer && selectedManagement">
-        <CircularTimer v-bind="timer" @action:new-pin="handleNewPin" />
-        <PinDetails :pin="`${timer?.pin}`" :user="`${$store.user?.usuario}`" :to-end="timer.expiresAt as string" :management="selectedManagement"/>
-      </template>
-    </template>
+      <!-- Loading State -->
+      <LoadSkeleton v-else :items="5" />
+    </SectionContainer>
 
-    <!-- Loading State -->
-    <LoadSkeleton v-else :items="5" />
   </MainCT>
 </template>

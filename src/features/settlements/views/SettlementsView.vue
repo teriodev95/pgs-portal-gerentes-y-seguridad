@@ -16,6 +16,7 @@ import SettlementProcessor from '../components/SettlementProcessor.vue'
 // Composables
 import { useSettlementData } from '../composables'
 import { useSettlement } from '../composables/useSettlement'
+import SectionContainer from '@/shared/components/SectionContainer.vue'
 
 // Services and route
 const $route = useRoute()
@@ -59,15 +60,11 @@ onBeforeMount(async () => {
 <template>
   <MainCT :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
     <!-- Top Navigation Bar -->
-    <NavbarCT
-      title="Liquidación"
-      :subtitle="`${settlementData?.prestamoId || ''} - ${settlementData?.cliente || ''}`"
-      :show-back-button="true"
-      @back="handleBack"
-    />
+    <NavbarCT title="Liquidación" :subtitle="`${settlementData?.prestamoId || ''} - ${settlementData?.cliente || ''}`"
+      :show-back-button="true" @back="handleBack" />
 
     <!-- Settlement Content -->
-    <div v-if="settlementData">
+    <SectionContainer v-if="settlementData && !isLoading">
       <!-- Client Information -->
       <SettlementCard :settlement="settlementData" />
 
@@ -78,17 +75,11 @@ onBeforeMount(async () => {
       <DiscountDetails :settlement="settlementData" />
 
       <!-- Settlement Processor -->
-      <div class="space-y-2 p-2">
-        <SettlementProcessor
-          :is-processing="isProcessing"
-          :payment-form="paymentForm"
-          @update:payment-form="updatePaymentForm"
-          @process:settlement="handleProcessSettlement"
-        />
-      </div>
-    </div>
+      <SettlementProcessor :is-processing="isProcessing" :payment-form="paymentForm"
+        @update:payment-form="updatePaymentForm" @process:settlement="handleProcessSettlement" />
+    </SectionContainer>
 
     <!-- Loading State -->
-    <LoadSkeleton v-else-if="isLoading" :items="6" class="mt-4" />
+    <LoadSkeleton v-else :items="6" class="mt-4" />
   </MainCT>
 </template>

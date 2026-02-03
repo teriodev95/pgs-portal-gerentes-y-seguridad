@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { IGerencia } from '@/interfaces';
 import CardContainer from '@/shared/components/CardContainer.vue';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 interface Props {
   managementList: IGerencia[];
@@ -18,11 +19,13 @@ defineEmits<Emits>();
 
 
 <template>
-  <template v-for="item in managementList" :key="item.id" >
+  <template v-for="(item, index) in managementList" :key="`${item.gerencia}-${index}`" >
     <CardContainer @click="$emit('selectManagement', item.gerencia)">
       <div class="flex justify-between items-center gap-2">
-        <span class="font-medium">{{ item.gerencia }}</span>
-        <ArrowRight class="size-4 text-slate-400"/>
+        <TextCT variant="primary">{{ item.gerencia }}</TextCT>
+        <TextCT variant="secondary">
+          <ArrowRight class="size-4"/>
+        </TextCT>
       </div>
     </CardContainer>
   </template>
