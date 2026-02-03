@@ -7,7 +7,6 @@ import type { ICallCenterUIState, ICallCenterReport } from '../types'
  * Separa la lógica de UI del store y componentes
  */
 export const useCallCenterUI = () => {
-  const revealCircleStore = useRevealCircleStore()
 
   // Estado de UI
   const isLoading = ref<boolean>(false)
@@ -31,7 +30,6 @@ export const useCallCenterUI = () => {
     isLoading: isLoading.value,
     isManagementSelected: false, // Se maneja en useCallCenterData
     isOverlayClickCloseEnabled: isOverlayClickCloseEnabled.value,
-    showRevealCircle: revealCircleStore.isVisible,
     creatingVisit: creatingVisit.value,
     error: error.value
   }))
@@ -50,11 +48,6 @@ export const useCallCenterUI = () => {
    * Verifica si se está creando una visita
    */
   const isCreatingVisit = computed(() => creatingVisit.value)
-
-  /**
-   * Verifica si se debe mostrar el círculo de revelación
-   */
-  const shouldShowRevealCircle = computed(() => revealCircleStore.isVisible)
 
   /**
    * Establece el estado de carga
@@ -78,32 +71,6 @@ export const useCallCenterUI = () => {
     error.value = null
   }
 
-  /**
-   * Muestra el círculo de revelación
-   */
-  const showRevealCircleNotification = () => {
-    revealCircleStore.showSuccess(
-      'Visita registrada',
-      `Se guardó con éxito la visita al cliente ${selectedReport.value?.nombres_cliente || ''}`
-    )
-  }
-
-  /**
-   * Oculta el círculo de revelación
-   */
-  const hideRevealCircleNotification = () => {
-    revealCircleStore.hideRevealCircle()
-  }
-
-  /**
-   * Cierra el círculo de revelación y reinicia las selecciones
-   */
-  const closeRevealCircleAndReset = () => {
-    hideRevealCircleNotification()
-    setTimeout(() => {
-      resetQuestionSelections()
-    }, 1000)
-  }
 
   /**
    * Inicia la creación de una visita
@@ -215,7 +182,6 @@ export const useCallCenterUI = () => {
   const resetUIState = () => {
     setLoading(false)
     clearError()
-    hideRevealCircleNotification()
     cancelVisitCreation()
     clearSelectedReport()
     resetQuestionSelections()
@@ -228,12 +194,10 @@ export const useCallCenterUI = () => {
     hasError,
     isInLoadingState,
     isCreatingVisit,
-    shouldShowRevealCircle,
     
     // Estado reactivo
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
-    showRevealCircle: computed(() => revealCircleStore.isVisible),
     creatingVisit: computed(() => creatingVisit.value),
     isOverlayClickCloseEnabled: computed(() => isOverlayClickCloseEnabled.value),
     selectedReport: computed(() => selectedReport.value),
@@ -244,9 +208,6 @@ export const useCallCenterUI = () => {
     setLoading,
     setError,
     clearError,
-    showRevealCircleNotification,
-    hideRevealCircleNotification,
-    closeRevealCircleAndReset,
     
     // Métodos de visita
     startCreatingVisit,

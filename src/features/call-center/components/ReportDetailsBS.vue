@@ -98,7 +98,7 @@ defineExpose({
 
 <template>
   <section class="container-bottom-sheet-data h-full">
-    <div class="flex flex-col justify-between gap-4 px-4 pt-1 pb-4 h-full">
+    <div class="flex flex-col justify-between gap-4 pt-1 pb-4 h-full">
       <!-- Client Information Section -->
       <div class="space-y-4 flex-none">
         <!-- Loan ID Header -->
