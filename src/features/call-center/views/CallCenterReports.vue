@@ -19,6 +19,10 @@ import ReportCard from '@/features/call-center/components/ReportCard.vue'
 import ReportDetailsBS from '@/features/call-center/components/ReportDetailsBS.vue'
 import SearchIcon from '@/shared/components/icons/SearchIcon.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
+import LabelForm from '@/shared/components/forms/LabelForm.vue'
+import InputSelect from '@/shared/components/forms/InputSelect.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 
 // Services, Composables and Stores initialization
 const callCenter = useCallCenter()
@@ -135,9 +139,7 @@ onMounted(async () => {
 
     <!-- Loading State -->
     <SectionContainer v-if="callCenter.isLoading.value">
-      <div class="text-center">
         <LoadSkeleton :items="6" />
-      </div>
     </SectionContainer>
 
     <!-- Empty State -->
@@ -151,7 +153,7 @@ onMounted(async () => {
     <template v-else>
       <SectionContainer>
         <!-- Management Selection View -->
-        <div v-if="!callCenter.isManagementSelected.value">
+        <template v-if="!callCenter.isManagementSelected.value">
           <!-- Filter Panel -->
           <CardContainer class="rounded-lg border bg-white p-4 space-y-4">
             <h3 class="title">Filtrar</h3>
@@ -165,44 +167,40 @@ onMounted(async () => {
             <div class="grid grid-cols-2 grid-rows-2 justify-between gap-4">
               <!-- Management Filter -->
               <div class="col-span-2">
-                <label for="management" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                <LabelForm for="management">
                   Gerencia
-                </label>
-                <select v-model="callCenter.filters.value.management" id="management"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                </LabelForm>
+                <InputSelect v-model="callCenter.filters.value.management" id="management">
                   <option value="">-- Todas --</option>
                   <option v-for="management in callCenter.managements.value" :key="management" :value="management">
                     {{ management }}
                   </option>
-                </select>
+                </InputSelect>
               </div>
 
               <!-- Year Filter -->
               <div class="w-full">
-                <label for="year" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                <LabelForm for="year">
                   Año
-                </label>
-                <select v-model="callCenter.filters.value.year" id="year"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                  <option value="">-- Todos --</option>
+                </LabelForm>
+                <InputSelect v-model="callCenter.filters.value.year" id="year">
                   <option v-for="year in callCenter.availableYears" :key="year" :value="year">
                     {{ year }}
                   </option>
-                </select>
+                </InputSelect>
               </div>
 
               <!-- Week Filter -->
               <div class="w-full">
-                <label for="week" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                <LabelForm for="week">
                   Semana
-                </label>
-                <select v-model="callCenter.filters.value.week" id="week"
-                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                </LabelForm>
+                <InputSelect v-model="callCenter.filters.value.week" id="week">
                   <option :value="0">-- Todas --</option>
                   <option v-for="week in callCenter.availableWeeks" :key="week" :value="week">
                     {{ week }}
                   </option>
-                </select>
+                </InputSelect>
               </div>
             </div>
           </CardContainer>
@@ -210,23 +208,23 @@ onMounted(async () => {
           <!-- Management Cards -->
           <ManagementCard :tarjetas="callCenter.groupedReportsByManagement.value"
             @select-week-and-management="callCenter.selectWeekAndManagement" />
-        </div>
+        </template>
 
         <!-- Reports List View -->
         <template v-else>
           <!-- Reports Count -->
-          <p class="title">
+          <TextCT variant="title">
             Reportes: {{ callCenter.reportsByWeekAndManagement.value.length }}
-          </p>
+          </TextCT>
 
           <!-- Report Cards -->
           <ReportCard v-for="(report, index) in callCenter.reportsByWeekAndManagement.value" v-show="report"
             :key="`report-${report.prestamoId}-${index}`" :reporte="report" @selectReport="openReportDetails" />
 
           <!-- Back Button -->
-          <button class="btn btn-primary mt-6 w-full" @click="callCenter.returnToManagementList">
+          <BtnComponent full-width class="mt-6" @click="callCenter.returnToManagementList">
             Regresar
-          </button>
+          </BtnComponent>
         </template>
       </SectionContainer>
     </template>

@@ -13,7 +13,7 @@ interface InputSelectProps {
 }
 
 const $emit = defineEmits(['update:modelValue']);
-withDefaults(defineProps<InputSelectProps>(), {
+const props = withDefaults(defineProps<InputSelectProps>(), {
   isRequired: true,
   isDisabled: false,
 });
@@ -24,7 +24,14 @@ withDefaults(defineProps<InputSelectProps>(), {
  */
 const handleChange = (event: Event) => {
   const target = event.target as HTMLSelectElement;
-  $emit('update:modelValue', target.value);
+  const value = target.value;
+
+  // Si el modelValue original es un número, convertir el valor
+  if (typeof props.modelValue === 'number') {
+    $emit('update:modelValue', value === '' ? 0 : Number(value));
+  } else {
+    $emit('update:modelValue', value);
+  }
 };
 </script>
 
