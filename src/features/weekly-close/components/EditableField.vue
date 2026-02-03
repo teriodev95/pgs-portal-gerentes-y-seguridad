@@ -5,6 +5,7 @@ import AngleRight from '@/shared/components/icons/AngleRight.vue'
 import AnnotationIcon from '@/shared/components/icons/AnnotationIcon.vue'
 import PlusIcon from '@/shared/components/icons/PlusIcon.vue'
 import type { ModalConfigKey } from '@/features/weekly-close/types'
+import TextCT from '@/shared/components/ui/TextCT.vue'
 
 interface Props {
   label: string
@@ -69,7 +70,7 @@ const handleReasonEdit = () => {
 <template>
   <!-- Simple mode: only value -->
   <div v-if="!hasReason" class="flex justify-between gap-2">
-    <p class="font-300 text-gray-400">{{ label }}</p>
+    <TextCT variant="primary">{{ label }}</TextCT>
     <button
       @click="handleEdit"
       :class="buttonClasses"
@@ -83,14 +84,15 @@ const handleReasonEdit = () => {
   <!-- Complex mode: value + reason -->
   <div v-else class="flex items-center justify-between gap-2">
     <div>
-      <p class="font-300 text-gray-400">{{ label }}</p>
-      <p
+      <TextCT variant="primary">{{ label }}</TextCT>
+      <TextCT
         v-if="reasonText"
-        class="font-sm-700 flex items-center gap-1 text-gray-400"
+       variant="tertiary"
+       class="flex items-center gap-2"
       >
         <AnnotationIcon class="h-4 w-4" />
         <span class="w-[80%]">{{ reasonText }}</span>
-      </p>
+      </TextCT>
     </div>
 
     <div class="flex gap-2">

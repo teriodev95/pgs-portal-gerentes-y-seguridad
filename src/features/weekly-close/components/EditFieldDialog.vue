@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import BtnComponent from '@/shared/components/BtnComponent.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
 import { ref } from 'vue'
 
 interface Emit {
@@ -30,16 +32,16 @@ const modalValue = ref<ModalValue>(props.value)
       class="modal-content h-2/7 fixed bottom-0 w-full overflow-hidden rounded bg-white px-6 py-4"
     >
       <!-- Contenido del modal -->
-      <div class="mb-4">
-        <h2 class="title">{{ label }}</h2>
-        <p class="subtitle" v-if="props.type === 'number'">
+      <div class="mb-4 space-y-2">
+        <TextCT variant="title" class="title">{{ label }}</TextCT>
+        <TextCT  v-if="props.type === 'number'">
           Por favor, introduce el monto exacto. Una vez generado el cierre, este no podrá ser
           modificado en el reporte.
-        </p>
-        <p class="subtitle" v-else-if="type === 'text'">
+        </TextCT>
+        <TextCT v-else-if="type === 'text'">
           Por favor, introduce el texto exacto. Una vez generado el cierre, este no podrá ser
           modificado en el reporte.
-        </p>
+        </TextCT>
       </div>
 
       <div class="space-y-6">
@@ -59,12 +61,12 @@ const modalValue = ref<ModalValue>(props.value)
         </div>
 
         <div class="space-y-2">
-          <button @click="() => $emit('save:value', modalValue)" class="btn-primary w-full">
+          <BtnComponent @click="() => $emit('save:value', modalValue)" full-width>
             Guardar
-          </button>
-          <button @click="() => $emit('action:cancel')" class="btn-primary-outline w-full">
+          </BtnComponent>
+          <BtnComponent @click="() => $emit('action:cancel')" outline full-width>
             Regresar
-          </button>
+          </BtnComponent>
         </div>
       </div>
     </div>

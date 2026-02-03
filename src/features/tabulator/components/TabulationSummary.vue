@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TextCT from '@/shared/components/ui/TextCT.vue';
 import { toCurrency } from '@/shared/utils';
 
 interface Props {
@@ -10,7 +11,7 @@ defineProps<Props>()
 
 <template>
   <div class="w-full text-center space-y-2">
-    <p class="font-semibold text-lg text-gray-400">Total</p>
+    <TextCT variant="title">Total</TextCT>
     <p class="font-bold text-2xl text-blue-800">{{ toCurrency(total) }}</p>
   </div>
 </template>

@@ -24,6 +24,7 @@ import VerificationStep from './VerificationStep.vue'
 import { useToast } from 'vue-toast-notification'
 import InputGeneric from '@/shared/components/forms/InputGeneric.vue'
 import LabelForm from '@/shared/components/forms/LabelForm.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
 
 interface Emit {
   (event: 'action:completed'): void
@@ -94,7 +95,7 @@ const signAsSecurity = async () => {
     if (!firstPin.pin || form.value.seguridad.pin !== firstPin.pin) {
       throw new Error(WEEKLY_CLOSE_ERROR_MESSAGES.INVALID_OR_EXPIRED_PIN)
     }
-    
+
     signStore.verificacionCompletadaAgente = true
     bottomSheetRef.value?.close()
     goToStep(STEPS.HOME)
@@ -108,24 +109,16 @@ const signAsSecurity = async () => {
 <template>
   <main class="space-y-4">
     <!-- HOME -->
-    <CardContainer v-if="currentStep === STEPS.HOME">
+    <CardContainer v-if="currentStep === STEPS.HOME"
+      :title="isAgencyVacant ? 'Agencia Vacante' : 'Verificar agencia (opcional)'">
       <div class="space-y-8">
-        <div class="space-y-2">
-          <h1 class="title">
-            {{
-              isAgencyVacant
-                ? 'Agencia Vacante'
-                : 'Verificar agencia (opcional)'
-            }}
-          </h1>
-          <h2 class="subtitle">
-            {{
-              isAgencyVacant
-                ? 'La agencia se encuentra vacante, no es necesario verificar'
-                : 'Solo si la agencia está vacante, omite el proceso de verificación.'
-            }}
-          </h2>
-        </div>
+        <TextCT>
+          {{
+            isAgencyVacant
+              ? 'La agencia se encuentra vacante, no es necesario verificar'
+              : 'Solo si la agencia está vacante, omite el proceso de verificación.'
+          }}
+        </TextCT>
 
         <div v-if="!isAgencyVacant" class="space-y-4">
           <VerificationButton v-if="isAgencyActive" user-type="agente" :is-completed="verificacionCompletadaAgente"

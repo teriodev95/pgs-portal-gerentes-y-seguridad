@@ -21,6 +21,10 @@ import SignForm from '@/features/weekly-close/components/SignForm.vue'
 import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue'
 import WeeklyClosingHeader from '@/features/weekly-close/components/WeeklyClosingHeader.vue'
 import WeeklyClosingSummary from '@/features/weekly-close/components/WeeklyClosingSummary.vue'
+import CardContainer from '@/shared/components/CardContainer.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
+import BadgetCT from '@/shared/components/ui/BadgetCT.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 
 /**
  * ------------------------------------------
@@ -206,28 +210,28 @@ onUnmounted(() => {
     <!-- Weekly Close Content -->
     <div class="space-y-2 p-2" v-else-if="weeklyClose && !isLoading">
       <!-- Actions Card -->
-      <div class="space-y-2 rounded-lg border bg-white p-4">
+      <CardContainer title="Importante">
         <template v-if="!isClosingLocked">
-          <h2 class="title">Acciones</h2>
-          <p class="subtitle">
+          <TextCT>
             Inicie el proceso de cierre semanal. Asegúrese de haber revisado todos los campos para
             obtener un cierre preciso
-          </p>
+          </TextCT>
         </template>
 
         <div v-else class="space-y-2">
-          <p class="title flex items-center justify-between gap-2">
+          <TextCT variant="title" class="flex items-center justify-between gap-2">
             Status
-            <span class="badget badget-success">Cerrado</span>
-          </p>
+            <BadgetCT value="Cerrado" variant="green" />
+          </TextCT>
 
-          <button @click="navigateToCorrection"
-            class="btn-primary w-full flex items-center justify-center gap-2">
-            <ToolsIcon class="size-5" />
+          <BtnComponent @click="navigateToCorrection" full-width>
+            <template #icon-left>
+              <ToolsIcon class="size-5" />
+            </template>
             Solicitar Correción
-          </button>
+          </BtnComponent>
         </div>
-      </div>
+      </CardContainer>
 
       <!-- Weekly Closing Header -->
       <WeeklyClosingHeader />

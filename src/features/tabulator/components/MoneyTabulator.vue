@@ -8,6 +8,7 @@ import DenominationRow from './DenominationRow.vue'
 import TabulationSummary from './TabulationSummary.vue'
 import ClearTabulationButton from './ClearTabulationButton.vue'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
+import TextCT from '@/shared/components/ui/TextCT.vue'
 
 interface Emits {
   (e: 'submit:tabulation', formData: TabulationFormData, isUpdate: boolean): void
@@ -73,7 +74,7 @@ onBeforeMount(() => {
   <form @submit.prevent="handleSubmit" class="space-y-8 p-2">
     <!-- Billetes -->
     <div class="space-y-4">
-      <h3 class="font-semibold text-gray-600">Billetes</h3>
+      <TextCT as="h3" variant="paragraph-bold">Billetes</TextCT>
       <DenominationRow
         v-for="(denomination, index) in billDenominations"
         :key="`bill-${denomination.value}`"
@@ -86,7 +87,7 @@ onBeforeMount(() => {
 
     <!-- Monedas -->
     <div class="space-y-4">
-      <h3 class="font-semibold text-gray-600">Monedas</h3>
+      <TextCT as="h3" variant="paragraph-bold">Monedas</TextCT>
       <DenominationRow
         v-for="(denomination, index) in coinDenominations"
         :key="`coin-${denomination.value}`"
