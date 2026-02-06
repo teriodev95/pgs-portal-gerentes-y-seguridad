@@ -8,7 +8,7 @@ export interface ExpenseFormData {
 }
 
 export interface WeeklyExpense extends ExpenseFormData {
-  id?: number
+  gastoId?: number
   creadoPorId: number
   fecha: string
   semana: number

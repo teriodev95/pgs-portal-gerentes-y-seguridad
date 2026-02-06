@@ -67,12 +67,8 @@ export function useWeeklyExpenses() {
 
     try {
       isLoadingExpenses.value = true
-      const { data } = await weeklyExpenseService.getWeeklyExpenses(user.value.usuarioId)
-
-      weeklyExpenses.value = data.filter((expense: WeeklyExpense) =>
-        expense.anio === currentDate.value.year &&
-        expense.semana === currentDate.value.week
-      )
+      const { data } = await weeklyExpenseService.getWeeklyExpenses(user.value.usuarioId, currentDate.value.week, currentDate.value.year)
+      weeklyExpenses.value = data
     } catch (error) {
       handleError(error, 'WEEKLY_EXPENSES_LOAD_FAILED')
     } finally {
