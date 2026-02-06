@@ -47,7 +47,7 @@ function navigateToCorrectionPage() {
     name: ROUTE_NAME.RECORD_CORRECTION,
     params: {
       type: 'gasto',
-      id: $props.expense.id,
+      id: $props.expense.gastoId,
       amount: $props.expense.monto.toString()
     }
   })
@@ -70,7 +70,7 @@ function showExpenseDetails() {
 
         <div class="space-y-2">
           <TextCT v-if="expense.concepto" variant="primary">Concepto: {{ expense.concepto }}</TextCT>
-          <TextCT v-if="expense.litros" variant="primary">{{ expense.litros }}</TextCT>
+          <TextCT v-if="expense.tipoGasto === 'GASOLINA'" variant="primary">{{ expense.litros }}</TextCT>
           <TextCT variant="primary">{{ formatToHumanDate(expense.fecha) }}</TextCT>
           <TextCT variant="secondary">{{ toCurrency(expense.monto) }}</TextCT>
         </div>
