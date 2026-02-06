@@ -10,7 +10,7 @@ class WeeklyExpenseService {
   }
 
   async createExpense(expense: WeeklyExpense) {
-    return this.apiClient.post<string>(`/gastos`, expense)
+    return this.apiClient.post<string>(`/gastos/`, expense)
   }
 }
 
