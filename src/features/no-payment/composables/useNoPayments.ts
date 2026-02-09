@@ -39,13 +39,15 @@ export function useNoPayments() {
 
   // Computed properties
   const currentDate = computed(() => $store.currentDate)
-  const noPaymentsExist = computed(() => noPaymentsList.value?.length === 0)
+  const hasPayments = computed(() => noPaymentsList.value?.length !== 0)
   const isFilterDisabled = computed(() => isLoading.value || isLoadingFilters.value)
 
   const filteredNoPayments = computed(() => {
     if (!noPaymentsList.value) return []
     return getFilteredNoPayments(noPaymentsList.value)
   })
+
+  const hasPaymentsFiltered = computed(() => filteredNoPayments.value.length !== 0)
 
   // Methods
   async function fetchNoPayments(): Promise<void> {
@@ -122,7 +124,8 @@ export function useNoPayments() {
     isUserManager,
 
     // Computed - Specific
-    noPaymentsExist,
+    hasPayments,
+    hasPaymentsFiltered,
     isFilterDisabled,
     filteredNoPayments,
 

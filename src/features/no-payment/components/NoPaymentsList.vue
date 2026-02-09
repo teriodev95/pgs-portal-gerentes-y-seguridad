@@ -10,7 +10,7 @@ import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 interface Props {
   noPayments: INoPago[]
   isLoading: boolean
-  noPaymentsExist: boolean
+  hasPaymentsFiltered: boolean
 }
 
 interface Emit {
@@ -32,21 +32,13 @@ function handleVisitSelected(visit: IVisita) {
 
 <template>
   <div v-if="!isLoading">
-    <EmptyCT
-       v-if="!noPaymentsExist"
-       message="Sin NO pagos que coincidan con los filtros seleccionados."
-    />
+    <EmptyCT v-if="!hasPaymentsFiltered" message="No se encontraron *NO pagos* que coincidan con los filtros seleccionados." />
 
 
     <!-- No Payments List -->
     <div class="space-y-2" v-else>
-      <NoPaymentCard
-        v-for="payment in noPayments"
-        :key="payment.pagoId"
-        :pago="payment"
-        @click:map-market="handleMapMarker"
-        @click:visit-selected="handleVisitSelected"
-      />
+      <NoPaymentCard v-for="payment in noPayments" :key="payment.pagoId" :pago="payment"
+        @click:map-market="handleMapMarker" @click:visit-selected="handleVisitSelected" />
     </div>
   </div>
 
