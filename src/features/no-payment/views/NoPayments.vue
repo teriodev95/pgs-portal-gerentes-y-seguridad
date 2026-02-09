@@ -15,6 +15,7 @@ import MainCT from '@/shared/components/ui/MainCT.vue'
 import { useRouter } from 'vue-router'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
+import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 
 const $router = useRouter()
 
@@ -40,7 +41,8 @@ const {
 
   // Computed
   isUserManager,
-  noPaymentsExist,
+  hasPayments,
+  hasPaymentsFiltered,
   isFilterDisabled,
   filteredNoPayments,
 
@@ -78,15 +80,22 @@ function handleBack() {
         :total-count="noPaymentsList?.length || 0"
         :filtered-count="filteredNoPayments?.length || 0"
       />
-  
+ 
+
+      <EmptyCT
+        v-if="!isLoading && !hasPayments"
+        message="No se encontraron *No pagos* en ninguna gerencia."/>
+      
       <!-- No Payments List -->
-      <NoPaymentsList
-        :no-payments="filteredNoPayments"
-        :is-loading="isLoading"
-        :no-payments-exist="noPaymentsExist"
-        @click:map-market="showMapLocation"
-        @click:visit-selected="selectVisit"
-      />
+       <template v-else>
+         <NoPaymentsList
+           :no-payments="filteredNoPayments"
+           :is-loading="isLoading"
+           :has-payments-filtered="hasPaymentsFiltered"
+           @click:map-market="showMapLocation"
+           @click:visit-selected="selectVisit"
+         />
+       </template>
     </SectionContainer>
 
     <!-- Map Bottom Sheet -->
