@@ -4,13 +4,14 @@ import type { IIncident } from '../types'
 
 class IncidentService {
   private apiClient = createApiClientFromPreset('main')
+  private apiFax = createApiClientFromPreset('fastApi')
 
   async getIncidentByUserId({ year, week, userID }: GetBaseProps) {
-    return this.apiClient.get<IIncident[]>(`/pwa/incidentes-reposiciones/usuarioId/${userID}/anio/${year}/semana/${week}`)
+    return this.apiFax.get<IIncident[]>(`/incidentes-reposiciones/usuarioId?usuario_id=${userID}&anio=${year}&semana=${week}`)
   }
 
   async createIncident(incident: IIncident) {
-    return this.apiClient.post(`/pwa/incidentes-reposiciones/create-one`, incident)
+    return this.apiFax.post(`/incidentes-reposiciones/`, incident)
   }
 }
 

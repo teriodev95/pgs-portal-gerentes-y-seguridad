@@ -56,7 +56,6 @@ const {
         :center="[center.lat, center.lng]"
         v-model:zoom="zoom"
         @update:center="onUpdateCenter"
-        readonly
         class="z-20"
       >
         <LMarker
