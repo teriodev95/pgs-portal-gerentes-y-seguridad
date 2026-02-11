@@ -44,7 +44,7 @@ function handlePaymentSelection() {
 </script>
 
 <template>
-  <CardContainer>
+  <CardContainer :title="payment.nombre">
     <DataField label="Id del prestamo" :value="payment.prestamoId" />
     <DataField label="Tarifa" :value="toCurrency(ceilToInteger(payment.tarifa))" />
     <DataField
