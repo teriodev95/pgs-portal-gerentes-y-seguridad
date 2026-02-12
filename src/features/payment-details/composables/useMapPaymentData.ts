@@ -3,7 +3,7 @@ import { latLng, type LatLng } from 'leaflet'
 import { useStore } from '@/shared/stores'
 import { useRouter } from 'vue-router'
 import { paymentDetailsService } from '../services/payment-details.service'
-import type { AgenciaPagosHistorial } from '../types'
+import type { IMapPayment } from '../types'
 import { useMapbox } from '../helpers'
 import { MAP_CONFIG } from '../constants'
 import { usePaymentDetailsErrorHandler } from './usePaymentHistoryErrorHandler'
@@ -20,24 +20,23 @@ export function useMapPaymentData() {
   const center = ref<LatLng>(latLng(0, 0))
   const zoom = ref<number>(MAP_CONFIG.DEFAULT_ZOOM)
   const showHeatMap = ref(true)
-  const historial = ref<AgenciaPagosHistorial>()
-  const historialList = ref<AgenciaPagosHistorial[]>([])
+  const selectedPayment = ref<IMapPayment>()
+  const paymentList = ref<IMapPayment[]>([])
   const mapboxMap = ref<mapboxgl.Map>()
 
   // Computed properties
   const agencia = computed(() => $store.agencySelected)
   const currentDate = computed(() => $store.currentDate)
-  const hasPaymentData = computed(() => historialList.value.length > 0)
-  const selectedPayment = computed(() => historial.value)
+  const hasPaymentData = computed(() => paymentList.value.length > 0)
 
   // Methods
   function onMapBack() {
     $router.back()
   }
 
-  function onClickMarker(hist: AgenciaPagosHistorial) {
-    historial.value = undefined
-    setTimeout(() => (historial.value = hist), MAP_CONFIG.TRANSITION_DELAY)
+  function onClickMarker(payment: IMapPayment) {
+    selectedPayment.value = undefined
+    setTimeout(() => (selectedPayment.value = payment), MAP_CONFIG.TRANSITION_DELAY)
   }
 
   function onUpdateCenter(coords: LatLng) {
@@ -69,7 +68,15 @@ export function useMapPaymentData() {
         year: currentDate.value.year
       })
 
-      historialList.value = data
+      paymentList.value = data.map((item): IMapPayment => ({
+        prestamoId: item.prestamoId,
+        prestamo: item.prestamo,
+        monto: Number(item.monto),
+        tarifa: Number(item.tarifa),
+        fechaPago: item.fechaPago,
+        lat: Number(item.lat),
+        lng: Number(item.lng)
+      }))
 
       if (data.length) {
         center.value = latLng(data[0].lat, data[0].lng)
@@ -89,7 +96,7 @@ export function useMapPaymentData() {
 
           const list: { lat: number; lng: number }[] = []
 
-          historialList.value.forEach((ls) => {
+          paymentList.value.forEach((ls) => {
             list.push({
               lat: ls.lat,
               lng: ls.lng
@@ -112,7 +119,7 @@ export function useMapPaymentData() {
   }
 
   function clearSelectedPayment(): void {
-    historial.value = undefined
+    selectedPayment.value = undefined
   }
 
   // Lifecycle hooks
@@ -126,7 +133,7 @@ export function useMapPaymentData() {
     center,
     zoom,
     showHeatMap,
-    historialList,
+    paymentList,
     mapboxMap,
 
     // Computed

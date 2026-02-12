@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { toCurrency } from '@/shared/utils';
-import type { AgenciaPagosHistorial } from '../types'
+import type { IMapPayment } from '../types'
 import CardContainer from '@/shared/components/CardContainer.vue';
 import DataField from '@/shared/components/DataField.vue';
 
 interface Props {
-  payment?: AgenciaPagosHistorial
+  payment?: IMapPayment
 }
 
 defineProps<Props>()

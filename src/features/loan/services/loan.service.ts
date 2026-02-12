@@ -2,7 +2,6 @@ import { createApiClientFromPreset } from '@/shared/services/core'
 import type { ILoan, IPaymentCreate  } from '../types'
 
 class LoanAndPaymentService {
-  private apiClient = createApiClientFromPreset('main')
   private apiFastApi = createApiClientFromPreset('fastApi')
 
   async getLoanById(id: string) {
@@ -10,7 +9,7 @@ class LoanAndPaymentService {
   }
 
   async createPayment(pago: IPaymentCreate) {
-    return this.apiClient.post(`/pays/create-one`, pago)
+    return this.apiFastApi.post(`/pagos/`, pago)
   }
 }
 

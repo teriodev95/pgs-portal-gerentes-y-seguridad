@@ -24,7 +24,7 @@ const {
   center,
   zoom,
   showHeatMap,
-  historialList,
+  paymentList,
   selectedPayment,
   onMapBack,
   onClickMarker,
@@ -59,7 +59,7 @@ const {
         class="z-20"
       >
         <LMarker
-          v-for="(item, key) in historialList"
+          v-for="(item, key) in paymentList"
           :key="`marker-${key}`"
           :lat-lng="latLng(item.lat, item.lng)"
           @click="() => onClickMarker(item)"
