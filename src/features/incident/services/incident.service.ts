@@ -3,7 +3,6 @@ import type { GetBaseProps } from '@/interfaces'
 import type { IIncident } from '../types'
 
 class IncidentService {
-  private apiClient = createApiClientFromPreset('main')
   private apiFax = createApiClientFromPreset('fastApi')
 
   async getIncidentByUserId({ year, week, userID }: GetBaseProps) {

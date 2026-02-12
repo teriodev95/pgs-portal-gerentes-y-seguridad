@@ -133,11 +133,6 @@ const router = createRouter({
           component: () => import('@/features/sale/views/SalesView.vue')
         },
         {
-          path: 'balance',
-          name: ROUTE_NAME.BALANCE,
-          component: () => import('@/features/balance/views/BalanceView.vue')
-        },
-        {
           path: 'cash-flow',
           name: ROUTE_NAME.DASHBOARD_CASH_FLOW,
           component: () => import('@/features/iframe/views/CashFlowView.vue')

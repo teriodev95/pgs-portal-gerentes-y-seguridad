@@ -19,7 +19,6 @@ export interface IPaymentCreate {
   creadoDesde: string
   fechaPago: string
   identificador: string
-  isOnline: boolean
   lat: number
   lng: number
   log: string

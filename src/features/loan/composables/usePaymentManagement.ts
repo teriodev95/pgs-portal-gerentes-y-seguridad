@@ -66,10 +66,9 @@ export function usePaymentManagement() {
         anio: currentDate.value.year,
         cliente: payment.nombre,
         comentario: `'Llenado por el Gerente ${$store.user?.nombre}'`,
-        creadoDesde: 'Pgs',
+        creadoDesde: 'PGS',
         fechaPago: getFullTimestamp(),
         identificador: loan.identificadorCredito,
-        isOnline: true,
         lat: userLocation.value?.lat || 0,
         lng: userLocation.value?.lng || 0,
         log: '{}',
@@ -81,6 +80,7 @@ export function usePaymentManagement() {
         recuperadoPor: selectedPaymentRecovery,
         semana: currentDate.value.week,
         tarifa: payment.tarifa,
+        tipo: 'Pago',
       }
 
       console.log('Payment data:', paymentData)
