@@ -8,7 +8,7 @@ interface Props {
   selectedManagement: string
   agencyList: string[]
   selectedAgency: string
-  hasVisit: boolean
+  hasVisit: boolean | null
   isFilterDisabled: boolean
   isUserManager: boolean
 }
@@ -16,8 +16,9 @@ interface Props {
 interface Emit {
   (e: 'update:selectedManagement', value: string): void
   (e: 'update:selectedAgency', value: string): void
-  (e: 'update:hasVisit', value: boolean): void
+  (e: 'update:hasVisit', value: boolean | null): void
   (e: 'managementChange'): void
+  (e: 'agencyChange'): void
 }
 
 defineProps<Props>()
@@ -30,6 +31,12 @@ function handleManagementChange(value: string | number) {
 
 function handleAgencyChange(value: string | number) {
   emit('update:selectedAgency', value as string)
+  emit('agencyChange')
+}
+
+function handleVisitFilterChange(value: string | number) {
+  const visitValue = value === 'all' ? null : value === 'true'
+  emit('update:hasVisit', visitValue)
 }
 </script>
 
@@ -46,9 +53,12 @@ function handleAgencyChange(value: string | number) {
           :is-disabled="isUserManager || isFilterDisabled"
           :is-required="false"
         >
-          <option v-for="management in managementList" :key="management" :value="management">
-            {{ management }}
-          </option>
+          <option v-if="managementList.length === 0" value="">-- Cargando --</option>
+          <template v-else>
+            <option v-for="management in managementList" :key="management" :value="management">
+              {{ management }}
+            </option>
+          </template>
         </InputSelect>
       </div>
 
@@ -62,27 +72,30 @@ function handleAgencyChange(value: string | number) {
           :is-disabled="isFilterDisabled"
           :is-required="false"
         >
-          <option value="">-- TODAS --</option>
-          <option v-for="agency in agencyList" :key="agency" :value="agency">
-            {{ agency }}
-          </option>
+          <option v-if="agencyList.length === 0" value="">-- Cargando --</option>
+          <template v-else>
+            <option v-for="agency in agencyList" :key="agency" :value="agency">
+              {{ agency }}
+            </option>
+          </template>
         </InputSelect>
       </div>
     </form>
 
-    <!-- Visit Toggle -->
-    <label class="mb-5 inline-flex cursor-pointer items-center">
-      <input
-        type="checkbox"
-        :checked="hasVisit"
-        @change="$emit('update:hasVisit', ($event.target as HTMLInputElement).checked)"
-        class="peer sr-only"
-        :disabled="isFilterDisabled"
-      />
-      <div
-        class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:border-gray-600 dark:bg-gray-700 dark:peer-focus:ring-blue-800 rtl:peer-checked:after:-translate-x-full">
-      </div>
-      <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Visita</span>
-    </label>
+    <!-- Visit Filter -->
+    <div>
+      <LabelForm for="visit_select" size="sm">Visitas</LabelForm>
+      <InputSelect
+        id="visit_select"
+        :model-value="hasVisit === null ? 'all' : String(hasVisit)"
+        @update:model-value="handleVisitFilterChange"
+        :is-disabled="isFilterDisabled"
+        :is-required="false"
+      >
+        <option value="all">Todas</option>
+        <option value="true">Con visitas</option>
+        <option value="false">Sin visitas</option>
+      </InputSelect>
+    </div>
   </CardContainer>
 </template>
