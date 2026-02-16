@@ -3,10 +3,10 @@ import type { INoPago } from '../types'
 import type { GetBaseProps } from '@/interfaces'
 
 class NoPaymentService {
-  private apiClient = createApiClientFromPreset('main')
+  private faxClient = createApiClientFromPreset('fastApi')
 
-  async getNoPagos({ user, year, week }: GetBaseProps) {
-    return this.apiClient.get<INoPago[]>(`/pays/noPagosWithVisitas/${user}/${year}/${week}`)
+  async getNoPagos({ agency, year, week }: GetBaseProps) {
+    return this.faxClient.get<INoPago[]>(`/pagos/no-pagos-visitas?semana=${week}&anio=${year}&agente=${agency}`)
   }
 }
 

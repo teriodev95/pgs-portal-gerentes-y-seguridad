@@ -47,7 +47,8 @@ export function useAgencyDetails() {
 
       // Convert date from YYYY-MM-DD to DD-MM-YYYY format for API
       const [year, month, day] = dateSelector.value.split('-')
-      const formattedDate = `${day}-${month}-${year}`
+      const formattedDate = `${year}-${month}-${day}`
+      console.log('Formatted Date for API:', formattedDate);
 
       const response = await entityService.getAgencyDashboard(
         agency.value.agencia,

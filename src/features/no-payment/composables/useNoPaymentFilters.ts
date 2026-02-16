@@ -14,7 +14,7 @@ export function useNoPaymentFilters() {
   const selectedAgency = ref<string>('')
   const managementList = ref<string[]>()
   const selectedManagement = ref<string>('')
-  const hasVisit = ref(false)
+  const hasVisit = ref<boolean | null>(null) // null = show all, true = with visits, false = without visits
   const isLoadingFilters = ref(false)
 
   // Computed properties
@@ -49,7 +49,8 @@ export function useNoPaymentFilters() {
       isLoadingFilters.value = true
       const response = await commonService.getAgenciesCopy(selectedManagement.value)
       agencyList.value = response.data.map((agency) => agency.agencia)
-      selectedAgency.value = ''
+      selectedAgency.value = agencyList.value[0] || ''
+      
     } catch (error) {
       handleError(error, 'AGENCIES_LOAD_FAILED')
     } finally {
@@ -60,23 +61,21 @@ export function useNoPaymentFilters() {
   function getFilteredNoPayments(noPaymentsList: INoPago[]): INoPago[] {
     if (!noPaymentsList) return []
 
-    if (selectedAgency.value === '') {
-      return noPaymentsList.filter(
-        (payment) => payment.gerencia === selectedManagement.value &&
-          hasVisit.value === (payment.visitas.length > 0)
-      )
-    } else {
-      return noPaymentsList.filter(
-        (payment) => payment.gerencia === selectedManagement.value &&
-          payment.agente === selectedAgency.value &&
-          hasVisit.value === (payment.visitas.length > 0)
-      )
-    }
+
+    return noPaymentsList.filter((payment) => {
+
+      // Filter by visits (only if hasVisit is not null)
+      const matchesVisit = hasVisit.value === null ||
+        (hasVisit.value === true && payment.visitas.length > 0) ||
+        (hasVisit.value === false && payment.visitas.length === 0)
+
+      return matchesVisit
+    })
   }
 
   function resetFilters(): void {
     selectedAgency.value = ''
-    hasVisit.value = false
+    hasVisit.value = null
   }
 
   return {

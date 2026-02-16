@@ -8,12 +8,11 @@ import type {
 } from '../types'
 
 class EntityService {
-  private apiClient = createApiClientFromPreset('main')
   private apiJavalin = createApiClientFromPreset('javalin')
   private apiFastApi = createApiClientFromPreset('fastApi')
 
   async getAgencyDashboard(agency: string, date: string) {
-    return this.apiClient.get<IAgencyFinancialSummary>(`/pwa/dashboard-fecha/${agency}/${date}`)
+    return this.apiFastApi.get<IAgencyFinancialSummary>(`/dashboard-agencia-v3/dashboard/fecha?fecha=${date}&agencia=${agency}`)
   }
   
   async getNewGerencyDashboard(params: GetBaseProps) {

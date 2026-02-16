@@ -56,10 +56,11 @@ export function useNoPayments() {
     try {
       isLoading.value = true
       const { data } = await noPaymentService.getNoPagos({
-        user: $store.user.usuario,
+        agency: selectedAgency.value,
         week: currentDate.value.week,
         year: currentDate.value.year
       })
+      console.log('Fetched No Payments:', data)
       noPaymentsList.value = data
     } catch (error) {
       handleError(error, 'NO_PAYMENTS_LOAD_FAILED')
@@ -82,10 +83,7 @@ export function useNoPayments() {
   async function initializeData(): Promise<void> {
     try {
       isLoading.value = true
-      await Promise.all([
-        fetchManagements(),
-        fetchNoPayments()
-      ])
+      await fetchManagements()
       await fetchAgencies()
     } catch (error) {
       console.error('Initialization error:', error)

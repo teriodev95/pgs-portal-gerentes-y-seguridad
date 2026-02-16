@@ -36,7 +36,6 @@ function onVisitClick(visita: IVisita) {
   <CardContainer :title="pago.cliente">
     <TextCT variant="tertiary">id: {{ pago.pagoId }}</TextCT>
     <DataField label="Préstamo" :value="pago.prestamoId"/>
-    <DataField label="Gerencia" :value="pago.gerencia"/>
     <DataField label="Agencia" :value="pago.agente"/>
     <DataField label="Semana" :value="`${pago.semana} - ${pago.anio}`"/>
     <DataField label="Tarifa" :value="toCurrency(pago.tarifa)"/>

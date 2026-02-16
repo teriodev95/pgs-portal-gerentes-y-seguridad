@@ -49,9 +49,14 @@ const {
   // Methods
   fetchAgencies,
   showMapLocation,
-  selectVisit
+  selectVisit,
+  fetchNoPayments,
 } = useNoPayments()
 
+const handleManagementChange = async () => {
+  await fetchAgencies()
+  await fetchNoPayments()
+}
 
 function handleBack() {
   $router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
@@ -65,14 +70,15 @@ function handleBack() {
     <SectionContainer>
       <!-- Filters Section -->
       <NoPaymentFilters
-        :management-list="managementList || []"
-        v-model:selected-management="selectedManagement"
         :agency-list="agencyList || []"
-        v-model:selected-agency="selectedAgency"
-        v-model:has-visit="hasVisit"
         :is-filter-disabled="isFilterDisabled"
         :is-user-manager="isUserManager"
-        @management-change="fetchAgencies"
+        :management-list="managementList || []"
+        v-model:has-visit="hasVisit"
+        v-model:selected-agency="selectedAgency"
+        v-model:selected-management="selectedManagement"
+        @management-change="handleManagementChange"
+        @agency-change="fetchNoPayments"
       />
   
       <!-- Stats Summary -->
