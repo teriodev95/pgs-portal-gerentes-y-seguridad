@@ -18,4 +18,5 @@ export interface MoneyTabulation extends TabulationFormData {
   anio: number
   semana: number
   gerencia: string
+  id?: number
 }

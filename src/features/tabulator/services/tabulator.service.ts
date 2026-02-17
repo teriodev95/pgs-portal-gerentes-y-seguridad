@@ -4,25 +4,24 @@ import type { GetBaseProps } from '@/interfaces'
 import type { MoneyTabulation, TabulationFormData } from "../types"
 
 class TabulationService {
-  private apiClient = createApiClientFromPreset('main')
+  private faxClient = createApiClientFromPreset('fastApi')
 
   async createMoneyTabulation(tabulation: MoneyTabulation) {
-    return this.apiClient.post(`/pwa/tabulaciones/create`, tabulation)
+    return this.faxClient.post(`/tabulaciones/`, tabulation)
   }
 
   async updateMoneyTabulation(
-    tabulation: TabulationFormData,
-    { managment, year, week }: GetBaseProps
+    tabulation: TabulationFormData, id: number
   ) {
-    return this.apiClient.put(
-      `/pwa/tabulaciones/update/gerencia/${managment}/anio/${year}/semana/${week}`,
+    return this.faxClient.patch(
+      `/tabulaciones/${id}`,
       tabulation
     )
   }
 
   async getMoneyTabulation({ managment, year, week }: GetBaseProps) {
-    return this.apiClient.get<MoneyTabulation | { result: string }>(
-      `/pwa/tabulaciones/gerencia/${managment}/anio/${year}/semana/${week}`
+    return this.faxClient.get<MoneyTabulation | { result: string }>(
+      `/tabulaciones/?gerencia=${managment}&anio=${year}&semana=${week}`
     )
   }
 }

@@ -19,7 +19,7 @@ export const contentTypeInterceptor: InterceptorConfig = {
 export const apiKeyInterceptor = (apiKey: string): InterceptorConfig => ({
   request: {
     onFulfilled: (config: InternalAxiosRequestConfig) => {
-      if (config.method?.toLowerCase() === 'post') {
+      if (config.method?.toLowerCase() === 'post' || config.method?.toLowerCase() === 'patch') {
         ;(config.headers as AxiosRequestHeaders)['X-API-Key'] = apiKey
       }
       return config
