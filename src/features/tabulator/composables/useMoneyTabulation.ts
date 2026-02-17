@@ -56,8 +56,8 @@ export function useMoneyTabulation() {
         currentTabulationData.value = undefined
       }
     } catch (error) {
-      handleError(error, 'TABULATION_LOAD_FAILED')
-      throw error
+      //handleError(error, 'TABULATION_LOAD_FAILED')
+      //throw error
     } finally {
       isLoadingTabulation.value = false
     }
@@ -78,11 +78,7 @@ export function useMoneyTabulation() {
         // Update existing tabulation
         await tabulationService.updateMoneyTabulation(
           formData,
-          {
-            week: currentTabulationData.value.semana,
-            year: currentTabulationData.value.anio,
-            managment: currentTabulationData.value.gerencia
-          }
+          currentTabulationData.value.id!
         )
         $toast.success('Tabulación actualizada con éxito')
       } else {
