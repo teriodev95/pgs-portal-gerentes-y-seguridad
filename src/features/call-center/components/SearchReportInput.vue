@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import SearchIcon from '@/shared/components/icons/SearchIcon.vue'
 import { useCallCenterSearch } from '../composables/useCallCenterSearch'
+import { useItemRenderer } from '@/shared/composables'
 import type { ICallCenterSearchResult } from '../types'
 
 // Interface - Props - Emits
@@ -11,7 +12,9 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 
-// Composable de búsqueda
+// Composables
+const { highlightText } = useItemRenderer()
+
 const {
   searchQuery,
   searchResults,
@@ -127,10 +130,10 @@ const onInput = (event: Event) => {
             <!-- Client & Aval Names -->
             <div class="text-sm space-y-1">
               <p class="text-gray-900 dark:text-gray-100">
-                <span class="font-medium">Cliente:</span> {{ report.nombresCliente }}
+                <span class="font-medium">Cliente:</span> <span v-html="highlightText(report.nombresCliente, searchQuery)"></span>
               </p>
               <p class="text-gray-600 dark:text-gray-300">
-                <span class="font-medium">Aval:</span> {{ report.nombresAval }}
+                <span class="font-medium">Aval:</span> <span v-html="highlightText(report.nombresAval, searchQuery)"></span>
               </p>
             </div>
 
