@@ -1,15 +1,24 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
-import type { ICallCenterReport, ICallCenterVisit } from '../types'
+import type { ICallCenterVisit } from '../types'
+import type { GetBaseProps } from '@/interfaces'
 
 class CallCenterService {
-  private apiClient = createApiClientFromPreset('main')
+  private faxClient = createApiClientFromPreset('fastApi')
 
-  async getReportesCallCenterBySeguridad(Username: string) {
-    return this.apiClient.get<ICallCenterReport[]>(`/call_center/reportes/usuario/${Username}`)
+  async createVisit(visita: ICallCenterVisit) {
+    return this.faxClient.post(`/visitas/call-center`, visita)
   }
 
-  async createVisitaCallCenter(visita: ICallCenterVisit) {
-    return this.apiClient.post(`/call_center/visitas/create-one`, visita)
+  async getCallCenterReports({managment, year, week}: GetBaseProps) {
+    return this.faxClient.get(`/call-center/reportes?gerencia=${managment}&anio=${year}&semana=${week}`)
+  }
+
+  async getSummaryReportsByManagement(userId: number) {
+    return this.faxClient.get(`/call-center/reportes-por-gerencia?usuario_id=${userId}`)
+  }
+
+  async searchReportByName(name: string) {
+    return this.faxClient.get(`/call-center/reportes/buscar?nombre=${name}`)
   }
 }
 

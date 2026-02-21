@@ -33,6 +33,10 @@ async function openReportDetails(report: any): Promise<void> {
   reportDrawer.openWith(report)
 }
 
+async function handleSelectWeekAndManagement(gerencia: string, semana: number, anio: number): Promise<void> {
+  await callCenter.selectWeekAndManagement(gerencia, semana, anio)
+}
+
 // Lifecycle hooks
 onMounted(async () => {
   try {
@@ -68,7 +72,7 @@ onMounted(async () => {
 
     <!-- Empty State -->
     <EmptyCT
-      v-else-if="callCenter.hasNoReports.value"
+      v-else-if="!callCenter.summaryReportsByManagement.value || callCenter.summaryReportsByManagement.value.length === 0"
       message="No hay reportes"
       description="No se encontraron reportes del call center en este momento."
     />
@@ -82,10 +86,11 @@ onMounted(async () => {
           <CardContainer class="rounded-lg border bg-white p-4 space-y-4">
             <h3 class="title">Filtrar</h3>
 
-            <!-- Search by Name -->
+            <!-- Search by Name 
             <InputSearchFilter :icon="SearchIcon" :items="callCenter.searchableReports.value"
               @selectItem="openReportDetails" item-type="reporte" id="name" label="Buscar por nombre del cliente o aval"
               placeholder="Ingresa el nombre" v-model:value="callCenter.filters.value.name" />
+            -->
 
             <!-- Filter Dropdowns -->
             <div class="grid grid-cols-2 grid-rows-2 justify-between gap-4">
@@ -108,6 +113,7 @@ onMounted(async () => {
                   Año
                 </LabelForm>
                 <InputSelect v-model="callCenter.filters.value.year" id="year">
+                  <option :value="0">-- Todos --</option>
                   <option v-for="year in callCenter.availableYears" :key="year" :value="year">
                     {{ year }}
                   </option>
@@ -130,8 +136,8 @@ onMounted(async () => {
           </CardContainer>
 
           <!-- Management Cards -->
-          <ManagementCard :tarjetas="callCenter.groupedReportsByManagement.value"
-            @select-week-and-management="callCenter.selectWeekAndManagement" />
+          <ManagementCard :tarjetas="callCenter.filteredSummaryReports.value"
+            @select-week-and-management="handleSelectWeekAndManagement" />
         </template>
 
         <!-- Reports List View -->

@@ -100,7 +100,6 @@ export interface IManagementCard {
 export interface ICallCenterUIState {
   isLoading: boolean
   isManagementSelected: boolean
-  isOverlayClickCloseEnabled: boolean
   creatingVisit: boolean
   error: string | null
 }
@@ -126,6 +125,13 @@ export interface ICallCenterConfig {
   defaultYear: number
   availableWeeks: number[]
   availableYears: number[]
+}
+
+export interface ICallCenterSummaryReport {
+  gerencia: string
+  reportes: number
+  anio: number
+  semana: number
 }
 
 // Type guards

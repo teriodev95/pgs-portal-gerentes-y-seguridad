@@ -8,7 +8,6 @@ import type {
 } from '@/interfaces'
 
 class CommonService {
-  private apiClient = createApiClientFromPreset('main')
   private javalinClient = createApiClientFromPreset('javalin')
   private expenseImageClient = createApiClientFromPreset('workerUploadExpenseImage')
   private comisionClient = createApiClientFromPreset('n8nCreateComision')
@@ -20,7 +19,7 @@ class CommonService {
   }
 
   async getAgenciesCopy(gerencia: string) {
-    return this.apiClient.get<IAgencyBasicInfo[]>(`/pwa/agencias?gerencia=${gerencia}`)
+    return this.faxClient.get<IAgencyBasicInfo[]>(`/agencias/resumen?gerencia=${gerencia}`)
   }
 
   async getCobranza(params: GetBaseProps) {
@@ -30,7 +29,7 @@ class CommonService {
   }
 
   async getGerenciesCopy(user: string) {
-    return this.apiClient.get<GetGerenciasUsuario>(`/pwa/gerencias?usuario=${user}`)
+    return this.faxClient.get<GetGerenciasUsuario>(`/gerencias/por-sucursal?usuario=${user}`)
   }
 
   async getCurrentDate() {
