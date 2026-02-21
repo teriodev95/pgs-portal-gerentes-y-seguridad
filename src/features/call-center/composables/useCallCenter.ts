@@ -1,82 +1,155 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/shared/stores'
-import { useCallCenterStore } from '@/features/call-center/stores/call-center'
 import useGeolocation from '@/shared/composables/useGeolocation'
-import type { ICallCenterReport, ICallCenterVisit } from '../types'
+import { generateYearsArray } from '@/shared/utils'
+import type {
+  ICallCenterReport,
+  ICallCenterVisit,
+  ICallCenterFilters,
+  ICallCenterSummaryReport
+} from '../types'
 import type { ItemSearchFilter } from '@/shared/composables/useItemRenderer'
 
-// Composables especializados
-import { useCallCenterAPI } from './useCallCenterAPI'
-import { useCallCenterData } from './useCallCenterData'
-import { useCallCenterUI } from './useCallCenterUI'
+// Servicio puro de API
+import { useCallCenterService } from './useCallCenterService'
 
 /**
  * Composable principal para la funcionalidad Call Center
- * Orquesta todos los composables especializados y proporciona una API unificada
+ * Maneja TODA la reactividad: datos, UI y lógica de negocio
  */
 export const useCallCenter = () => {
   const router = useRouter()
   const store = useStore()
-  const callCenterStore = useCallCenterStore()
   const { userLocation, hasPermission } = useGeolocation()
 
-  // Composables especializados
-  const api = useCallCenterAPI()
-  const data = useCallCenterData()
-  const ui = useCallCenterUI()
+  // Servicio puro de API (sin estado)
+  const service = useCallCenterService()
 
+  // ===================================
+  // Estado de DATOS (movido desde service)
+  // ===================================
+  const managements = ref<string[]>([])
+  const summaryReportsByManagement = ref<ICallCenterSummaryReport[]>([])
+  const reports = ref<ICallCenterReport[]>([])
+
+  // Filtros
+  const filters = ref<ICallCenterFilters>({
+    name: '',
+    management: '',
+    week: 0,
+    year: new Date().getFullYear()
+  })
+
+  // Estado de selección de gerencia
+  const selectedManagement = ref<string>('')
+  const selectedWeek = ref<number>(0)
+  const selectedYear = ref<number>(new Date().getFullYear())
+  const isManagementSelected = ref<boolean>(false)
+
+  // Configuración
+  const availableWeeks = Array.from({ length: 52 }, (_, i) => i + 1)
+  const availableYears = generateYearsArray(new Date().getFullYear(), 10)
+
+  // ===================================
+  // Estado de UI 
+  // ===================================
+  const isLoading = ref<boolean>(false)
+  const error = ref<string | null>(null)
+  const creatingVisit = ref<boolean>(false)
+
+  // Estado de selección
+  const selectedReport = ref<ICallCenterReport | null>(null)
+
+  // ===================================
   // Datos computados del store global
-  const user = computed(() => store.user)
+  // ===================================
   const username = computed(() => store.user?.usuario || '')
   const userId = computed(() => store.user?.usuarioId || 0)
-  const currentDate = computed(() => store.currentDate)
+
+  // ===================================
+  // Computeds de DATOS
+  // ===================================
+  const reportsByWeekAndManagement = computed(() => reports.value)
 
   /**
-   * Inicializa todos los datos del Call Center
+   * Filtra los reportes resumen por gerencia según los filtros activos
    */
-  const initializeCallCenter = async () => {
-    if (!username.value) {
-      ui.setError('Usuario no disponible')
-      return
-    }
+  const filteredSummaryReports = computed(() => {
+    let filtered = summaryReportsByManagement.value
+    if (filters.value.management) filtered = filtered.filter(report => report.gerencia === filters.value.management)
+    if (filters.value.year && filters.value.year !== 0) filtered = filtered.filter(report => report.anio === filters.value.year)
+    if (filters.value.week && filters.value.week !== 0) filtered = filtered.filter(report => report.semana === filters.value.week)
 
-    try {
-      ui.setLoading(true)
-      ui.clearError()
+    return filtered
+  })
 
-      // Cargar datos en paralelo
-      await Promise.all([
-        loadCallCenterReports(),
-        loadManagements()
-      ])
-
-      // Manejar navegación activa hacia préstamo si es necesario
-      handleActiveGoToLoan()
-
-      // Restaurar reporte seleccionado desde el store si existe
-      if (callCenterStore.selectedReport) {
-        const report = JSON.parse(JSON.stringify(callCenterStore.selectedReport))
-        ui.selectReport(report)
-      }
-    } catch (error) {
-      console.error('Error inicializando Call Center:', error)
-      ui.setError('Error cargando datos del Call Center')
-    } finally {
-      ui.setLoading(false)
-      ui.clearLoanValues()
-    }
+  // ===================================
+  // Métodos de UI
+  // ===================================
+  const cancelVisitCreation = () => {
+    creatingVisit.value = false
   }
 
+  const clearSelectedReport = () => {
+    selectedReport.value = null
+  }
+
+  const finishVisitCreation = () => {
+    creatingVisit.value = false
+  }
+
+  const selectReport = (report: ICallCenterReport) => {
+    selectedReport.value = report
+  }
+
+  const startCreatingVisit = () => {
+    creatingVisit.value = true
+  }
+
+  // ===================================
+  // Métodos de manejo de DATOS
+  // ===================================
+  const setReports = (newReports: ICallCenterReport[]) => {
+    reports.value = newReports
+  }
+
+  const setSummaryReportsByManagement = (newSummary: ICallCenterSummaryReport[]) => {
+    summaryReportsByManagement.value = newSummary
+  }
+
+  const setManagements = (newManagements: string[]) => {
+    managements.value = newManagements
+  }
+
+  const selectWeekAndManagementState = (gerencia: string, semana: number, anio: number) => {
+    selectedManagement.value = gerencia
+    selectedWeek.value = semana
+    selectedYear.value = anio
+    isManagementSelected.value = true
+  }
+
+  const returnToManagementListState = () => {
+    selectedManagement.value = ''
+    selectedWeek.value = 0
+    selectedYear.value = new Date().getFullYear()
+    isManagementSelected.value = false
+    reports.value = []
+  }
+
+  // ===================================
+  // Métodos de carga de datos
+  // ===================================
+
   /**
-   * Carga los reportes del Call Center
+   * Carga resumen de reportes por gerencia
    */
-  const loadCallCenterReports = async () => {
+  const loadSummaryReportsByManagement = async () => {
     try {
-      const reports = await api.getCallCenterReports(username.value)
-      data.setReports(reports)
+      const summaryReports = await service.fetchSummaryReportsByManagement(userId.value)
+      setSummaryReportsByManagement(summaryReports)
     } catch (error) {
-      console.error('Error cargando reportes:', error)
+      console.error('Error cargando reportes resumen por gerencia:', error)
       throw error
     }
   }
@@ -86,28 +159,42 @@ export const useCallCenter = () => {
    */
   const loadManagements = async () => {
     try {
-      const managements = await api.getManagements(username.value)
-      data.setManagements(managements)
+      const managementsData = await service.fetchManagements(username.value)
+      setManagements(managementsData)
     } catch (error) {
       console.error('Error cargando gerencias:', error)
       throw error
     }
   }
 
+  // ===================================
+  // Métodos principales
+  // ===================================
+
   /**
-   * Maneja la navegación activa hacia un préstamo
+   * Inicializa todos los datos del Call Center
+   * Solo carga gerencias y resumen - los reportes se cargan al seleccionar una tarjeta
    */
-  const handleActiveGoToLoan = async () => {
-    if (callCenterStore.activeGoToLoan && callCenterStore.loanID) {
-      // Desactivar la navegación activa
-      callCenterStore.setActiveGoToLoan(false, '')
-      
-      // Buscar el reporte por ID
-      const report = data.getReportById(callCenterStore.loanID)
-      if (report) {
-        ui.selectReport(report)
-        callCenterStore.setSelectedReport(report)
-      }
+  const initializeCallCenter = async () => {
+    if (!username.value) {
+      error.value = 'Usuario no disponible'
+      return
+    }
+
+    try {
+      isLoading.value = true
+      error.value = null
+
+      // Cargar solo gerencias y resumen de reportes
+      await Promise.all([
+        loadManagements(),
+        loadSummaryReportsByManagement()
+      ])
+    } catch (err) {
+      console.error('Error inicializando Call Center:', err)
+      error.value = 'Error cargando datos del Call Center'
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -123,7 +210,7 @@ export const useCallCenter = () => {
       throw new Error('No se ha podido obtener la ubicación del usuario')
     }
 
-    if (!ui.selectedReport.value) {
+    if (!selectedReport.value) {
       throw new Error('No hay un reporte seleccionado')
     }
 
@@ -136,16 +223,16 @@ export const useCallCenter = () => {
         },
         lat: userLocation.value.lat,
         lng: userLocation.value.lng,
-        prestamoId: ui.selectedReport.value.prestamoId
+        prestamoId: selectedReport.value.prestamoId
       }
 
-      console.log('Creando visita con datos:', visit, typeof visit )
+      console.log('Creando visita con datos:', visit, typeof visit)
 
-      await api.createCallCenterVisit(visit)
-      ui.finishVisitCreation()
-      
+      await service.createVisit(visit)
+      finishVisitCreation()
+
       // Recargar reportes para actualizar el estado
-      await loadCallCenterReports()
+      // await loadCallCenterReports()
     } catch (error) {
       console.error('Error creando visita:', error)
       throw error
@@ -157,76 +244,52 @@ export const useCallCenter = () => {
    */
   const openReportDetails = async (report: ICallCenterReport | ItemSearchFilter) => {
     const callCenterReport = report as ICallCenterReport
-    ui.selectReport(callCenterReport)
-    
-    // Guardar en el store para persistencia
-    callCenterStore.setSelectedReport(callCenterReport)
-    
-    // La lógica de abrir el bottom sheet se maneja en el componente
+    selectReport(callCenterReport)
   }
 
   /**
    * Maneja la navegación hacia atrás
    */
   const handleBackNavigation = () => {
-    if (data.isManagementSelected.value) {
-      data.returnToManagementList()
+    if (isManagementSelected.value) {
+      returnToManagementList()
     } else {
       router.back()
     }
   }
 
   /**
-   * Selecciona una gerencia y semana
+   * Selecciona una gerencia, semana y año
+   * Carga los reportes específicos para esa selección
    */
-  const selectWeekAndManagement = (gerencia: string, semana: number) => {
-    data.selectWeekAndManagement(gerencia, semana)
-    window.scrollTo({ top: 0 })
+  const selectWeekAndManagement = async (gerencia: string, semana: number, anio: number) => {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      // Actualizar el estado de selección
+      selectWeekAndManagementState(gerencia, semana, anio)
+
+      // Cargar reportes filtrados por gerencia, año y semana
+      const reportsData = await service.fetchCallCenterReports(gerencia, anio, semana)
+      setReports(reportsData)
+
+      console.log('Reportes cargados para gerencia:', { gerencia, semana, anio, count: reportsData.length })
+
+      window.scrollTo({ top: 0 })
+    } catch (err) {
+      console.error('Error cargando reportes de gerencia:', err)
+      error.value = 'Error cargando reportes de la gerencia'
+    } finally {
+      isLoading.value = false
+    }
   }
 
   /**
    * Regresa a la lista de gerencias
    */
   const returnToManagementList = () => {
-    data.returnToManagementList()
-  }
-
-  /**
-   * Inicia la creación de una visita
-   */
-  const startCreatingVisit = () => {
-    ui.startCreatingVisit()
-  }
-
-  /**
-   * Cancela la creación de una visita
-   */
-  const cancelVisitCreation = () => {
-    ui.cancelVisitCreation()
-  }
-
-  /**
-   * Cierra el bottom sheet y cancela la visita
-   */
-  const closeBottomSheetAndCancelVisit = () => {
-    ui.cancelVisitCreation()
-  }
-
-  /**
-   * Reinicia todo el estado
-   */
-  const resetCallCenter = () => {
-    data.clearFilters()
-    ui.resetUIState()
-    callCenterStore.resetState()
-  }
-
-  /**
-   * Limpia el reporte seleccionado
-   */
-  const clearSelectedReport = () => {
-    ui.clearSelectedReport()
-    callCenterStore.setSelectedReport(null)
+    returnToManagementListState()
   }
 
   /**
@@ -237,70 +300,38 @@ export const useCallCenter = () => {
     return JSON.parse(JSON.stringify(report))
   }
 
+  // ===================================
+  // API pública del composable
+  // ===================================
   return {
-    // Estado del store global
-    user,
-    username,
-    userId,
-    currentDate,
-    userLocation,
-    hasPermission,
+    // Estado de datos
+    filters: computed(() => filters.value),
+    isManagementSelected: computed(() => isManagementSelected.value),
+    managements: computed(() => managements.value),
 
-    // Estado de datos (desde useCallCenterData)
-    reports: data.reports,
-    managements: data.managements,
-    filters: data.filters,
-    selectedManagement: data.selectedManagement,
-    selectedWeek: data.selectedWeek,
-    isManagementSelected: data.isManagementSelected,
-    
-    // Datos computados (desde useCallCenterData)
-    securityReports: data.securityReports,
-    reportsByName: data.reportsByName,
-    reportsByWeekAndManagement: data.reportsByWeekAndManagement,
-    groupedReportsByManagement: data.groupedReportsByManagement,
-    reportsStats: data.reportsStats,
-    hasNoReports: data.hasNoReports,
-    searchableReports: data.searchableReports,
-    
-    // Configuración (desde useCallCenterData)
-    availableWeeks: data.availableWeeks,
-    availableYears: data.availableYears,
+    // Datos computados
+    reportsByWeekAndManagement,
+    summaryReportsByManagement: computed(() => summaryReportsByManagement.value),
+    filteredSummaryReports,
 
-    // Estado de UI (desde useCallCenterUI)
-    isLoading: ui.isLoading,
-    error: ui.error,
-    creatingVisit: ui.creatingVisit,
-    isOverlayClickCloseEnabled: ui.isOverlayClickCloseEnabled,
-    selectedReport: computed(() => cloneReport(ui.selectedReport.value || callCenterStore.selectedReport)),
-    activeGoToLoan: ui.activeGoToLoan,
-    loanID: ui.loanID,
+    // Configuración
+    availableWeeks,
+    availableYears,
+
+    // Estado de UI
+    creatingVisit: computed(() => creatingVisit.value),
+    isLoading: computed(() => isLoading.value),
+    selectedReport: computed(() => cloneReport(selectedReport.value)),
 
     // Métodos principales
-    initializeCallCenter,
-    createCallCenterVisit,
-    openReportDetails,
-    handleBackNavigation,
-    selectWeekAndManagement,
-    returnToManagementList,
-    startCreatingVisit,
     cancelVisitCreation,
-    closeBottomSheetAndCancelVisit,
-    resetCallCenter,
     clearSelectedReport,
-
-    // Métodos de datos
-    setReports: data.setReports,
-    setManagements: data.setManagements,
-    updateFilters: data.updateFilters,
-    getReportById: data.getReportById,
-
-    // Métodos de UI
-    setLoading: ui.setLoading,
-    setError: ui.setError,
-    clearError: ui.clearError,
-    selectReport: ui.selectReport,
-    activateGoToLoan: ui.activateGoToLoan,
-    clearLoanValues: ui.clearLoanValues
+    createCallCenterVisit,
+    handleBackNavigation,
+    initializeCallCenter,
+    openReportDetails,
+    returnToManagementList,
+    selectWeekAndManagement,
+    startCreatingVisit
   }
-} 
+}

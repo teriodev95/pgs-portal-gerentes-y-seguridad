@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue'
 import { ROUTE_NAME } from '@/router'
 import { useRouter } from 'vue-router'
-import { useCallCenterStore } from '@/features/call-center/stores/call-center'
 import type { ICallCenterReport } from '../types'
 import type { ContactInfo } from './ContactInfoSection.vue'
 
@@ -25,7 +24,6 @@ interface Props {
 const $emits = defineEmits<Emits>()
 const props = defineProps<Props>()
 const $router = useRouter()
-const $callCenterStore = useCallCenterStore()
 
 // Refs to component instances
 const clientSectionRef = ref<InstanceType<typeof ContactInfoSection>>()
@@ -68,9 +66,6 @@ function resetSheetButtonFlags(): void {
  * @param id - Loan ID to navigate to
  */
 function navigateToLoan(id: number | string): void {
-  // Guardar en el store para navegación activa
-  $callCenterStore.setActiveGoToLoan(true, `${id}`)
-
   // Emitir evento para que el componente padre maneje la navegación
   $emits('action:close-bottom-sheet')
 
