@@ -4,11 +4,10 @@ import { onMounted } from 'vue'
 // Composables
 import { useCallCenter } from '@/features/call-center/composables/useCallCenter'
 import { useDrawer } from '@/shared/composables'
-import type { ICallCenterReport } from '@/features/call-center/types'
+import type { ICallCenterReport, ICallCenterSearchResult } from '@/features/call-center/types'
 
 // Components
 import CardContainer from '@/shared/components/CardContainer.vue'
-import InputSearchFilter from '@/shared/components/forms/InputSearchFilter.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import ManagementCard from '@/features/call-center/components/ManagementCard.vue'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
@@ -16,7 +15,7 @@ import MainCT from '@/shared/components/ui/MainCT.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import ReportCard from '@/features/call-center/components/ReportCard.vue'
 import ReportDrawer from '@/features/call-center/components/ReportDrawer.vue'
-import SearchIcon from '@/shared/components/icons/SearchIcon.vue'
+import SearchReportInput from '@/features/call-center/components/SearchReportInput.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import LabelForm from '@/shared/components/forms/LabelForm.vue'
 import InputSelect from '@/shared/components/forms/InputSelect.vue'
@@ -28,9 +27,44 @@ const callCenter = useCallCenter()
 const reportDrawer = useDrawer<ICallCenterReport>('call-center-report')
 
 // Methods
-async function openReportDetails(report: any): Promise<void> {
-  callCenter.openReportDetails(report)
-  reportDrawer.openWith(report)
+async function openReportDetails(report: ICallCenterReport | ICallCenterSearchResult): Promise<void> {
+  // Si es un resultado de búsqueda desde el input
+  if ('reporteId' in report) {
+    // Es un ICallCenterSearchResult
+    // Primero intentar buscar el reporte en los reportes ya cargados
+    let fullReport = callCenter.reportsByWeekAndManagement.value.find(
+      r => r.prestamoId === report.prestamoId
+    )
+
+    // Si no está en los reportes actuales, cargar la gerencia/semana/año correspondiente
+    if (!fullReport) {
+      console.log('Cargando reportes para:', { gerencia: report.gerencia, semana: report.semana, anio: report.anio })
+      await callCenter.selectWeekAndManagement(report.gerencia, report.semana, report.anio)
+
+      console.log('Reportes cargados:', callCenter.reportsByWeekAndManagement.value.length)
+      console.log('Buscando prestamoId:', report.prestamoId)
+      console.log('PrestamoIds disponibles:', callCenter.reportsByWeekAndManagement.value.map(r => r.prestamoId))
+
+      // Buscar de nuevo después de cargar
+      fullReport = callCenter.reportsByWeekAndManagement.value.find(
+        r => r.prestamoId === report.prestamoId
+      )
+    }
+
+    // Abrir el drawer con el reporte completo si se encontró
+    if (fullReport) {
+      console.log('Reporte completo encontrado:', fullReport)
+      callCenter.openReportDetails(fullReport)
+      reportDrawer.openWith(fullReport)
+    } else {
+      console.error('No se pudo encontrar el reporte completo para:', report.prestamoId)
+      console.error('Reportes disponibles:', callCenter.reportsByWeekAndManagement.value)
+    }
+  } else {
+    // Es un ICallCenterReport completo - abrir directamente
+    callCenter.openReportDetails(report)
+    reportDrawer.openWith(report)
+  }
 }
 
 async function handleSelectWeekAndManagement(gerencia: string, semana: number, anio: number): Promise<void> {
@@ -86,14 +120,10 @@ onMounted(async () => {
           <CardContainer class="rounded-lg border bg-white p-4 space-y-4">
             <h3 class="title">Filtrar</h3>
 
-            <!-- Search by Name 
-            <InputSearchFilter :icon="SearchIcon" :items="callCenter.searchableReports.value"
-              @selectItem="openReportDetails" item-type="reporte" id="name" label="Buscar por nombre del cliente o aval"
-              placeholder="Ingresa el nombre" v-model:value="callCenter.filters.value.name" />
-            -->
-
             <!-- Filter Dropdowns -->
             <div class="grid grid-cols-2 grid-rows-2 justify-between gap-4">
+              <!-- Search by Name -->
+              <SearchReportInput @select-report="openReportDetails" />
               <!-- Management Filter -->
               <div class="col-span-2">
                 <LabelForm for="management">
