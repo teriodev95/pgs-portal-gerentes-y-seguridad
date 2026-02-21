@@ -17,8 +17,8 @@ class CallCenterService {
     return this.faxClient.get(`/call-center/reportes-por-gerencia?usuario_id=${userId}`)
   }
 
-  async searchReportByName(name: string) {
-    return this.faxClient.get(`/call-center/reportes/buscar?nombre=${name}`)
+  async searchReportByName(name: string, userId: number) {
+    return this.faxClient.get(`/call-center/buscar?busqueda=${name}&usuario_id=${userId}&limit=20`)
   }
 }
 

@@ -242,8 +242,8 @@ export const useCallCenter = () => {
   /**
    * Abre los detalles de un reporte
    */
-  const openReportDetails = async (report: ICallCenterReport | ItemSearchFilter) => {
-    const callCenterReport = report as ICallCenterReport
+  const openReportDetails = async (report: ICallCenterReport) => {
+    const callCenterReport = report
     selectReport(callCenterReport)
   }
 

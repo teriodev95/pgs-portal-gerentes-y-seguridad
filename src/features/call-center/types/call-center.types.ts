@@ -134,6 +134,18 @@ export interface ICallCenterSummaryReport {
   semana: number
 }
 
+// Interface para resultado de búsqueda de reportes
+export interface ICallCenterSearchResult {
+  reporteId: number
+  prestamoId: string
+  nombresCliente: string
+  nombresAval: string
+  gerencia: string
+  agencia: string
+  semana: number
+  anio: number
+}
+
 // Type guards
 export const isCallCenterReport = (obj: any): obj is ICallCenterReport => {
   return obj && typeof obj.prestamoId === 'string' && typeof obj.nombres_cliente === 'string'
