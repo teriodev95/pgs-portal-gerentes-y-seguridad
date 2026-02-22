@@ -1,16 +1,25 @@
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 
 export const usePwaUpdate = () => {
   const isUpdating = ref(false)
   const updateAvailable = ref(false)
-  const router = useRouter()
 
   const clearCacheAndReload = async () => {
     try {
       isUpdating.value = true
 
-      // Limpiar todas las cachés de la aplicación
+      // 1. Desregistrar todos los service workers
+      if ('serviceWorker' in navigator) {
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations()
+          await Promise.all(registrations.map(registration => registration.unregister()))
+          console.log('Service Workers desregistrados exitosamente')
+        } catch (swError) {
+          console.warn('Error al desregistrar Service Workers:', swError)
+        }
+      }
+
+      // 2. Limpiar todas las cachés de la aplicación
       if ('caches' in window) {
         try {
           const cacheNames = await caches.keys()
@@ -21,32 +30,35 @@ export const usePwaUpdate = () => {
         }
       }
 
-      // Navegar al home y hacer reload con bypass de cache
-      await router.push('/')
-
-      // Usar window.location.href con timestamp para bypass total del cache
-      window.location.href='/'
+      // 3. Recargar la página con bypass de caché
+      window.location.reload()
     } catch (error) {
       console.error('Error al limpiar cachés:', error)
-      // Fallback: navegar al home
-      router.push('/')
+      // Fallback: forzar reload
+      window.location.reload()
     } finally {
       isUpdating.value = false
     }
   }
 
-  const forceUpdate = async () => {
+  const applyUpdate = async () => {
     try {
       isUpdating.value = true
 
-      // Limpiar localStorage y sessionStorage si es necesario
-      // localStorage.clear()
-      // sessionStorage.clear()
+      // Importar dinámicamente updateSW para evitar dependencias circulares
+      const { updateSW } = await import('@/main')
 
-      await clearCacheAndReload()
+      // Usar la función de actualización del SW
+      if (updateSW) {
+        await updateSW(true)
+      } else {
+        // Fallback: limpiar cachés y recargar
+        await clearCacheAndReload()
+      }
     } catch (error) {
-      console.error('Error en actualización forzada:', error)
-      isUpdating.value = false
+      console.error('Error en actualización:', error)
+      // Fallback en caso de error
+      await clearCacheAndReload()
     }
   }
 
@@ -54,6 +66,6 @@ export const usePwaUpdate = () => {
     isUpdating,
     updateAvailable,
     clearCacheAndReload,
-    forceUpdate
+    applyUpdate
   }
 }

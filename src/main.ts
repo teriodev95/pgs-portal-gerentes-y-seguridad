@@ -19,8 +19,14 @@ app.use(router)
 
 app.mount('#app')
 
-registerSW({
-  immediate: true
-  // onNeedRefresh() {},
-  // onOfflineReady() {},
+export const updateSW = registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    // Emitir evento personalizado para notificar al componente PwaPrompt
+    window.dispatchEvent(new CustomEvent('pwa:update-available'))
+    console.log('Nueva versión disponible - se mostró prompt al usuario')
+  },
+  onOfflineReady() {
+    console.log('App lista para funcionar offline')
+  },
 })

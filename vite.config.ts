@@ -27,7 +27,7 @@ export default defineConfig({
 		includeAssets: ["img/*.png", "img/*.svg", "icons/*.svg"],
 		workbox: {
 			globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
-			cleanupOutdatedCaches: false,
+			cleanupOutdatedCaches: true,
 			sourcemap: true,
 			navigateFallback: 'index.html',
 			navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
