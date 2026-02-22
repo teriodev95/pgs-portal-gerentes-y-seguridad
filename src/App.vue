@@ -7,7 +7,7 @@ import { onMounted } from 'vue'
 import { initAccordions, initFlowbite } from 'flowbite'
 
 import ConnectionAlert from './shared/components/ConnectionAlert.vue'
-import InstallApp from './shared/components/ui/InstallApp.vue'
+import PwaPrompt from './shared/components/ui/PwaPrompt.vue'
 import DialogError from './shared/components/DialogError.vue'
 import RevealCircle from './shared/components/RevealCircle.vue'
 
@@ -27,7 +27,7 @@ onMounted(() => {
 
 <template>
   <ConnectionAlert />
-  <InstallApp />
+  <PwaPrompt />
   <DialogError />
   <RevealCircle />
   <RouterView />
