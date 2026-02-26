@@ -19,9 +19,6 @@ const BUSINESS_DAYS: BusinessDay[] = [
   { key: 'martes', label: 'Martes', shortLabel: 'Ma', jsDay: 2 },
 ]
 
-const DAY_CUTOFF_HOUR = 23
-const DAY_CUTOFF_MINUTE = 55
-
 /**
  * Obtiene la fecha del miércoles (inicio) de una semana ISO dada.
  * Semana ISO: lunes es día 1. El miércoles de esa semana ISO es día 3.
@@ -93,14 +90,17 @@ export function useWeekDaySelector() {
 
   /**
    * Verifica si un día es seleccionable.
-   * Un día es seleccionable solo si ya terminó (pasó su hora de corte 23:55)
+   * - Miércoles nunca se envía (siempre deshabilitado)
+   * - Los demás días se habilitan cuando el día ya llegó (hoy o antes)
    */
   function isDaySelectable(day: BusinessDay): boolean {
-    const dayDate = getDateForBusinessDay(day, selectedWeek.value, selectedYear.value)
-    const cutoff = new Date(dayDate)
-    cutoff.setHours(DAY_CUTOFF_HOUR, DAY_CUTOFF_MINUTE, 0, 0)
+    if (day.key === 'miercoles') return false
 
-    return new Date() > cutoff
+    const dayDate = getDateForBusinessDay(day, selectedWeek.value, selectedYear.value)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    return today >= dayDate
   }
 
   /**
