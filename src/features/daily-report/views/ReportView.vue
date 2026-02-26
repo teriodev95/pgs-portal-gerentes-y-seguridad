@@ -57,6 +57,15 @@ function handleBack(): void {
       <!-- Week & Day Selector -->
       <WeekDaySelector />
 
+      <!-- Callout -->
+      <div class="flex gap-3 rounded-xl border border-amber-100 bg-amber-50/60 px-3.5 py-3">
+        <span class="text-amber-500 text-base leading-none mt-0.5">!</span>
+        <p class="text-xs leading-relaxed text-amber-700/80">
+          El miércoles es el primer día de la semana operativa y no genera reporte.
+          Los demás días se habilitan conforme transcurren.
+        </p>
+      </div>
+
       <!-- Divider -->
       <div class="h-px bg-slate-100" />
 
