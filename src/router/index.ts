@@ -135,7 +135,7 @@ const router = createRouter({
         {
           path: 'cash-flow',
           name: ROUTE_NAME.DASHBOARD_CASH_FLOW,
-          component: () => import('@/features/iframe/views/CashFlowView.vue')
+          component: () => import('@/features/cash-flow/views/CashFlowView.vue')
         },
         {
           path: 'incident',
