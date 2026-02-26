@@ -37,6 +37,7 @@ export function useCashFlow() {
 
   // 4. Methods
   async function fetchCashFlow(): Promise<void> {
+    if (!gerenciaSelected.value) return
     loading.value = true
     try {
       const { data } = await cashFlowService.getMovimientos(
