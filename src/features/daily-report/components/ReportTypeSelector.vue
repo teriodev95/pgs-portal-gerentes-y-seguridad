@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { ReportType } from '../types'
-import BtnComponent from '@/shared/components/BtnComponent.vue'
-import CardContainer from '@/shared/components/CardContainer.vue'
-import TextCT from '@/shared/components/ui/TextCT.vue';
+import { FileBarChart, Building2 } from 'lucide-vue-next'
 
-defineProps<{
+const props = defineProps<{
   isGenerating?: boolean
+  isDaySelected?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -15,34 +14,71 @@ const emit = defineEmits<{
 function handleGenerateReport(type: ReportType): void {
   emit('report:generate', type)
 }
+
+const isDisabled = () => props.isGenerating || !props.isDaySelected
 </script>
 
 <template>
-  <CardContainer>
-    <TextCT as="h2" variant="title">
-      Selecciona el tipo de reporte que deseas generar.
-    </TextCT>
+  <div class="space-y-2">
+    <span class="block text-[11px] font-semibold uppercase tracking-widest text-slate-400 pl-1">
+      Tipo de reporte
+    </span>
 
-    <TextCT>
-      Este proceso puede tardar unos segundos. Por favor, mantén abierta esta ventana hasta que la generación del reporte haya finalizado. Luego, selecciona el grupo al que deseas enviar la imagen.
-    </TextCT>
-
-    <div class="grid grid-cols-1 gap-2">
-      <BtnComponent
-        :disabled="isGenerating"
+    <div class="grid grid-cols-2 gap-2.5">
+      <button
+        :disabled="isDisabled()"
         @click="handleGenerateReport('gerencia')"
+        class="group flex flex-col items-center gap-2.5 rounded-2xl border p-5 transition-all duration-200 active:scale-[0.97]"
+        :class="isDisabled()
+          ? 'border-slate-100 bg-slate-50 cursor-not-allowed'
+          : 'border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50/50 hover:shadow-sm'"
       >
-        Reporte Gerencia
-      </BtnComponent>
+        <div
+          class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200"
+          :class="isDisabled()
+            ? 'bg-slate-100 text-slate-300'
+            : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100'"
+        >
+          <FileBarChart :size="22" :stroke-width="1.75" />
+        </div>
+        <span
+          class="text-sm font-semibold transition-colors duration-200"
+          :class="isDisabled() ? 'text-slate-300' : 'text-slate-700'"
+        >
+          Gerencia
+        </span>
+      </button>
 
-      <BtnComponent
-        variant="primary"
-        outline
-        :disabled="isGenerating"
+      <button
+        :disabled="isDisabled()"
         @click="handleGenerateReport('agencia')"
+        class="group flex flex-col items-center gap-2.5 rounded-2xl border p-5 transition-all duration-200 active:scale-[0.97]"
+        :class="isDisabled()
+          ? 'border-slate-100 bg-slate-50 cursor-not-allowed'
+          : 'border-slate-200 bg-white hover:border-violet-200 hover:bg-violet-50/50 hover:shadow-sm'"
       >
-        Reporte Agencia
-      </BtnComponent>
+        <div
+          class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-200"
+          :class="isDisabled()
+            ? 'bg-slate-100 text-slate-300'
+            : 'bg-violet-50 text-violet-600 group-hover:bg-violet-100'"
+        >
+          <Building2 :size="22" :stroke-width="1.75" />
+        </div>
+        <span
+          class="text-sm font-semibold transition-colors duration-200"
+          :class="isDisabled() ? 'text-slate-300' : 'text-slate-700'"
+        >
+          Agencia
+        </span>
+      </button>
     </div>
-  </CardContainer>
+
+    <p
+      v-if="!isDaySelected"
+      class="text-center text-xs text-slate-400 pt-1"
+    >
+      Selecciona un día para generar el reporte
+    </p>
+  </div>
 </template>
