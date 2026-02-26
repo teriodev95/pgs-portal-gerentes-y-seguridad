@@ -37,11 +37,12 @@ export function useCashFlow() {
 
   // 4. Methods
   async function fetchCashFlow(): Promise<void> {
-    if (!gerenciaSelected.value) return
+    const gerencia = gerenciaSelected.value
+    if (!gerencia) return
     loading.value = true
     try {
       const { data } = await cashFlowService.getMovimientos(
-        gerenciaSelected.value,
+        gerencia,
         currentDate.value.year,
         currentDate.value.week,
       )
