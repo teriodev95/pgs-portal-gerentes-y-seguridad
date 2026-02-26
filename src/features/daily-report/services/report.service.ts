@@ -20,17 +20,17 @@ class ReportService {
     return SPANISH_DAYS[today.getDay()]
   }
 
-  private createRequestPayload(params: ReportParams): ReportRequestPayload {
+  private createRequestPayload(params: ReportParams, dayName?: string): ReportRequestPayload {
     return {
       gerenciaId: params.managementId,
       semana: params.week,
       anio: params.year,
-      reporteDia: this.getCurrentDayInSpanish(),
+      reporteDia: dayName || this.getCurrentDayInSpanish(),
     }
   }
 
-  async generateReport(type: ReportType, params: ReportParams): Promise<Blob> {
-    const requestPayload = this.createRequestPayload(params)
+  async generateReport(type: ReportType, params: ReportParams, dayName?: string): Promise<Blob> {
+    const requestPayload = this.createRequestPayload(params, dayName)
     const apiUrl = this.buildApiUrl(type)
 
     const response = await fetch(apiUrl, {
