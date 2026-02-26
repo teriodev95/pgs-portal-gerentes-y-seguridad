@@ -93,12 +93,9 @@ export function useWeekDaySelector() {
 
   /**
    * Verifica si un día es seleccionable.
-   * - Miércoles siempre deshabilitado
-   * - Un día es seleccionable solo si ya terminó (pasó su hora de corte 23:55)
+   * Un día es seleccionable solo si ya terminó (pasó su hora de corte 23:55)
    */
   function isDaySelectable(day: BusinessDay): boolean {
-    if (day.key === 'miercoles') return false
-
     const dayDate = getDateForBusinessDay(day, selectedWeek.value, selectedYear.value)
     const cutoff = new Date(dayDate)
     cutoff.setHours(DAY_CUTOFF_HOUR, DAY_CUTOFF_MINUTE, 0, 0)
