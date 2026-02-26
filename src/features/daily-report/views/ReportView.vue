@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
-import { useReport, useReportDialog } from '../composables'
+import { useReport, useReportDialog, useWeekDaySelector } from '../composables'
 import type { ReportType } from '../types'
 
 // Components
@@ -9,16 +9,18 @@ import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import ReportTypeSelector from '../components/ReportTypeSelector.vue'
 import ReportDialog from '../components/ReportDialog.vue'
+import WeekDaySelector from '../components/WeekDaySelector.vue'
 
 // Composables
 const router = useRouter()
 const { generateReport, shareReport, cleanup, isLoading, imageUrl, isSharing } = useReport()
 const { isOpen, reportType, openDialog, closeDialog } = useReportDialog()
+const { selectedDaySpanish, selectedDayKey } = useWeekDaySelector()
 
 async function handleGenerateReport(type: ReportType): Promise<void> {
   try {
     openDialog(type)
-    await generateReport(type)
+    await generateReport(type, selectedDaySpanish.value || undefined)
   } catch (error) {
     console.error('Error generating report:', error)
   }
@@ -51,10 +53,17 @@ function handleBack(): void {
       @back="handleBack"
     />
 
-    <!-- Report Type Selection -->
-    <div class="p-2">
+    <div class="px-4 py-5 space-y-6">
+      <!-- Week & Day Selector -->
+      <WeekDaySelector />
+
+      <!-- Divider -->
+      <div class="h-px bg-slate-100" />
+
+      <!-- Report Type Selection -->
       <ReportTypeSelector
         :is-generating="isLoading"
+        :is-day-selected="!!selectedDayKey"
         @report:generate="handleGenerateReport"
       />
     </div>

@@ -39,14 +39,14 @@ export function useReport() {
     imageBlob.value = null
   }
 
-  async function generateReport(type: ReportType): Promise<void> {
+  async function generateReport(type: ReportType, dayName?: string): Promise<void> {
     console.log(`Generating ${type} report...`)
 
     isGenerating.value = true
     resetState()
 
     try {
-      const blob = await reportService.generateReport(type, currentReportParams.value)
+      const blob = await reportService.generateReport(type, currentReportParams.value, dayName)
 
       imageBlob.value = blob
       imageUrl.value = URL.createObjectURL(blob)
