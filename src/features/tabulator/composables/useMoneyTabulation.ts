@@ -20,10 +20,39 @@ export function useMoneyTabulation() {
   // Computed properties
   const currentDate = computed(() => $store.currentDate)
   const gerenciaSelected = computed(() => $store.gerenciaSelected)
-  
+
   const isFormValid = computed(() => true) // Validation will be done in the component
 
   const canEdit = computed(() => !hasTabulationForCurrentWeek.value)
+
+  // Helper functions
+  /**
+   * Validates if a tabulation object represents an empty/new tabulation.
+   * A tabulation is considered empty when all denomination quantities are 0.
+   * This helps distinguish between a real existing tabulation and a placeholder
+   * returned by the API when no tabulation exists for the current week.
+   *
+   * @param tabulation - The tabulation object to validate
+   * @returns true if all denomination quantities are 0, false otherwise
+   */
+  function isTabulationEmpty(tabulation: MoneyTabulation): boolean {
+    const denominationValues = [
+      tabulation.cantidad50Centavos,
+      tabulation.cantidad1Peso,
+      tabulation.cantidad2Pesos,
+      tabulation.cantidad5Pesos,
+      tabulation.cantidad10Pesos,
+      tabulation.cantidad20Pesos,
+      tabulation.cantidad20Billetes,
+      tabulation.cantidad50Billetes,
+      tabulation.cantidad100Billetes,
+      tabulation.cantidad200Billetes,
+      tabulation.cantidad500Billetes,
+      tabulation.cantidad1000Billetes
+    ]
+
+    return denominationValues.every(value => value === 0)
+  }
 
   // Methods
   async function fetchTabulationData(): Promise<void> {
@@ -49,9 +78,21 @@ export function useMoneyTabulation() {
       }
 
       if (!isErrorResult(data)) {
-        currentTabulationData.value = data
-        hasTabulationForCurrentWeek.value = true
+        // Check if the tabulation is empty (all values are 0)
+        // If empty, treat it as if no tabulation exists
+        const isEmpty = isTabulationEmpty(data)
+
+        if (isEmpty) {
+          console.log('Tabulation exists but is empty (all zeros) - treating as new tabulation')
+          hasTabulationForCurrentWeek.value = false
+          currentTabulationData.value = undefined
+        } else {
+          console.log('Tabulation exists with valid data')
+          currentTabulationData.value = data
+          hasTabulationForCurrentWeek.value = true
+        }
       } else {
+        console.log('No tabulation found for current week')
         hasTabulationForCurrentWeek.value = false
         currentTabulationData.value = undefined
       }
