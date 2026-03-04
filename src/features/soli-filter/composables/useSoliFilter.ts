@@ -1,6 +1,5 @@
-import { ref, computed, watch } from 'vue'
-import { useStore, useCsvLoaderStore } from '@/shared/stores'
-import { useCreditFilter, type CreditFilters } from '@/shared/composables/useCreditFilter'
+import { ref, computed, watch, onBeforeMount } from 'vue'
+import { useStore } from '@/shared/stores'
 import { soliFilterService } from '../services/soliFilter.service'
 import { usePhotoCapture } from './usePhotoCapture'
 import { useSoliFilterErrorHandler } from './useSoliFilterErrorHandler'
@@ -9,13 +8,13 @@ import type {
   SoliFilterResponse,
   SoliFilterRequest,
   PhotoField,
+  TablaCargosItem,
 } from '../types/soliFilter.types'
 
 export type ViewState = 'form' | 'loading' | 'result'
 
 export function useSoliFilter() {
   const $store = useStore()
-  const $csvLoaderStore = useCsvLoaderStore()
   const { handleError, handleNetworkError } = useSoliFilterErrorHandler()
   const {
     photos,
@@ -27,19 +26,14 @@ export function useSoliFilter() {
     resetPhotos,
   } = usePhotoCapture()
 
-  // Credit filter
-  const csvData = computed(() => $csvLoaderStore.csvData)
-  const {
-    getAvailableAmounts,
-    getFilteredCreditOptions,
-    isAmountSelectDisabled: isAmountDisabled,
-  } = useCreditFilter(csvData)
+  // Catalog
+  const catalogo = ref<TablaCargosItem[]>([])
+  const catalogoLoading = ref(false)
 
   // Form fields
-  const nivel = ref('NUEVO')
-  const plazo = ref('16')
+  const nivel = ref('')
+  const plazo = ref(0)
   const monto = ref(0)
-  const primerPago = ref(0)
   const tipoCredito = ref<TipoCredito>('nuevo')
 
   // View state
@@ -52,61 +46,92 @@ export function useSoliFilter() {
   const semana = computed(() => $store.currentDate.week)
   const anio = computed(() => $store.currentDate.year)
 
-  // Credit filter computeds
-  const currentFilters = computed<CreditFilters>(() => ({
-    plazo: plazo.value,
-    nivel: nivel.value,
-    monto: monto.value,
-  }))
+  // ── Cascading filter from catalog ──
 
-  const availableAmounts = computed(() =>
-    getAvailableAmounts(currentFilters.value),
-  )
-
-  const filteredCreditOptions = computed(() =>
-    getFilteredCreditOptions(currentFilters.value),
-  )
-
-  const isAmountSelectDisabled = computed(() =>
-    isAmountDisabled(currentFilters.value),
-  )
-
-  // Derive tabla_cargos_id from CSV (column 0 = desconocida = numeric ID)
-  const tablaCargosId = computed(() => {
-    if (filteredCreditOptions.value.length > 0) {
-      return Number(filteredCreditOptions.value[0].desconocida)
-    }
-    return null
+  const niveles = computed(() => {
+    const unique = [...new Set(catalogo.value.map((i) => i.nivel))]
+    return unique.sort()
   })
 
-  // Watchers
-  watch(filteredCreditOptions, (newValue) => {
-    primerPago.value = newValue.length > 0
-      ? Number(newValue[0].primerPago)
-      : 0
-  }, { immediate: true })
+  const plazos = computed(() => {
+    if (!nivel.value) return []
+    const filtered = catalogo.value.filter((i) => i.nivel === nivel.value)
+    const unique = [...new Set(filtered.map((i) => i.plazo_semanas))]
+    return unique.sort((a, b) => a - b)
+  })
 
-  watch(() => nivel.value, () => {
+  const montos = computed(() => {
+    const p = Number(plazo.value)
+    if (!nivel.value || !p) return []
+    const filtered = catalogo.value.filter(
+      (i) => i.nivel === nivel.value && Number(i.plazo_semanas) === p,
+    )
+    return filtered.map((i) => i.monto_solicitado).sort((a, b) => a - b)
+  })
+
+  const registroSeleccionado = computed<TablaCargosItem | null>(() => {
+    const p = Number(plazo.value)
+    const m = Number(monto.value)
+    if (!nivel.value || !p || !m) return null
+    return (
+      catalogo.value.find(
+        (i) =>
+          i.nivel === nivel.value &&
+          Number(i.plazo_semanas) === p &&
+          Number(i.monto_solicitado) === m,
+      ) ?? null
+    )
+  })
+
+  // ── Watchers for cascade reset ──
+
+  watch(nivel, () => {
+    plazo.value = 0
     monto.value = 0
-    primerPago.value = 0
   })
+
+  watch(plazo, () => {
+    monto.value = 0
+  })
+
+  // ── Validation ──
 
   const isFormValid = computed(() => {
     return (
       allPhotosReady.value &&
-      tablaCargosId.value !== null &&
-      monto.value > 0 &&
-      agencia.value !== '' &&
-      gerencia.value !== ''
+      registroSeleccionado.value !== null &&
+      gerencia.value !== '' &&
+      gerencia.value !== undefined
     )
   })
+
+  // ── Fetch catalog ──
+
+  async function fetchCatalogo(): Promise<void> {
+    catalogoLoading.value = true
+    try {
+      const { data: res } = await soliFilterService.getTablaCargos()
+      catalogo.value = Array.isArray(res.data) ? res.data : []
+    } catch (error) {
+      handleNetworkError(error)
+      catalogo.value = []
+    } finally {
+      catalogoLoading.value = false
+    }
+  }
+
+  onBeforeMount(() => {
+    fetchCatalogo()
+  })
+
+  // ── Submit ──
 
   async function submitSolicitud(): Promise<void> {
     if (!allPhotosReady.value) {
       handleError(null, 'PHOTOS_MISSING')
       return
     }
-    if (!isFormValid.value) {
+    if (!isFormValid.value || !registroSeleccionado.value) {
       handleError(null, 'FIELDS_MISSING')
       return
     }
@@ -119,7 +144,7 @@ export function useSoliFilter() {
         comprobanteCliente: photos.value.comprobanteCliente!,
         ineAval: photos.value.ineAval!,
         comprobanteAval: photos.value.comprobanteAval!,
-        tablaCargosId: tablaCargosId.value!,
+        tablaCargosId: registroSeleccionado.value.id,
         agencia: agencia.value ?? '',
         gerencia: gerencia.value ?? '',
         semana: semana.value,
@@ -152,10 +177,9 @@ export function useSoliFilter() {
 
   function resetForm(): void {
     resetPhotos()
-    nivel.value = 'NUEVO'
-    plazo.value = '16'
+    nivel.value = ''
+    plazo.value = 0
     monto.value = 0
-    primerPago.value = 0
     tipoCredito.value = 'nuevo'
     response.value = null
     viewState.value = 'form'
@@ -169,14 +193,16 @@ export function useSoliFilter() {
     photosCount,
     setPhoto,
     removePhoto,
+    // Catalog
+    catalogoLoading,
+    niveles,
+    plazos,
+    montos,
+    registroSeleccionado,
     // Credit fields
     nivel,
     plazo,
     monto,
-    primerPago,
-    availableAmounts,
-    isAmountSelectDisabled,
-    tablaCargosId,
     // Form fields
     tipoCredito,
     // Context

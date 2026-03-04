@@ -141,19 +141,43 @@ export interface SoliFilterListDocuments {
   [key: string]: SoliFilterListDocumentDetail | undefined
 }
 
+// --- Tabla cargos catalog ---
+
+export interface TablaCargosItem {
+  id: number
+  cargo_total_porcentaje: number
+  monto_solicitado: number
+  cargo: number
+  total_pagar: number
+  tarifa_semanal: number
+  primer_pago: number
+  nivel: string
+  plazo_semanas: number
+}
+
+export interface TablaCargosResponse {
+  success: boolean
+  data: TablaCargosItem[]
+}
+
 // --- Photo config ---
 
 export type PhotoField = 'ineCliente' | 'comprobanteCliente' | 'ineAval' | 'comprobanteAval'
+export type PhotoVariant = 'blue' | 'green'
 
 export interface PhotoConfig {
   field: PhotoField
   label: string
   description: string
+  variant: PhotoVariant
 }
 
-export const PHOTO_CONFIGS: PhotoConfig[] = [
-  { field: 'ineCliente', label: 'INE Cliente', description: 'Foto de la INE del cliente' },
-  { field: 'comprobanteCliente', label: 'Comprobante Cliente', description: 'Comprobante de domicilio del cliente' },
-  { field: 'ineAval', label: 'INE Aval', description: 'Foto de la INE del aval' },
-  { field: 'comprobanteAval', label: 'Comprobante Aval', description: 'Comprobante de domicilio del aval' },
+export const PHOTO_CONFIGS_CLIENTE: PhotoConfig[] = [
+  { field: 'ineCliente', label: 'INE', description: 'Credencial del cliente', variant: 'blue' },
+  { field: 'comprobanteCliente', label: 'Comprobante', description: 'Domicilio del cliente', variant: 'green' },
+]
+
+export const PHOTO_CONFIGS_AVAL: PhotoConfig[] = [
+  { field: 'ineAval', label: 'INE', description: 'Credencial del aval', variant: 'blue' },
+  { field: 'comprobanteAval', label: 'Comprobante', description: 'Domicilio del aval', variant: 'green' },
 ]
