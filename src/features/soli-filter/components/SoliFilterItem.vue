@@ -26,13 +26,17 @@ defineEmits<{
       <span class="text-sm font-semibold text-slate-700">Solicitud #{{ solicitud.id }}</span>
       <span
         :class="[
-          'ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold',
-          solicitud.status === 'pendiente'
-            ? 'bg-amber-50 text-amber-600'
-            : 'bg-emerald-50 text-emerald-600',
+          'ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize',
+          solicitud.revision.status === 'pendiente'
+            ? 'bg-slate-50 text-slate-600'
+            : solicitud.revision.status === 'aprobada'
+            ? 'bg-emerald-50 text-emerald-600'
+            : solicitud.revision.status === 'rechazada'
+            ? 'bg-red-50 text-red-600'
+            : 'bg-amber-50 text-amber-600',
         ]"
       >
-        {{ solicitud.status }}
+        {{ solicitud.revision.status }}
       </span>
     </div>
 
