@@ -1,6 +1,6 @@
 {
 	"name": "money-xpress",
-	"version": "5.2.4",
+	"version": "5.2.5",
 	"private": true,
 	"scripts": {
 		"dev": "vite --host",

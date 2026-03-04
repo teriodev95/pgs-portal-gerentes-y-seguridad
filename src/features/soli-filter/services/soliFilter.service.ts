@@ -3,6 +3,7 @@ import type {
   SoliFilterRequest,
   SoliFilterResponse,
   SoliFilterListResponse,
+  TablaCargosResponse,
 } from '../types/soliFilter.types'
 
 class SoliFilterService {
@@ -36,6 +37,10 @@ class SoliFilterService {
 
   async getSolicitudById(id: number) {
     return this.apiClient.get<SoliFilterResponse>(`/solicitud-filtro/${id}`)
+  }
+
+  async getTablaCargos() {
+    return this.apiClient.get<TablaCargosResponse>('/tabla-cargos')
   }
 }
 
