@@ -30,7 +30,8 @@ export interface ApiConfigurations {
   mainV2: ApiConfig
   n8nCreateComision: ApiConfig
   workerUploadExpenseImage: ApiConfig
-  workerUploadVideo: ApiConfig
+  workerUploadVideo: ApiConfig,
+  mcp: ApiConfig
 }
 
 // Service factory function type

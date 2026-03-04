@@ -4,10 +4,12 @@ import type {
   SoliFilterResponse,
   SoliFilterListResponse,
   TablaCargosResponse,
+  ITablaCargosMcp
 } from '../types/soliFilter.types'
 
 class SoliFilterService {
   private apiClient = createApiClientFromPreset('elysia')
+  private mcpClient = createApiClientFromPreset('mcp')
 
   async enviarSolicitud(request: SoliFilterRequest) {
     const formData = new FormData()
@@ -41,6 +43,26 @@ class SoliFilterService {
 
   async getTablaCargos() {
     return this.apiClient.get<TablaCargosResponse>('/tabla-cargos')
+  }
+
+  async resubirDocumento(id: number, docKey: string, imagen: File) {
+    const formData = new FormData()
+    formData.append('imagen', imagen)
+
+    return this.apiClient.patch(`/solicitud-filtro/${id}/documento/${docKey}`, formData, {
+      timeout: 30000,
+    })
+  }
+
+
+  async obtenerCargosDesdeMCP(id: number) {
+    const query = `
+      SELECT
+       *
+      FROM tabla_cargos
+      where id = ${id}
+    `
+    return this.mcpClient.post<ITablaCargosMcp>('/run_query', { query })
   }
 }
 
