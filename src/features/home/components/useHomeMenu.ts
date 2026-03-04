@@ -28,7 +28,8 @@ import {
   KeyRound,
   Share,
   Book,
-  Calendar
+  Calendar,
+  ScanSearch,
 } from 'lucide-vue-next'
 
 /**
@@ -215,7 +216,14 @@ export function useHomeMenu() {
       route: ROUTE_NAME.CALENDAR,
       description: 'Ver calendario',
     },
-        {
+    {
+      id: 'soli-filter',
+      title: 'Soli Filtro',
+      icon: ScanSearch,
+      route: ROUTE_NAME.SOLI_FILTER,
+      description: 'Solicitud con filtro',
+    },
+    {
       id: 'pagare',
       title: 'Pagaré',
       icon: Book,
