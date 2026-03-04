@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { ArrowLeft, CalendarDays, ExternalLink, FileCheck2, ScanText, ShieldCheck, X } from 'lucide-vue-next'
+import { ref, computed, watch } from 'vue'
+import { ArrowLeft, AlertTriangle, CheckCircle2, Clock, ExternalLink, ShieldCheck, X, FileText, Camera, Image, Loader2 } from 'lucide-vue-next'
 import { toCurrency } from '@/shared/utils'
-import type { SoliFilterListDocumentDetail, SoliFilterListItem } from '../types/soliFilter.types'
+import type { SoliFilterListItem } from '../types/soliFilter.types'
+import { useSoliFilterDetails } from '../composables/useSoliFilterDetails'
 
 import CardContainer from '@/shared/components/CardContainer.vue'
 import DataField from '@/shared/components/DataField.vue'
@@ -15,37 +16,57 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
+  refresh: []
 }>()
 
-const snapshot = computed(() => props.solicitud?.data?.tabla_cargos_snapshot)
-const ocrTokens = computed(() => props.solicitud?.data?.ocr_tokens ?? [])
+const { isUploading, uploadingDocKey, tablaCargosData, isLoadingTablaCargos, resubirDocumento, fetchTablaCargos } = useSoliFilterDetails()
+
+// Auto-fetch tabla_cargos when tabla_cargos_id_sugerido exists
+watch(
+  () => props.solicitud?.revision?.tabla_cargos_id_sugerido,
+  (tablaCargosId) => {
+    if (tablaCargosId) {
+      fetchTablaCargos(tablaCargosId)
+    }
+  },
+  { immediate: true }
+)
+
+const fileInputRefs = ref<Record<string, HTMLInputElement | null>>({})
+const showOptionsForDoc = ref<string | null>(null)
+const uploadError = ref<{ doc: string; causa: string; solucion: string } | null>(null)
 
 const documents = computed(() => {
-  if (!props.solicitud?.documentos) return []
+  if (!props.solicitud?.docs_resumen) return []
+  return props.solicitud.docs_resumen
+})
 
-  return Object.entries(props.solicitud.documentos)
-    .map(([key, value]) => ({
-      key,
-      label: formatDocLabel(key),
-      detail: value,
-    }))
-    .filter((item): item is { key: string; label: string; detail: SoliFilterListDocumentDetail } => Boolean(item.detail))
+const validDocumentsCount = computed(() => {
+  return documents.value.filter(doc => doc.valida).length
+})
+
+const revisionStatusConfig = computed(() => {
+  const status = props.solicitud?.revision?.status
+  switch (status) {
+    case 'aprobada':
+      return { label: 'Aprobada', class: 'bg-emerald-50 text-emerald-700', icon: CheckCircle2 }
+    case 'rechazada':
+      return { label: 'Rechazada', class: 'bg-red-50 text-red-700', icon: X }
+    case 'corregir':
+      return { label: 'Requiere corrección', class: 'bg-amber-50 text-amber-700', icon: AlertTriangle }
+    default:
+      return { label: 'Pendiente', class: 'bg-slate-50 text-slate-700', icon: Clock }
+  }
 })
 
 function formatDocLabel(key: string): string {
-  return key.replace(/_/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase())
-}
-
-function formatFieldLabel(key: string): string {
-  return key.replace(/_/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase())
-}
-
-function formatFieldValue(value: string | null): string {
-  if (value === null || value === undefined || value === 'null' || value === '') {
-    return 'Sin dato'
+  const labels: Record<string, string> = {
+    ine_cliente: 'INE Cliente',
+    comprobante_cliente: 'Comprobante Cliente',
+    ine_aval: 'INE Aval',
+    comprobante_aval: 'Comprobante Aval',
   }
-
-  return value
+  return labels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase())
 }
 
 function formatDate(value?: string): string {
@@ -60,42 +81,87 @@ function formatDate(value?: string): string {
 function openDocument(url: string): void {
   window.open(url, '_blank')
 }
+
+function toggleOptions(docKey: string): void {
+  showOptionsForDoc.value = showOptionsForDoc.value === docKey ? null : docKey
+  // Clear error when user tries again
+  if (uploadError.value?.doc === docKey) {
+    uploadError.value = null
+  }
+}
+
+function selectCamera(docKey: string): void {
+  showOptionsForDoc.value = null
+  const input = fileInputRefs.value[docKey]
+  if (input) {
+    input.setAttribute('capture', 'environment')
+    input.click()
+  }
+}
+
+function selectGallery(docKey: string): void {
+  showOptionsForDoc.value = null
+  const input = fileInputRefs.value[docKey]
+  if (input) {
+    input.removeAttribute('capture')
+    input.click()
+  }
+}
+
+async function handleFileChange(event: Event, docKey: string): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (!file || !props.solicitud) {
+    input.value = ''
+    return
+  }
+
+  // Clear previous errors
+  uploadError.value = null
+
+  const result = await resubirDocumento(props.solicitud.id, docKey, file)
+
+  if (result.success) {
+    emit('refresh')
+  } else if (result.error) {
+    uploadError.value = result.error
+  }
+
+  input.value = ''
+}
+
+function setFileInputRef(docKey: string, el: HTMLInputElement | null): void {
+  if (el) {
+    fileInputRefs.value[docKey] = el
+  }
+}
 </script>
 
 <template>
-  <div
-    v-if="solicitud"
-    class="fixed inset-0 z-[80] bg-slate-100"
-  >
+  <div v-if="solicitud" class="fixed inset-0 z-[80] bg-slate-100">
     <div class="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div class="mx-auto flex max-w-5xl items-center gap-3 px-4 py-4">
-        <button
-          class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm"
-          @click="emit('close')"
-        >
+        <button class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm"
+          @click="emit('close')">
           <ArrowLeft class="h-5 w-5" />
         </button>
 
         <div class="min-w-0 flex-1">
           <p class="truncate text-lg font-semibold text-slate-800">Solicitud #{{ solicitud.id }}</p>
-          <p class="truncate text-sm text-slate-500">R2 ID: {{ solicitud.data?.solicitud_id_r2 || 'Sin identificador' }}</p>
+          <p class="truncate text-sm text-slate-500">{{ solicitud.nombre_cliente }}</p>
         </div>
 
-        <span
-          :class="[
-            'rounded-full px-3 py-1 text-xs font-semibold capitalize',
-            solicitud.status === 'pendiente'
-              ? 'bg-amber-50 text-amber-700'
-              : 'bg-emerald-50 text-emerald-700',
-          ]"
-        >
-          {{ solicitud.status }}
+        <component :is="revisionStatusConfig.icon" class="h-5 w-5" :class="revisionStatusConfig.class.includes('emerald') ? 'text-emerald-600' :
+          revisionStatusConfig.class.includes('red') ? 'text-red-600' :
+            revisionStatusConfig.class.includes('amber') ? 'text-amber-600' : 'text-slate-600'" />
+        <span :class="['rounded-full px-3 py-1 text-xs font-semibold capitalize', revisionStatusConfig.class]">
+          {{ revisionStatusConfig.label }}
         </span>
 
         <button
           class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500"
-          @click="emit('close')"
-        >
+          @click="emit('close')">
           <X class="h-5 w-5" />
         </button>
       </div>
@@ -103,11 +169,108 @@ function openDocument(url: string): void {
 
     <div class="h-[calc(100vh-81px)] overflow-y-auto">
       <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-4 pb-10">
-        <AlertMsg
-          type="info"
-          label="Consulta validada."
-          :message="`La API de Elysia regresó ${documents.length} documentos y ${ocrTokens.length} registros OCR para esta solicitud.`"
-        />
+        <AlertMsg type="info" label="Solicitud cargada"
+          :message="`${validDocumentsCount} de ${documents.length} documentos válidos • Revisión: ${revisionStatusConfig.label}`" />
+
+        <CardContainer title="Estado de revisión">
+          <div class="mb-4 flex items-center gap-3">
+            <component :is="revisionStatusConfig.icon" class="h-6 w-6" />
+            <div class="flex-1">
+              <p class="font-semibold text-slate-800">{{ revisionStatusConfig.label }}</p>
+              <p v-if="solicitud.revision.reviewed_by" class="text-sm text-slate-500">
+                Revisado por {{ solicitud.revision.reviewed_by }} • {{ formatDate(solicitud.revision.reviewed_at ||
+                  undefined)
+                }}
+              </p>
+              <p v-else class="text-sm text-slate-500">Sin revisar</p>
+            </div>
+          </div>
+
+          <div v-if="solicitud.revision.motivo_rechazo || solicitud.revision.diagnostico" class="space-y-3">
+            <DataField v-if="solicitud.revision.motivo_rechazo" label="Motivo de rechazo" orientation="vertical"
+              :value="solicitud.revision.motivo_rechazo" />
+            <DataField v-if="solicitud.revision.diagnostico" label="Diagnóstico" orientation="vertical"
+              :value="solicitud.revision.diagnostico" />
+          </div>
+        </CardContainer>
+
+        <CardContainer title="Documentos">
+          <div class="mb-4 flex items-center gap-2 text-sm text-slate-600">
+            <FileText class="h-4 w-4" />
+            <span>{{ validDocumentsCount }} de {{ documents.length }} documentos válidos</span>
+            <span v-if="solicitud.doc_invalido_detalle" class="ml-auto text-red-600">
+              Documento inválido: {{ formatDocLabel(solicitud.doc_invalido_detalle) }}
+            </span>
+          </div>
+
+          <div class="space-y-4">
+            <div v-for="doc in documents" :key="`${solicitud.id}-${doc.doc}`"
+              class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div class="mb-3 flex items-center gap-2">
+                <ShieldCheck class="h-4 w-4" :class="doc.valida ? 'text-emerald-600' : 'text-red-600'" />
+                <h3 class="font-semibold text-slate-800">{{ formatDocLabel(doc.doc) }}</h3>
+                <span :class="[
+                  'ml-auto rounded-full px-2.5 py-1 text-xs font-semibold',
+                  doc.valida ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700',
+                ]">
+                  {{ doc.valida ? 'Válido' : 'Revisión requerida' }}
+                </span>
+              </div>
+
+              <div v-if="doc.causa || doc.solucion" class="grid gap-3 md:grid-cols-2 mb-4">
+                <DataField v-if="doc.causa" label="Causa" :value="doc.causa" />
+                <DataField v-if="doc.solucion" label="Solución" :value="doc.solucion" />
+              </div>
+
+              <div v-if="doc.url" class="space-y-2">
+                <img :src="doc.url" :alt="formatDocLabel(doc.doc)" class="h-48 w-full rounded-xl object-cover" />
+
+                <BtnComponent variant="secondary" outline full-width @click="openDocument(doc.url)">
+                  <template #icon-left>
+                    <ExternalLink class="h-4 w-4" />
+                  </template>
+                  Abrir documento
+                </BtnComponent>
+              </div>
+
+              <!-- Re-upload section for invalid documents -->
+              <div v-if="!doc.valida" class="space-y-2">
+                <div v-if="showOptionsForDoc === doc.doc" class="grid grid-cols-2 gap-2">
+                  <BtnComponent variant="secondary" outline full-width @click="selectCamera(doc.doc)">
+                    <template #icon-left>
+                      <Camera class="h-4 w-4" />
+                    </template>
+                    Tomar foto
+                  </BtnComponent>
+                  <BtnComponent variant="secondary" outline full-width @click="selectGallery(doc.doc)">
+                    <template #icon-left>
+                      <Image class="h-4 w-4" />
+                    </template>
+                    Galería
+                  </BtnComponent>
+                </div>
+                <BtnComponent v-else variant="primary" full-width :disabled="isUploading && uploadingDocKey === doc.doc"
+                  @click="toggleOptions(doc.doc)">
+                  <template v-if="isUploading && uploadingDocKey === doc.doc" #icon-left>
+                    <Loader2 class="h-4 w-4 animate-spin" />
+                  </template>
+                  {{ isUploading && uploadingDocKey === doc.doc ? 'Subiendo...' : 'Corregir documento' }}
+                </BtnComponent>
+
+                <!-- Error message from upload -->
+                <div v-if="uploadError && uploadError.doc === doc.doc"
+                  class="rounded-lg border border-red-200 bg-red-50 p-3 space-y-1">
+                  <p class="text-xs font-semibold text-red-800">{{ uploadError.causa }}</p>
+                  <p class="text-xs text-red-600">{{ uploadError.solucion }}</p>
+                </div>
+
+                <!-- Hidden file input -->
+                <input :ref="(el) => setFileInputRef(doc.doc, el as HTMLInputElement)" type="file" accept="image/*"
+                  class="hidden" @change="handleFileChange($event, doc.doc)" />
+              </div>
+            </div>
+          </div>
+        </CardContainer>
 
         <CardContainer title="Resumen general">
           <div class="grid gap-3 md:grid-cols-2">
@@ -124,106 +287,59 @@ function openDocument(url: string): void {
           </div>
         </CardContainer>
 
-        <CardContainer title="Snapshot financiero">
-          <div v-if="snapshot" class="grid gap-3 md:grid-cols-2">
-            <DataField label="Monto" :value="toCurrency(snapshot.monto_solicitado)" />
-            <DataField label="Cargo" :value="toCurrency(snapshot.cargo)" />
-            <DataField label="Total a pagar" :value="toCurrency(snapshot.total_pagar)" />
-            <DataField label="Tarifa semanal" :value="toCurrency(snapshot.tarifa_semanal)" />
-            <DataField label="Primer pago" :value="toCurrency(snapshot.primer_pago)" />
-            <DataField label="Plazo" :value="`${snapshot.plazo_semanas} semanas`" />
-            <DataField label="Nivel" :value="snapshot.nivel" />
+        <CardContainer title="Información de identificación">
+          <div class="grid gap-3 md:grid-cols-2">
+            <DataField label="Persona ID cliente" :value="solicitud.persona_id_cliente || 'Sin ID'" />
+            <DataField label="Persona ID aval" :value="solicitud.persona_id_aval || 'Sin ID'" />
+            <DataField label="No. servicio cliente" :value="solicitud.no_servicio_cliente || 'Sin dato'" />
+            <DataField label="No. servicio aval" :value="solicitud.no_servicio_aval || 'Sin dato'" />
+            <DataField label="CURP cliente" :value="solicitud.curp_cliente || 'Sin dato'" />
+            <DataField label="CURP aval" :value="solicitud.curp_aval || 'Sin dato'" />
           </div>
-          <p v-else class="text-sm text-slate-500">No hay snapshot financiero disponible.</p>
         </CardContainer>
+
+        <CardContainer v-if="solicitud.tipo_credito === 'renovacion'" title="Información de renovación">
+          <div class="grid gap-3 md:grid-cols-2">
+            <DataField label="Préstamo anterior ID" :value="solicitud.prestamo_anterior_id || 'Sin dato'" />
+            <DataField label="Monto anterior"
+              :value="solicitud.monto_anterior ? toCurrency(solicitud.monto_anterior) : 'Sin dato'" />
+            <DataField label="Nivel anterior" :value="solicitud.nivel_anterior || 'Sin dato'" />
+            <DataField label="Liquidado con descuento"
+              :value="solicitud.liquidado_con_descuento === null ? 'Sin dato' : solicitud.liquidado_con_descuento ? 'Sí' : 'No'" />
+          </div>
+        </CardContainer>
+
+        <CardContainer v-if="solicitud.revision.tabla_cargos_id_sugerido" title="Tabla de cargos sugerida">
+          <div v-if="isLoadingTablaCargos" class="py-4 text-center text-sm text-slate-500">
+            Cargando información de tabla de cargos...
+          </div>
+          <div v-else-if="tablaCargosData" class="grid gap-3 md:grid-cols-2">
+            <DataField label="ID" :value="String(tablaCargosData.id)" />
+            <DataField label="Nivel" :value="tablaCargosData.nivel" />
+            <DataField label="Monto solicitado" :value="toCurrency(tablaCargosData.monto_solicitado)" />
+            <DataField label="Plazo" :value="`${tablaCargosData.plazo_semanas} semanas`" />
+            <DataField label="Cargo" :value="`$${tablaCargosData.cargo}`" />
+            <DataField label="Total a pagar" :value="`$${tablaCargosData.total_pagar}`" />
+            <DataField label="Tarifa semanal" :value="`$${tablaCargosData.tarifa_semanal}`" />
+            <DataField label="Primer pago" :value="`$${tablaCargosData.primer_pago}`" />
+            <DataField label="Cargo %" :value="`${tablaCargosData.cargo_total_porcentaje}%`" />
+            <DataField label="Identificador" :value="tablaCargosData.identificador" />
+          </div>
+          <div v-else class="py-4 text-center text-sm text-slate-500">
+            {{ tablaCargosData }}
+            No se pudo cargar la información de tabla de cargos
+          </div>
+        </CardContainer>
+
 
         <CardContainer title="Metadatos">
           <div class="grid gap-3 md:grid-cols-2">
-            <DataField label="Persona cliente" :value="solicitud.persona_id_cliente || 'Sin ID'" />
-            <DataField label="Persona aval" :value="solicitud.persona_id_aval || 'Sin ID'" />
+            <DataField label="Tabla cargos ID" :value="String(solicitud.tabla_cargos_id)" />
+            <DataField label="Documentos válidos" :value="`${solicitud.docs_validos} de ${documents.length}`" />
             <DataField label="Creado" :value="formatDate(solicitud.created_at)" />
             <DataField label="Actualizado" :value="formatDate(solicitud.updated_at)" />
-            <DataField label="Tabla cargos ID" :value="solicitud.tabla_cargos_id" />
-            <DataField label="Solicitud R2" :value="solicitud.data?.solicitud_id_r2 || 'Sin ID'" />
           </div>
         </CardContainer>
-
-        <CardContainer title="OCR tokens">
-          <div v-if="ocrTokens.length" class="space-y-3">
-            <div
-              v-for="token in ocrTokens"
-              :key="`${solicitud.id}-${token.doc}`"
-              class="rounded-xl border border-slate-200 bg-slate-50 p-3"
-            >
-              <div class="mb-2 flex items-center gap-2">
-                <ScanText class="h-4 w-4 text-slate-600" />
-                <p class="font-medium text-slate-700">{{ formatDocLabel(token.doc) }}</p>
-              </div>
-              <div class="grid gap-2 md:grid-cols-3">
-                <DataField label="Input" :value="token.input" />
-                <DataField label="Output" :value="token.output" />
-                <DataField label="Total" :value="token.input + token.output" />
-              </div>
-            </div>
-          </div>
-          <p v-else class="text-sm text-slate-500">No se reportaron tokens OCR.</p>
-        </CardContainer>
-
-        <CardContainer title="Documentos">
-          <div class="space-y-4">
-            <div
-              v-for="{ key, label, detail } in documents"
-              :key="`${solicitud.id}-${key}`"
-              class="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-            >
-              <div class="mb-3 flex items-center gap-2">
-                <ShieldCheck class="h-4 w-4" :class="detail.valida ? 'text-emerald-600' : 'text-red-600'" />
-                <h3 class="font-semibold text-slate-800">{{ label }}</h3>
-                <span
-                  :class="[
-                    'ml-auto rounded-full px-2.5 py-1 text-xs font-semibold',
-                    detail.valida ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700',
-                  ]"
-                >
-                  {{ detail.valida ? 'Válido' : 'Revisión requerida' }}
-                </span>
-              </div>
-
-              <div class="grid gap-3 md:grid-cols-2">
-                <DataField label="Causa" :value="detail.causa || 'Sin incidencia'" />
-                <DataField label="Solución" :value="detail.solucion || 'No requerida'" />
-              </div>
-
-              <div v-if="detail.datos_extraidos" class="mt-3 grid gap-3 md:grid-cols-2">
-                <DataField
-                  v-for="(value, fieldKey) in detail.datos_extraidos"
-                  :key="`${key}-${fieldKey}`"
-                  :label="formatFieldLabel(fieldKey)"
-                  :value="formatFieldValue(value)"
-                />
-              </div>
-
-              <div v-if="detail.url" class="mt-4 space-y-3">
-                <img
-                  :src="detail.url"
-                  :alt="label"
-                  class="h-48 w-full rounded-xl object-cover"
-                />
-                <BtnComponent variant="secondary" outline full-width @click="openDocument(detail.url)">
-                  <template #icon-left>
-                    <ExternalLink class="h-4 w-4" />
-                  </template>
-                  Abrir documento
-                </BtnComponent>
-              </div>
-            </div>
-          </div>
-        </CardContainer>
-
-        <div class="flex items-center justify-center gap-2 pt-1 text-xs text-slate-400">
-          <CalendarDays class="h-4 w-4" />
-          <span>Última actualización: {{ formatDate(solicitud.updated_at) }}</span>
-        </div>
       </div>
     </div>
   </div>

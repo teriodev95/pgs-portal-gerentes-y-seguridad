@@ -13,7 +13,7 @@ import SoliFilterList from '../components/SoliFilterList.vue'
 import SoliFilterDetailsScreen from '../components/SoliFilterDetailsScreen.vue'
 
 const router = useRouter()
-const { solicitudes, isLoading } = useSoliFilterList()
+const { solicitudes, isLoading, fetchSolicitudes } = useSoliFilterList()
 const selectedSolicitud = ref<SoliFilterListItem | null>(null)
 const isDetailsOpen = ref(false)
 
@@ -33,6 +33,17 @@ function handleShowDetails(solicitud: SoliFilterListItem): void {
 function handleCloseDetails(): void {
   isDetailsOpen.value = false
   selectedSolicitud.value = null
+}
+
+async function handleRefresh(): Promise<void> {
+  await fetchSolicitudes()
+  // Update selected solicitud with fresh data
+  if (selectedSolicitud.value) {
+    const updated = solicitudes.value.find(s => s.id === selectedSolicitud.value?.id)
+    if (updated) {
+      selectedSolicitud.value = updated
+    }
+  }
 }
 </script>
 
@@ -59,6 +70,7 @@ function handleCloseDetails(): void {
       v-if="isDetailsOpen"
       :solicitud="selectedSolicitud"
       @close="handleCloseDetails"
+      @refresh="handleRefresh"
     />
   </MainCT>
 </template>
