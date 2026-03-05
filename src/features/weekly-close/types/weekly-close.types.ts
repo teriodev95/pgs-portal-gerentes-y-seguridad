@@ -145,3 +145,38 @@ export interface IAgencyDashboard {
   totalPagado: number;
   rendimiento: number;
 }
+
+export interface ICommissionReportItem {
+  agencia: string
+  agente: string
+  mesesTrabajados: number
+  clientesPagoCompleto: number
+  recuperacionAlJueves: number
+  totalCobranzaPura: number
+  montoExcedente: number
+  primerosPagos: number
+  numeroVentas: number
+  baseComision: number
+  comisionPorVentas: number
+  nivelComision: string
+  numeroNivelComision: number
+  comisionSemanal: number
+  comisionTotal: number
+}
+
+export interface ICommissionReportParams {
+  semana: number
+  anio: number
+  agencia: string
+}
+
+export interface ICommissionReportSummary {
+  totalAgentes: number
+  totalComisionAgencia: number
+}
+
+export interface ICommissionReport {
+  reporte: ICommissionReportItem[]
+  parametros: ICommissionReportParams
+  resumen: ICommissionReportSummary
+}

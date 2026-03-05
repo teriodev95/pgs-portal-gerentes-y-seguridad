@@ -1,7 +1,7 @@
 // stores/cierreSemanal.ts
 import { ref, computed, readonly } from 'vue'
 import { defineStore } from 'pinia'
-import type { IFastWeeklyClose, IWeeklyCloseWithIncome, IBonusSummary } from '@/features/weekly-close/types'
+import type { IFastWeeklyClose, IWeeklyCloseWithIncome, IBonusSummary, ICommissionReportItem } from '@/features/weekly-close/types'
 import type { IAgencyDashboard } from '@/features/weekly-close/types'
 
 
@@ -27,7 +27,17 @@ export const useCierreSemanalStore = defineStore('cierre-semanal', () => {
   )
 
   // Métodos básicos para actualizar estado
-  const setBonusInfo = (data: IBonusSummary) => (bonusInfo.value = data)
+  const setBonusInfo = (bono: number) => {
+    if (!weeklyClose.value) return
+    weeklyClose.value.egresosGerente.bonosPagadosEnSemana = bono
+  }
+
+  const setCommissionInfo = (commission: ICommissionReportItem) => {
+    if (!weeklyClose.value) return
+    weeklyClose.value.egresosGerente.comisionCobranzaPagadaEnSemana = commission.comisionSemanal
+    weeklyClose.value.egresosGerente.comisionVentasPagadaEnSemana = commission.comisionPorVentas
+  }
+
   const setClosingComplete = (status: boolean) => (isClosingComplete.value = status)
   const setError = (errorMessage: string | null) => (error.value = errorMessage)
   const setLoading = (status: boolean) => (isLoading.value = status)
@@ -122,6 +132,7 @@ export const useCierreSemanalStore = defineStore('cierre-semanal', () => {
     setAgentsIncome,
     setBonusInfo,
     setClosingComplete,
+    setCommissionInfo,
     setError,
     setLoading,
     setSecurityPin,
