@@ -3,7 +3,6 @@ import { computed, watch, ref } from 'vue'
 import { useStore } from '@/shared/stores'
 import { useSignStore } from '@/features/weekly-close/stores'
 import type { IAgencyDashboard } from '@/shared/types'
-import { useVerificationMessage } from '../composables/useVerificationMessage'
 import { useCameraRecording } from '../composables/useCameraRecording'
 import { useVideoUpload } from '../composables/useVideoUpload'
 
@@ -21,6 +20,7 @@ const $emit = defineEmits<Emit>()
 
 const $props = defineProps<{
   mode: 'agente' | 'gerente'
+  verificationMessage: string
 }>()
 
 // Helpers
@@ -52,7 +52,6 @@ const verificationCompleted = computed(() => {
 })
 
 // Composables implementation
-const { verificationMessage } = useVerificationMessage()
 const {
   videoLive,
   videoRecorded,
@@ -127,7 +126,7 @@ const updateVerificationStatus = (mode: 'agente' | 'gerente', value: boolean) =>
     <div v-if="uploadStatus !== 'success' && !verificationCompleted" class="space-y-6">
       <!-- VERIFICATION MESSAGE -->
       <VerificationMessage
-        :message="verificationMessage"
+        :message="$props.verificationMessage"
         :visible="showIformationalMessage"
       />
 
@@ -138,7 +137,7 @@ const updateVerificationStatus = (mode: 'agente' | 'gerente', value: boolean) =>
         :show-live-video="showVideoLive"
         :show-recorded-video="showVideoRecorded"
         :is-camera-open="isCameraOpen"
-        :verification-message="verificationMessage"
+        :verification-message="$props.verificationMessage"
       />
 
       <!-- CONTROLS -->

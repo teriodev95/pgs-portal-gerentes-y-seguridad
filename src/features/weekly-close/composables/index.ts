@@ -1,18 +1,15 @@
-// Main composables
-export { useCierreSemanal } from './useCierreSemanal'
-export { useCierreSemanalAPI } from './useCierreSemanalAPI'
-export { useCierreSemanalCalculations } from './useCierreSemanalCalculations'
+// New refactored composables
+export { useWeeklyClose } from './useWeeklyClose'
+export { useWeeklyCloseApi } from './useWeeklyCloseApi'
+export { useSignWeeklyClose } from './useSignWeeklyClose'
+
+// Modal management (unchanged)
 export { useCierreSemanalModal } from './useCierreSemanalModal'
 
-// Error handling
+// Error handling (unchanged)
 export { useWeeklyCloseErrorHandler } from './useWeeklyCloseErrorHandler'
 
-// Navigation and flow
-export { useStepNavigation } from './useStepNavigation'
-export { useSubmissionFlow } from './useSubmissionFlow'
-export { useFormValidation } from './useFormValidation'
-
-// Camera and video
+// Legacy composables still used by CameraVideoCapture component
+// These should remain until CameraVideoCapture is refactored
 export { useCameraRecording } from './useCameraRecording'
 export { useVideoUpload } from './useVideoUpload'
-export { useVerificationMessage } from './useVerificationMessage'

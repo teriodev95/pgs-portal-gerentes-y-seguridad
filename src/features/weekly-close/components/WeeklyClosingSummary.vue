@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { ROUTE_NAME } from '@/router'
 import { toCurrency, getPreviousWeek } from '@/shared/utils'
-import { useCierreSemanal } from '@/features/weekly-close/composables/useCierreSemanal'
+import { useWeeklyClose } from '@/features/weekly-close/composables/useWeeklyClose'
 import { useRouter } from 'vue-router'
 import type { ModalConfigKey } from '@/features/weekly-close/types'
 import { ArrowRight } from 'lucide-vue-next'
@@ -31,13 +31,13 @@ const {
   agency,
   currentDate,
   isClosingLocked,
-  
+
   // Cálculos
   totalAgentIncome,
   totalAgentExpenses,
   totalAssignmentsAmount,
   remainingCash,
-} = useCierreSemanal()
+} = useWeeklyClose()
 
 const emit = defineEmits<Emits>()
 
