@@ -45,7 +45,8 @@ export const useCierreSemanal = () => {
       // Cargar datos secuencialmente para evitar problemas de dependencia
       await loadWeeklyClose()
       await loadAgentsIncome()
-
+      await loadBonusInfo()
+      await loadCommission()
 
       // Configurar nombres para firmas
       if (store.weeklyClose) {
@@ -75,6 +76,26 @@ export const useCierreSemanal = () => {
     const data = await api.getAgentsIncome()
     console.log('Ingresos de agentes cargados:', data)
     store.setAgentsIncome(data)
+  }
+
+  const loadBonusInfo = async () => {
+    if (!agency.value?.agencia || !store.weeklyClose?.isSemanaBonos) return
+
+    const data = await api.getBonusInfo("Febrero", currentDate.value.year, agency.value.agencia)
+    console.log('Información de bonos cargada:', data)
+
+    if (data?.data?.bono) {
+      store.setBonusInfo(data.data.bono.montoBono)
+    }
+  }
+
+  const loadCommission = async () => {
+    const data = await api.getCommission()
+    console.log('Información de comisiones cargada:', data)
+
+    if (data?.reporte?.[0]) {
+      store.setCommissionInfo(data.reporte[0])
+    }
   }
 
   // Método para guardar el cierre

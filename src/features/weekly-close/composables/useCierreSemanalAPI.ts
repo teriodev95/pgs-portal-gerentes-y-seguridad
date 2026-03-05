@@ -5,6 +5,7 @@ import { commonService } from '@/shared/services/modules'
 
 import type {
   IAgencyDashboard,
+  ICommissionReport,
   ICreateCierreSemana,
   IFastWeeklyClose
 } from '../types'
@@ -86,11 +87,26 @@ export const useCierreSemanalAPI = () => {
     }
   }
 
+  const getCommission = async (): Promise<ICommissionReport> => {
+    try {
+      const { data } = await weeklyClosingService.getCommission({
+        agency: store.agencySelected as string,
+        year: store.currentDate.year,
+        week: store.currentDate.week
+      })
+      return data
+    } catch (error) {
+      handleAPIError(error, 'GET')
+      throw error
+    }
+  }
+
   return {
     createCommission,
     createWeeklyClose,
     getAgentsIncome,
     getBonusInfo,
+    getCommission,
     getWeeklyClose,
   }
 }
