@@ -1,6 +1,7 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
 import type {
   IBonusDetails,
+  ICommissionReport,
   ICreateCierreSemana,
   IFastWeeklyClose,
   IUploadVideoResponse,
@@ -36,6 +37,11 @@ class WeeklyClosingService {
 
   async getBonusInfo(mes: string, anio: number, agencia: string) {
     return this.apiJavalin.get<IBonusDetails>(`/bonos/reporte?agencia=${agencia}&anio=${anio}&mes=${mes}`)
+  }
+
+
+  async getCommission({ agency, year, week }: GetBaseProps) {
+    return this.apiJavalin.get<ICommissionReport>(`https://javalin.xpress1.cc/api/comisiones/agencia/reporte?agencia=${agency}&anio=${year}&semana=${week}`)
   }
 }
 
