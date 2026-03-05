@@ -83,10 +83,12 @@ function handleBack() {
 
       <!-- Cash in Field Card -->
       <CardContainer title="Resumen">
-        <DataField   
-          label="Efectivo en campo" 
-          :value="toCurrency(agency.efectivoEnCampo)"
-        />
+        <!--
+          <DataField   
+            label="Efectivo en campo" 
+            :value="toCurrency(agency.efectivoEnCampo)"
+          />
+        -->
 
         <DataField 
           label="Prestamos a finalizar"
