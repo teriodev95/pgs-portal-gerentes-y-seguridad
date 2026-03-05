@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { computed, watch, ref } from 'vue'
 import { useStore } from '@/shared/stores'
-import { useSignStore } from '@/features/weekly-close/stores'
+import { useSignWeeklyClose } from '../composables/useSignWeeklyClose'
+import { useSignStore } from '../stores'
 import type { IAgencyDashboard } from '@/shared/types'
-import { useCameraRecording } from '../composables/useCameraRecording'
-import { useVideoUpload } from '../composables/useVideoUpload'
 
 // Components
 import VerificationMessage from './VerificationMessage.vue'
@@ -24,8 +23,8 @@ const $props = defineProps<{
 }>()
 
 // Helpers
-const $sign = useSignStore()
 const $store = useStore()
+const $signStore = useSignStore()
 
 // Data
 const agency = computed(() => $store.agencyData as IAgencyDashboard)
@@ -36,22 +35,7 @@ const fileName = computed(() => {
   return `${agency.value.agencia}-SEM${$store.currentDate.week}-${$props.mode.charAt(0).toUpperCase()}-${formattedDate}-${timestamp}.webm`
 })
 
-
-const showRecordingButtons = computed(
-  () => !isVideoUploading.value && startCamera.value && uploadStatus.value !== 'success'
-)
-
-const verificacionCompletadaAgente = computed(() => $sign.verificacionCompletadaAgente)
-const verificacionCompletadaGerente = computed(() => $sign.verificacionCompletadaGerente)
-const verificationCompleted = computed(() => {
-  if ($props.mode === 'agente') {
-    return verificacionCompletadaAgente.value
-  } else {
-    return verificacionCompletadaGerente.value
-  }
-})
-
-// Composables implementation
+// Composable unificado
 const {
   videoLive,
   videoRecorded,
@@ -59,42 +43,70 @@ const {
   isCameraOpen,
   isVideoRecorded,
   startCamera,
-  showIformationalMessage,
+  showInformationalMessage,
   showVideoLive,
   showVideoRecorded,
   handleStartCamera,
-  onClickCameraRecord
-} = useCameraRecording()
+  toggleCameraRecording,
+  uploadVerificationVideo,
+  isAgentVerificationCompleted,
+  isGerentVerificationCompleted
+} = useSignWeeklyClose()
 
 const videoPlayerRef = ref<InstanceType<typeof VideoPlayer>>()
 
-const {
-  isVideoUploading,
-  uploadStatus,
-  onClickUpload,
-  resetUploadStatus
-} = useVideoUpload()
+// Estado local de upload
+const uploadStatus = ref<'success' | 'error' | 'uploading' | 'idle'>('idle')
+const isVideoUploading = computed(() => uploadStatus.value === 'uploading')
+
+const showRecordingButtons = computed(
+  () => startCamera.value && uploadStatus.value !== 'success'
+)
+
+const verificationCompleted = computed(() => {
+  if ($props.mode === 'agente') {
+    return isAgentVerificationCompleted.value
+  } else {
+    return isGerentVerificationCompleted.value
+  }
+})
 
 // Watchers
 watch(uploadStatus, (newValue) => {
-  newValue === 'success'
-    ? updateVerificationStatus($props.mode, true)
-    : updateVerificationStatus($props.mode, false)
+  if (newValue === 'success') {
+    $emit('uploaded')
+  }
 })
 
 // Methods
+const handleUpload = async () => {
+  if (!videoBlobFile.value) return
+  if (uploadStatus.value === 'uploading') return // Prevenir múltiples clics
 
-const handleUpload = () => {
-  onClickUpload({
-    videoBlobFile: videoBlobFile.value,
-    fileName: fileName.value,
-    mode: $props.mode,
-    emit: $emit
-  })
+  uploadStatus.value = 'uploading'
+
+  const userType = $props.mode === 'agente' ? 'agente' : 'gerente'
+  const result = await uploadVerificationVideo(userType, fileName.value)
+
+  if (result || result === null) {
+    // Si fue exitoso o hubo error pero se guardó localmente
+    uploadStatus.value = 'success'
+
+    // Marcar la verificación como completada
+    if (userType === 'agente') {
+      $signStore.verificacionCompletadaAgente = true
+    } else if (userType === 'gerente') {
+      $signStore.verificacionCompletadaGerente = true
+    }
+
+    $emit('uploaded')
+  } else {
+    uploadStatus.value = 'error'
+  }
 }
 
 const handleStartCameraWithReset = () => {
-  resetUploadStatus()
+  uploadStatus.value = 'idle'
   handleStartCamera()
 }
 
@@ -105,14 +117,6 @@ watch([videoPlayerRef], () => {
     videoRecorded.value = videoPlayerRef.value.videoRecorded
   }
 }, { immediate: true })
-
-const updateVerificationStatus = (mode: 'agente' | 'gerente', value: boolean) => {
-  if (mode === 'agente') {
-    $sign.verificacionCompletadaAgente = value
-  } else {
-    $sign.verificacionCompletadaGerente = value
-  }
-}
 </script>
 
 <template>
@@ -127,7 +131,7 @@ const updateVerificationStatus = (mode: 'agente' | 'gerente', value: boolean) =>
       <!-- VERIFICATION MESSAGE -->
       <VerificationMessage
         :message="$props.verificationMessage"
-        :visible="showIformationalMessage"
+        :visible="showInformationalMessage"
       />
 
       <!-- VIDEO -->
@@ -148,7 +152,7 @@ const updateVerificationStatus = (mode: 'agente' | 'gerente', value: boolean) =>
         :is-video-uploading="isVideoUploading"
         :show-recording-buttons="showRecordingButtons"
         @start-camera="handleStartCameraWithReset"
-        @record="onClickCameraRecord"
+        @record="toggleCameraRecording"
         @upload="handleUpload"
       />
     </div>

@@ -2,39 +2,27 @@
 import '@webzlodimir/vue-bottom-sheet/dist/style.css'
 import { computed, onBeforeMount, onUnmounted, ref } from 'vue'
 import { STEPS } from '@/features/weekly-close/constants'
-import { useWeeklyClose } from '@/features/weekly-close/composables/useWeeklyClose'
-import { useSignWeeklyClose } from '@/features/weekly-close/composables/useSignWeeklyClose'
-import { useStore } from '@/shared/stores'
-import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 import { toCurrency } from '@/shared/utils'
+import { useRevealCircleStore } from '@/shared/stores/revealCircle'
+import { useSignWeeklyClose } from '@/features/weekly-close/composables/useSignWeeklyClose'
+import { useWeeklyClose } from '@/features/weekly-close/composables/useWeeklyClose'
 import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
 
 // Components
 import BtnComponent from '@/shared/components/BtnComponent.vue'
-import CardContainer from '@/shared/components/CardContainer.vue'
-import CommissionSummary from '@/features/weekly-close/components/CommissionSummary.vue'
-import CardTitle from '@/shared/components/ui/CardTitle.vue'
-import SlideUnlock from 'vue-slide-unlock'
-import VerificationButton from '@/features/weekly-close/components/VerificationButton.vue'
-import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
-import MainCT from '@/shared/components/ui/MainCT.vue'
-import TextCT from '@/shared/components/ui/TextCT.vue'
-import InputGeneric from '@/shared/components/forms/InputGeneric.vue'
-import LabelForm from '@/shared/components/forms/LabelForm.vue'
-import InputValidation from '@/shared/components/forms/InputValidation.vue'
 import CameraVideoCapture from '@/features/weekly-close/components/CameraVideoCapture.vue'
+import CardContainer from '@/shared/components/CardContainer.vue'
+import CardTitle from '@/shared/components/ui/CardTitle.vue'
+import CommissionSummary from '@/features/weekly-close/components/CommissionSummary.vue'
+import InputGeneric from '@/shared/components/forms/InputGeneric.vue'
+import InputValidation from '@/shared/components/forms/InputValidation.vue'
+import LabelForm from '@/shared/components/forms/LabelForm.vue'
+import MainCT from '@/shared/components/ui/MainCT.vue'
+import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import SlideUnlock from 'vue-slide-unlock'
+import TextCT from '@/shared/components/ui/TextCT.vue'
+import VerificationButton from '@/features/weekly-close/components/VerificationButton.vue'
 
-/**
- * Vista dedicada al proceso de firma del cierre semanal
- *
- * RESPONSABILIDADES:
- * - Proceso completo de firma: PIN → Video → Confirmación → Envío
- * - Usa exclusivamente useSignWeeklyClose.ts para toda su lógica
- * - Navegación desde WeeklyClose.vue al hacer clic en "Continuar"
- * - Los datos del cierre vienen del store compartido
- */
-
-const globalStore = useStore()
 const revealCircleStore = useRevealCircleStore()
 
 // Composables
