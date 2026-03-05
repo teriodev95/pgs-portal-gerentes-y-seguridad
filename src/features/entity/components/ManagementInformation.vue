@@ -39,7 +39,9 @@ function closeDebtsDialog(): void {
   <CardContainer title="Operaciones y Ajustes Financieros">
     <DataField label="Cobranza Total" :value="toCurrency(data.cobranzaTotal)" />
     <DataField label="Débito Faltante" :value="toCurrency(data.debitoFaltante)" />
-    <DataField label="Efectivo en Campo" :value="toCurrency(data.efectivoEnCampo)" />
+    <!--
+      <DataField label="Efectivo en Campo" :value="toCurrency(data.efectivoEnCampo)" />
+    -->
     <DataField label="Liquidaciones" :value="toCurrency(data.liquidaciones)" />
     <DataField label="Monto Excedente" :value="toCurrency(data.montoExcedente)" />
     <DataField label="Multas" :value="toCurrency(data.multas)" />
