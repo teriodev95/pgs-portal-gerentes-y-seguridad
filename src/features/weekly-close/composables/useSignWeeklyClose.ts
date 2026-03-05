@@ -30,20 +30,13 @@ type UserType = 'agente' | 'gerente' | 'seguridad'
  *
  * RESPONSABILIDADES:
  * - Orquestar el proceso completo de firma del cierre
- * - Absorbe lógica de useFormValidation (validación del PIN)
- * - Absorbe lógica de useVideoUpload (captura y subida de video con cámara)
- * - Absorbe lógica de useSubmissionFlow (flujo de envío tras firma)
- * - Absorbe lógica de useVerificationMessage (mensajes de verificación/feedback)
- * - Absorbe lógica de useCameraRecording (captura de video)
- * - Manejar estados: idle → validating → capturing → uploading → submitting → done/error
+ * - Validación del PIN (agente, gerente, seguridad)
+ * - Flujo de envío tras firma
+ * - Mensajes de verificación/feedback
+ * - Navegación entre pasos
+ * - Manejar estados: idle → validating → submitting → done/error
  *
- * ABSORBE:
- * - useFormValidation
- * - useVideoUpload
- * - useSubmissionFlow
- * - useVerificationMessage
- * - useCameraRecording
- * - useStepNavigation (para el flujo de firma)
+ * NOTA: Usa useCameraRecording y useVideoUpload externamente
  */
 export const useSignWeeklyClose = () => {
   const router = useRouter()

@@ -40,7 +40,6 @@ const $emit = defineEmits<Emit>()
       v-show="showRecordingButtons"
       :variant="isCameraOpen ? 'danger' : 'primary'"
       :disabled="isVideoUploading"
-      :loading="isVideoUploading"
       full-width
       @click="$emit('record')"
     >
