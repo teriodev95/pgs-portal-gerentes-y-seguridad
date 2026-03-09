@@ -1,135 +1,207 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { SlidersHorizontal } from 'lucide-vue-next'
 import { ROUTE_NAME } from '@/router'
 import { useApprovalDialog } from '../composables/useApprovalDialog'
 import { useSolim } from '../composables/useSolim'
-import { SOLIM_STATUS } from '../constants'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 
-// Components
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
-import CardSolim from '../components/CardSolim.vue';
-import ActionDialog from '../components/ActionDialog.vue';
-import LoadSkeleton from '@/shared/components/LoadSkeleton.vue';
-import DetailsLoanRequest from '../components/DetailsLoanRequest.vue';
+import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
+import ActionDialog from '../components/ActionDialog.vue'
+import AgencyFilterSheet from '../components/AgencyFilterSheet.vue'
+import CardSolim from '../components/CardSolim.vue'
+import DetailsLoanRequest from '../components/DetailsLoanRequest.vue'
 
-const $router = useRouter()
-const { loanApprovalForm, isDialogOpen, openDialog, closeDialog, confirmAction } = useApprovalDialog()
+const router = useRouter()
+const { loanApprovalForm, isDialogOpen, selectedRequestId: dialogRequestId, openDialog, closeDialog } =
+  useApprovalDialog()
+
 const {
-  addressInfo,
-  analysisCreditInfo,
-  checksInfo,
-  clientDocuments,
-  clientInfo,
-  creditInfo,
-  guarantorDocuments,
-  guarantorInfo,
-  hasLoanRequests,
-  isLoadingLoanRequests,
-  isProcessingAction,
   loanRequests,
-  scheduleInfo,
-  approveLoanRequest,
-  rejectLoanRequest,
+  selectedLoanRequest,
+  tablaCargosOptions,
+  selectedAgency,
+  isLoadingLoanRequests,
+  isLoadingSelectedLoanRequest,
+  isProcessingAction,
+  hasLoanRequests,
+  loanRequestsCount,
+  currentApproval,
+  currentApprovalType,
+  currentRoleLabel,
+  canApproveSelected,
+  availableAgencies,
+  saveApproval,
+  setSelectedAgency,
   selectLoanRequest,
   clearSelectedLoanRequest
 } = useSolim()
 
 const selectedRequestId = ref<string | null>(null)
+const agencyFilterSheetRef = ref<InstanceType<typeof AgencyFilterSheet>>()
 
-const handleApprove = (id: string) => {
-  openDialog(id, SOLIM_STATUS.APPROVED)
-}
+const isDetailVisible = computed(() => Boolean(selectedRequestId.value))
+const selectedAgencyLabel = computed(() =>
+  selectedAgency.value === 'all' ? 'Todas las agencias' : selectedAgency.value
+)
 
-const handleReject = (id: string) => {
-  openDialog(id, SOLIM_STATUS.REJECTED)
-}
-
-const handleShowDetails = (id: string) => {
+async function handleShowDetails(id: string): Promise<void> {
   if (selectedRequestId.value === id) {
     selectedRequestId.value = null
     clearSelectedLoanRequest()
-  } else {
-    selectedRequestId.value = id
-    selectLoanRequest(id)
+    return
   }
+
+  selectedRequestId.value = id
+  await selectLoanRequest(id)
 }
 
-const handleOnBack = () => {
+function handleOpenDialog(id: string): void {
+  const request =
+    (selectedLoanRequest.value?.id === id
+      ? selectedLoanRequest.value
+      : loanRequests.value.find((item) => item.id === id)) ??
+    null
+
+  openDialog({
+    requestId: id,
+    currentApproval:
+      request?.revision_aprobaciones?.find((approval) => approval.tipo === currentApprovalType.value) ??
+      request?.revision?.aprobaciones?.find((approval) => approval.tipo === currentApprovalType.value) ??
+      currentApproval.value ??
+      null,
+    currentPlanId: request?.revision?.tabla_cargos_id_sugerido ?? request?.tabla_cargos_id ?? null
+  })
+}
+
+async function handleConfirmAction(): Promise<void> {
+  if (!dialogRequestId.value) {
+    return
+  }
+
+  await saveApproval(loanApprovalForm.value, dialogRequestId.value)
+  closeDialog()
+}
+
+function handleBack(): void {
   if (selectedRequestId.value) {
     selectedRequestId.value = null
     clearSelectedLoanRequest()
     return
   }
 
-  $router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+  router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
 }
 
-const handleConfirmAction = async () => {
-  await confirmAction(approveLoanRequest, rejectLoanRequest)
+function handleUpdateForm(nextForm: typeof loanApprovalForm.value): void {
+  loanApprovalForm.value = nextForm
+}
+
+async function handleAgencyChange(agency: string): Promise<void> {
+  if (agency === selectedAgency.value) {
+    return
+  }
+
+  selectedRequestId.value = null
+  await setSelectedAgency(agency)
+}
+
+function openAgencyFilter(): void {
+  agencyFilterSheetRef.value?.open()
 }
 </script>
 
 <template>
-  <!-- Action Dialog -->
   <ActionDialog
     :is-open="isDialogOpen"
-    :comment="loanApprovalForm.nota"
-    :action-type="loanApprovalForm.check"
-    :is-loading="isLoadingLoanRequests || isProcessingAction"
-    @update:comment="loanApprovalForm.nota = $event"
+    :form="loanApprovalForm"
+    :role-label="currentRoleLabel"
+    :tabla-cargos-options="tablaCargosOptions"
+    :current-plan-id="selectedLoanRequest?.revision?.tabla_cargos_id_sugerido ?? selectedLoanRequest?.tabla_cargos_id ?? null"
+    :is-loading="isProcessingAction"
+    @update:form="handleUpdateForm"
     @confirm="handleConfirmAction"
     @cancel="closeDialog"
   />
 
-  <!-- Main Content -->
+  <AgencyFilterSheet
+    ref="agencyFilterSheetRef"
+    :agencies="availableAgencies"
+    :selected-agency="selectedAgency"
+    @select="handleAgencyChange"
+  />
+
   <MainCT>
-    <!-- Top Navigation Bar -->
     <NavbarCT
-      :title="selectedRequestId ? 'Detalles de Solicitud' : 'Solicitudes'"
+      :title="isDetailVisible ? `Detalle de ${currentRoleLabel}` : `Solicitudes ${currentRoleLabel}`"
       :show-back-button="true"
-      @back="handleOnBack"
+      @back="handleBack"
     />
 
-    <!-- Loading State -->
-    <LoadSkeleton v-if="isLoadingLoanRequests" :items="6" />
+    <div v-if="!isDetailVisible" class="p-4 pb-0">
+      <button
+        type="button"
+        class="flex w-full items-center justify-between rounded-[24px] border border-slate-200 bg-white px-5 py-4 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+        @click="openAgencyFilter"
+      >
+        <div class="min-w-0">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Agencia</p>
+          <p class="mt-1 truncate text-base font-semibold text-slate-900">{{ selectedAgencyLabel }}</p>
+          <p class="mt-1 text-sm text-slate-500">
+            {{ loanRequestsCount }} solicitud{{ loanRequestsCount === 1 ? '' : 'es' }} en esta vista
+          </p>
+        </div>
+        <span class="ml-4 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-600">
+          <SlidersHorizontal class="size-5" />
+        </span>
+      </button>
+    </div>
 
-    <!-- Content with Requests -->
-    <div v-else-if="hasLoanRequests" class="space-y-4 p-4">
-      <!-- Loan Request Details View -->
+    <LoadSkeleton v-if="isLoadingLoanRequests && !isDetailVisible" :items="5" />
+
+    <div v-else-if="hasLoanRequests || isDetailVisible" class="space-y-4 p-4">
+      <div
+        v-if="isDetailVisible && isLoadingSelectedLoanRequest"
+        class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm"
+      >
+        <LoadSkeleton :items="2" />
+      </div>
+
       <DetailsLoanRequest
-        v-if="selectedRequestId"
-        :analysis-credit-info="analysisCreditInfo"
-        :client-info="clientInfo"
-        :client-documents="clientDocuments"
-        :address-info="addressInfo"
-        :guarantor-info="guarantorInfo"
-        :guarantor-documents="guarantorDocuments"
-        :credit-info="creditInfo"
-        :schedule-info="scheduleInfo"
-        :checks="checksInfo"
+        v-else-if="selectedLoanRequest"
+        :request="selectedLoanRequest"
+        :approval-type="currentApprovalType"
+        :role-label="currentRoleLabel"
+        :can-register-decision="canApproveSelected"
+        :is-loading-action="isProcessingAction"
+        @open:review="handleOpenDialog(selectedLoanRequest.id)"
       />
 
-      <!-- Loan Requests List View -->
       <div v-else class="space-y-4">
+        <div class="rounded-[28px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <p class="text-sm font-medium text-slate-600">
+            Se muestran solo las solicitudes pendientes que requieren revisión de {{ currentRoleLabel.toLowerCase() }}.
+          </p>
+        </div>
+
         <CardSolim
-          v-for="(loanRequest, index) in loanRequests"
-          :key="index + 1"
+          v-for="loanRequest in loanRequests"
+          :key="loanRequest.id"
           :solicitud="loanRequest"
-          @action:approve="handleApprove"
-          @action:reject="handleReject"
+          :approval-type="currentApprovalType"
           @action:details="handleShowDetails"
+          @action:review="handleOpenDialog"
         />
       </div>
     </div>
 
-    <!-- Empty State -->
     <EmptyCT
       v-else
       message="No hay solicitudes pendientes"
-      description="No se encontraron solicitudes de préstamo para revisar en este momento."
+      :description="`No se encontraron solicitudes pendientes para ${currentRoleLabel.toLowerCase()}.`"
     />
   </MainCT>
 </template>

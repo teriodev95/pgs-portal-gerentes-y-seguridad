@@ -9,8 +9,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  labelClass: 'font-300 text-gray-400',
-  valueClass: 'font-md-700 text-blue-800'
+  labelClass: 'text-sm font-medium text-slate-500',
+  valueClass: 'text-sm font-semibold text-slate-900'
 })
 
 const parsedValue = computed(() => {
@@ -55,7 +55,7 @@ const getValueClasses = (value: any): string => {
 </script>
 
 <template>
-  <div>
+  <div class="rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3">
     <p :class="labelClass">{{ label }}</p>
 
     <!-- Display JSON object as key-value pairs -->
@@ -69,6 +69,6 @@ const getValueClasses = (value: any): string => {
     </div>
 
     <!-- Display regular string value -->
-    <p v-else :class="valueClass">{{ value }}</p>
+    <p v-else :class="`${valueClass} mt-1`">{{ value }}</p>
   </div>
 </template>
