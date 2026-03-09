@@ -1,110 +1,246 @@
-// Interfaz para el domicilio del cliente
-interface Domicilio {
-  direccion: string;
-  colonia: string;
-  municipio: string;
-  estado: string;
-  codigoPostal: string;
-  tipoPropiedad: string;
+export type ApprovalType = 'gerente' | 'oficina' | 'garantias' | 'seguridad' | 'direccion'
+export type SolimRole = 'gerente' | 'seguridad'
+export type ApprovalDecision =
+  | 'pendiente'
+  | 'aprobado'
+  | 'aprobado_con_ajuste'
+  | 'rechazado'
+  | 'no_aplica'
+export type RevisionStatus =
+  | 'pendiente'
+  | 'aprobada'
+  | 'aprobada_con_ajuste'
+  | 'aprobada_condicionada'
+  | 'rechazada'
+  | 'corregir'
+
+export interface ApprovalRequirements {
+  version?: string
+  gerente: boolean
+  oficina: boolean
+  garantias: boolean
+  seguridad: boolean
+  direccion: boolean
 }
 
-interface Documentos {
-  comprobante: string;
-  ineFrontal: string;
-  ineTrasera: string;
-  no_servicio: string;
+export interface TablaCargosSnapshot {
+  version?: string
+  id?: number | null
+  monto_solicitado?: number | null
+  cargo?: number | null
+  total_pagar?: number | null
+  tarifa_semanal?: number | null
+  primer_pago?: number | null
+  nivel?: string | null
+  plazo_semanas?: number | null
+  identificador?: string | null
+  requiere?: Partial<Record<ApprovalType, boolean>>
 }
 
-// Interfaz para la información del cliente
-interface InformacionCliente {
-  nombreCompleto: string;
-  curp: string;
-  telefono: string;
-  email: string;
-  rfc: string;
-  estadoCivil: string;
-  nacionalidad: string;
-  fechaNacimiento: string;
-  domicilio: Domicilio;
-  documentos: Documentos;
+export interface RevisionApproval {
+  tipo: ApprovalType
+  requerido: number
+  decision: ApprovalDecision
+  usuario_id?: string | null
+  usuario_nombre?: string | null
+  comentario?: string | null
+  pin_validado: number
+  pin_validado_at?: string | null
+  monto_autorizado?: number | null
+  incremento_autorizado?: number | null
+  nivel_autorizado?: string | null
+  plazo_autorizado?: number | null
+  tabla_cargos_id_sugerido?: number | null
+  decision_payload?: Record<string, unknown> | null
+  created_at?: string | null
+  updated_at?: string | null
+  resolved_at?: string | null
 }
 
-// Interfaz para la información del aval
-interface InformacionAval {
-  nombreCompleto: string;
-  curp: string;
-  telefono: string;
-  email: string;
-  rfc: string;
-  estadoCivil: string;
-  documentos: Documentos;
+export interface RevisionSummary {
+  status: string
+  reviewed_by?: string | null
+  reviewed_at?: string | null
+  motivo_rechazo?: string | null
+  doc_invalido_detalle?: string | null
+  diagnostico?: string | null
+  resultado_revision?: Record<string, unknown> | null
+  prevalidacion_app?: Record<string, unknown> | null
+  approval_requirements?: ApprovalRequirements | null
+  tabla_cargos_id_sugerido?: number | null
+  tabla_cargos_snapshot?: TablaCargosSnapshot | null
+  aprobaciones: RevisionApproval[]
 }
 
-// Interfaz para los horarios de crédito
-interface Horarios {
-  diaEntrega: string;
-  horaEntrega: string;
-  diaPago: string;
-  horaPago: string;
+export interface DocumentoImagen {
+  tipo: string
+  url?: string | null
+  nombre_original?: string | null
+  size?: number | null
+  mime?: string | null
 }
 
-// Interfaz para los detalles del crédito
-interface DetallesCredito {
-  montoSolicitado: number;
-  plazo: string;
-  plazoEnSemanas: number;
-  tarifaSemanal: number;
-  totalAPagar: number;
-  primerPago: number;
-  cargo: number;
-  nivelCliente: string;
-  tipoCredito: string;
-  horarios: Horarios;
+export interface DocumentosData {
+  imagenes: DocumentoImagen[]
 }
 
-// Interfaz para los checks de una solicitud
-export interface CheckInfo {
-  check: string | null;
-  check_date: string | null;
-  check_by: string | null;
-  nota: string;
+export interface Referencia {
+  nombre?: string | null
+  telefono?: string | null
+  parentesco?: string | null
 }
 
-export interface Checks {
-  gerente: CheckInfo;
-  oficina: CheckInfo;
-  direccion: CheckInfo;
-  seguridad: CheckInfo;
+export interface ActivosData {
+  vivienda_tipo?: string | null
+  vivienda_pisos?: string | null
+  vivienda_color?: string | null
+  fotos_urls?: string[] | null
+  vehiculo?: {
+    tiene?: boolean
+    marca?: string | null
+    modelo?: string | null
+    color?: string | null
+    placas?: string | null
+  } | null
+  otros?: string | null
 }
 
-// Interfaz para una solicitud individual
 export interface Solicitud {
-  id: string;
-  analisisFiltrado: {
-    analisisFiltrado: string;
-  }
-  informacionCliente: InformacionCliente;
-  informacionAval: InformacionAval;
-  detallesCredito: DetallesCredito;
-  checks: Checks;
+  id: string
+  agencia?: string | null
+  gerencia?: string | null
+  semana?: number | null
+  anio?: number | null
+  status?: string | null
+  status_revision: RevisionStatus
+  reviewed_by?: string | null
+  reviewed_at?: string | null
+  motivo_rechazo?: string | null
+  doc_invalido_detalle?: string | null
+  diagnostico?: string | null
+  fecha_solicitud?: string | null
+  updated_at?: string | null
+
+  cliente_persona_id?: string | null
+  cliente_nombres?: string | null
+  cliente_ap_paterno?: string | null
+  cliente_ap_materno?: string | null
+  cliente_curp?: string | null
+  cliente_rfc?: string | null
+  cliente_telefono?: string | null
+  cliente_email?: string | null
+  cliente_fecha_nacimiento?: string | null
+  cliente_genero?: string | null
+  cliente_estado_civil?: string | null
+  cliente_calle?: string | null
+  cliente_no_exterior?: string | null
+  cliente_no_interior?: string | null
+  cliente_colonia?: string | null
+  cliente_municipio?: string | null
+  cliente_estado?: string | null
+  cliente_cp?: string | null
+  cliente_no_servicio?: string | null
+  cliente_referencias?: Referencia[] | null
+  cliente_activos?: ActivosData | null
+  cliente_ocupacion?: string | null
+  cliente_empresa?: string | null
+  cliente_ingresos_mensuales?: number | null
+  cliente_egresos_mensuales?: number | null
+
+  aval_persona_id?: string | null
+  aval_nombres?: string | null
+  aval_ap_paterno?: string | null
+  aval_ap_materno?: string | null
+  aval_curp?: string | null
+  aval_rfc?: string | null
+  aval_telefono?: string | null
+  aval_email?: string | null
+  aval_fecha_nacimiento?: string | null
+  aval_genero?: string | null
+  aval_estado_civil?: string | null
+  aval_calle?: string | null
+  aval_no_exterior?: string | null
+  aval_no_interior?: string | null
+  aval_colonia?: string | null
+  aval_municipio?: string | null
+  aval_estado?: string | null
+  aval_cp?: string | null
+  aval_no_servicio?: string | null
+  aval_referencias?: Referencia[] | null
+  aval_activos?: ActivosData | null
+  aval_ocupacion?: string | null
+  aval_empresa?: string | null
+  aval_ingresos_mensuales?: number | null
+  aval_egresos_mensuales?: number | null
+
+  monto_solicitado?: number | null
+  plazo_semanas?: number | null
+  nivel_cliente?: string | null
+  tipo_credito?: string | null
+  tabla_cargos_id?: number | null
+  tarifa_semanal?: number | null
+  primer_pago?: number | null
+  cargo?: number | null
+  total_pagar?: number | null
+  gps_lat?: number | null
+  gps_lng?: number | null
+
+  documentos?: DocumentosData | null
+  prevalidacion_app?: Record<string, unknown> | null
+  approval_requirements?: ApprovalRequirements | null
+  tabla_cargos_snapshot?: TablaCargosSnapshot | null
+  revision?: RevisionSummary | null
+  revision_aprobaciones?: RevisionApproval[] | null
 }
 
-// Interfaz para el objeto data de la respuesta
-export interface DataResponse {
-  total: number;
-  semana: number;
-  anio: number;
-  solicitudes: Solicitud[];
+export interface LoanRequestsListResponse {
+  success: boolean
+  data: Solicitud[]
+  count?: number
 }
 
-// Interfaz principal para la respuesta completa de la API
-export interface ApiResponse {
-  success: boolean;
-  message: string;
-  data: DataResponse;
+export interface LoanRequestDetailResponse {
+  success: boolean
+  data: Solicitud
 }
-export interface UpdateCheckStatus {
-  id: string;
-  seguridad?: CheckInfo;
-  gerente?: CheckInfo;
+
+export interface TablaCargosOption {
+  id: number
+  monto_solicitado: number
+  cargo: number
+  total_pagar: number
+  tarifa_semanal: number
+  primer_pago: number
+  nivel: string
+  plazo_semanas: number
+}
+
+export interface TablaCargosOptionsResponse {
+  success: boolean
+  data: TablaCargosOption[]
+}
+
+export interface ApprovalDialogForm {
+  decision: ApprovalDecision
+  comentario: string
+  pin: string
+  tablaCargosIdSugerido: string
+  montoAutorizado: string
+  incrementoAutorizado: string
+  nivelAutorizado: string
+  plazoAutorizado: string
+}
+
+export interface UpdateCheckPayload {
+  decision: ApprovalDecision
+  userId: string
+  userName: string
+  notas?: string
+  pinValidado: boolean
+  montoAutorizado?: number | null
+  incrementoAutorizado?: number | null
+  nivelAutorizado?: string | null
+  plazoAutorizado?: number | null
+  tablaCargosIdSugerido?: number | null
+  decisionPayload?: Record<string, unknown> | null
 }
