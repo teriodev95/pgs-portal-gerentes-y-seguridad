@@ -226,7 +226,7 @@ export const useWeeklyClose = () => {
     )
 
     if (data?.data?.bono?.montoBono) {
-      store.setBonusInfo(data.data.bono.montoBono)
+      //store.setBonusInfo(data.data.bono.montoBono)
     }
   }
 
@@ -237,7 +237,7 @@ export const useWeeklyClose = () => {
     const data = await api.getCommission()
 
     if (data?.reporte?.[0]) {
-      store.setCommissionInfo(data.reporte[0])
+      //store.setCommissionInfo(data.reporte[0])
     }
   }
 

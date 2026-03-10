@@ -2,7 +2,6 @@
 import { computed, onBeforeMount } from 'vue'
 import { useWeeklyClose } from '@/features/weekly-close/composables/useWeeklyClose'
 import { useCierreSemanalModal } from '@/features/weekly-close/composables/useCierreSemanalModal'
-import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 
 /**
  * ------------------------------------------
@@ -21,13 +20,6 @@ import CardContainer from '@/shared/components/CardContainer.vue'
 import TextCT from '@/shared/components/ui/TextCT.vue'
 import BadgetCT from '@/shared/components/ui/BadgetCT.vue'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
-
-/**
- * ------------------------------------------
- *	Composables & Stores
- * ------------------------------------------
- */
-const revealCircleStore = useRevealCircleStore()
 
 // Composable principal del cierre semanal (REFACTORIZADO)
 const {
@@ -134,7 +126,7 @@ onBeforeMount(async () => {
   />
 
   <!-- Main Content -->
-  <MainCT :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
+  <MainCT>
     <!-- Top Navigation Bar -->
     <NavbarCT
       :title="navbarLabel"
