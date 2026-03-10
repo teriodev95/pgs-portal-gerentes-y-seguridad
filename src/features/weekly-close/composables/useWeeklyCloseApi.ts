@@ -153,12 +153,17 @@ export const useWeeklyCloseApi = () => {
   /**
    * Crea un nuevo cierre semanal
    */
-  const createWeeklyClose = async (cierreData: ICreateCierreSemana): Promise<void> => {
+  const createWeeklyClose = async (
+    cierreData: ICreateCierreSemana,
+    agencyName: string,
+    managementName: string,
+    onClose?: () => void
+  ): Promise<void> => {
     isCreatingWeeklyClose.value = true
     createWeeklyCloseError.value = null
 
     try {
-      await weeklyClosingService.createWeeklyClose(cierreData)
+      await weeklyClosingService.createWeeklyClose(cierreData, agencyName, managementName, onClose)
     } catch (error) {
       const errorMessage = error instanceof Error
         ? error

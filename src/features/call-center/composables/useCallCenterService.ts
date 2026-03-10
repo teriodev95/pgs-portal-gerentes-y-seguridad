@@ -88,9 +88,9 @@ export const useCallCenterService = () => {
   /**
    * Crea una nueva visita del call center
    */
-  const createVisit = async (visit: ICallCenterVisit): Promise<string> => {
+  const createVisit = async (visit: ICallCenterVisit, clientName: string): Promise<string> => {
     try {
-      const { data } = await callCenterService.createVisit(visit)
+      const { data } = await callCenterService.createVisit(visit, clientName)
       return data
     } catch (error) {
       console.error('Error creando visita del call center:', error)
