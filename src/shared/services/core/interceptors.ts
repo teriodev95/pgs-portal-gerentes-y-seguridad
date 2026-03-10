@@ -152,3 +152,52 @@ export const successNotificationInterceptor = (): InterceptorConfig => ({
     }
   }
 })
+
+// Error notification interceptor
+export const errorNotificationInterceptor = (): InterceptorConfig => ({
+  response: {
+    onRejected: async (error) => {
+      const config = error.config
+      const response = error.response
+
+      // Skip si está explícitamente deshabilitado
+      if (config?.meta?.skipErrorNotification) {
+        return Promise.reject(error)
+      }
+
+      // Si hay configuración personalizada de error
+      if (config?.meta?.errorNotification) {
+        try {
+          const { useErrorDialogStore } = await import('@/shared/stores/errorDialog')
+          const errorDialogStore = useErrorDialogStore()
+
+          const method = config.method?.toUpperCase() || 'REQUEST'
+          const statusCode = response?.status || 0
+          const statusText = response?.statusText || 'Error'
+
+          // Extraer mensaje de error del backend si existe
+          const backendMessage = response?.data?.message ||
+                                response?.data?.error ||
+                                response?.data?.detail ||
+                                ''
+
+          // Construir detalles con formato solicitado
+          const details = `Request Method: [${method}] - Status Code: ${statusCode} ${statusText}${
+            backendMessage ? `\n\nError: ${backendMessage}` : ''
+          }`
+
+          errorDialogStore.showError({
+            title: config.meta.errorNotification.title,
+            message: config.meta.errorNotification.message,
+            type: config.meta.errorNotification.type || 'error',
+            details
+          })
+        } catch (err) {
+          console.warn('Could not show error notification:', err)
+        }
+      }
+
+      return Promise.reject(error)
+    }
+  }
+})

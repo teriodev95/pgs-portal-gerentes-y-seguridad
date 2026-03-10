@@ -15,9 +15,19 @@ import TextCT from '@/shared/components/ui/TextCT.vue';
 
 // Composables
 const {
-  // State
+  // State - Users
   senderUser,
   recipientUser,
+
+  // State - Validation
+  senderStatus,
+  recipientStatus,
+  senderErrorMessage,
+  recipientErrorMessage,
+  isVerifyingSenderPin,
+  isVerifyingRecipientPin,
+
+  // State - Form
   amount,
   selectedManagementSender,
   selectedManagementRecipient,
@@ -26,8 +36,6 @@ const {
 
   // Refs
   vueSlideUnlockRef,
-  SenderValidationPin,
-  RecipientValidationPin,
 
   // Computed
   senderSelectorText,
@@ -35,8 +43,8 @@ const {
   isSlideUnlockDisabled,
 
   // Methods
-  handleRecipientPasswordResult,
-  handleSenderPasswordResult,
+  validateSenderPin,
+  validateRecipientPin,
   handleCompletion,
 } = useAssignmentForm();
 
@@ -72,9 +80,16 @@ function handleBack() {
         </div>
 
         <!-- Sección de quien entrega -->
-        <ValidationPin label="PIN QUIEN" v-model:pin="inputSenderPin" type="sender"
-          @password-validation="handleSenderPasswordResult" @user="(user) => senderUser = user"
-          ref="SenderValidationPin" />
+        <ValidationPin
+          label="PIN QUIEN"
+          v-model:pin="inputSenderPin"
+          type="sender"
+          :status="senderStatus"
+          :user="senderUser"
+          :error-message="senderErrorMessage"
+          :is-verifying="isVerifyingSenderPin"
+          @validate="validateSenderPin"
+        />
 
         <!-- Selector de gerencia para remitente (si aplica) -->
         <OptionSelector v-if="senderUser && senderUser.gerenciasACargo.length" type="sender"
@@ -82,9 +97,16 @@ function handleBack() {
           v-model:model-value="selectedManagementSender" />
 
         <!-- Sección de quien recibe -->
-        <ValidationPin label="PIN QUIEN" v-model:pin="inputRecipientPin" type="recipient"
-          @password-validation="handleRecipientPasswordResult" @user="(user) => recipientUser = user"
-          ref="RecipientValidationPin" />
+        <ValidationPin
+          label="PIN QUIEN"
+          v-model:pin="inputRecipientPin"
+          type="recipient"
+          :status="recipientStatus"
+          :user="recipientUser"
+          :error-message="recipientErrorMessage"
+          :is-verifying="isVerifyingRecipientPin"
+          @validate="validateRecipientPin"
+        />
 
         <!-- Selector de gerencia para destinatario (si aplica) -->
         <OptionSelector v-if="recipientUser && recipientUser.gerenciasACargo.length" type="recipient"
