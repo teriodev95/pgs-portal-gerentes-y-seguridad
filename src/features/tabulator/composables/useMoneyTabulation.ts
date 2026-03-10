@@ -1,6 +1,5 @@
 import { ref, computed, onMounted } from 'vue'
 import { useStore } from '@/shared/stores'
-import { useToast } from 'vue-toast-notification'
 import type { MoneyTabulation, TabulationFormData } from '../types'
 import { tabulationService } from '../services/tabulator.service'
 import { useTabulationErrorHandler } from './useTabulationErrorHandler'
@@ -8,7 +7,6 @@ import { useTabulationErrorHandler } from './useTabulationErrorHandler'
 export function useMoneyTabulation() {
   // Services, Composables and Stores initialization
   const $store = useStore()
-  const $toast = useToast()
   const { handleError } = useTabulationErrorHandler()
 
   // State definitions
@@ -121,7 +119,6 @@ export function useMoneyTabulation() {
           formData,
           currentTabulationData.value.id!
         )
-        $toast.success('Tabulación actualizada con éxito')
       } else {
         // Create new tabulation
         const tabulationData: MoneyTabulation = {
@@ -132,7 +129,6 @@ export function useMoneyTabulation() {
         }
         console.log('Saving tabulation data:', tabulationData)
         await tabulationService.createMoneyTabulation(tabulationData)
-        $toast.success('Tabulación guardada con éxito')
       }
 
       // Refresh tabulation data after save/update

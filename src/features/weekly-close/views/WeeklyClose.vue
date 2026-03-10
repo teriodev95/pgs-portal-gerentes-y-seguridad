@@ -1,11 +1,7 @@
 <script lang="ts" setup>
-import { computed, onBeforeMount, onUnmounted, ref, watch } from 'vue'
-import { ROUTE_NAME } from '@/router'
-import { toCurrency } from '@/shared/utils'
-import { useCierreSemanal } from '@/features/weekly-close/composables/useCierreSemanal'
+import { computed, onBeforeMount } from 'vue'
+import { useWeeklyClose } from '@/features/weekly-close/composables/useWeeklyClose'
 import { useCierreSemanalModal } from '@/features/weekly-close/composables/useCierreSemanalModal'
-import { useRevealCircleStore } from '@/shared/stores/revealCircle'
-import { useRouter } from 'vue-router'
 
 /**
  * ------------------------------------------
@@ -17,7 +13,6 @@ import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
-import SignForm from '@/features/weekly-close/components/SignForm.vue'
 import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue'
 import WeeklyClosingHeader from '@/features/weekly-close/components/WeeklyClosingHeader.vue'
 import WeeklyClosingSummary from '@/features/weekly-close/components/WeeklyClosingSummary.vue'
@@ -26,22 +21,12 @@ import TextCT from '@/shared/components/ui/TextCT.vue'
 import BadgetCT from '@/shared/components/ui/BadgetCT.vue'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
 
-/**
- * ------------------------------------------
- *	Composables & Stores
- * ------------------------------------------
- */
-const router = useRouter()
-const revealCircleStore = useRevealCircleStore()
-
-// Composable principal del cierre semanal
+// Composable principal del cierre semanal (REFACTORIZADO)
 const {
   // Estado
   weeklyClose,
   agency,
-  management,
   user,
-  isClosingComplete,
   isLoading,
   isClosingLocked,
   error,
@@ -49,8 +34,9 @@ const {
   // Métodos
   initializeWeeklyClose,
   navigateBack,
-  resetWeeklyClose
-} = useCierreSemanal()
+  navigateToSign,
+  navigateToCorrection
+} = useWeeklyClose()
 
 // Composable para la gestión de modales
 const {
@@ -68,20 +54,12 @@ const {
 
 /**
  * ------------------------------------------
- *	Data
- * ------------------------------------------
- */
-const showForm = ref(false)
-
-/**
- * ------------------------------------------
  *	Computed
  * ------------------------------------------
  */
 const userNavbarTop = computed(() => user.value?.usuario || '')
 
 const navbarLabel = computed(() => {
-  if (showForm.value) return 'Verificación'
   return `Cierre Semanal ${agency.value?.agencia || ''}`
 })
 
@@ -90,40 +68,16 @@ const navbarLabel = computed(() => {
  *	Methods
  * ------------------------------------------
  */
-const navigateToCorrection = () => {
-  if (!weeklyClose.value) return
-
-  // For closure, we need to pass multiple amounts as comma-separated values
-  const bonuses = weeklyClose.value.egresosGerente.bonosPagadosEnSemana
-  const collectionCommission = weeklyClose.value.egresosGerente.comisionCobranzaPagadaEnSemana
-  const salesCommission = weeklyClose.value.egresosGerente.comisionVentasPagadaEnSemana
-  
-  const amountsString = `${bonuses},${collectionCommission},${salesCommission}`
-
-  router.push({
-    name: ROUTE_NAME.RECORD_CORRECTION,
-    params: {
-      type: 'cierre',
-      id: weeklyClose.value.id,
-      amount: amountsString
-    }
-  })
-}
 
 /**
- * handleOnBack
+ * handleOnBack - Navega hacia atrás
  */
 const handleOnBack = () => {
-  if (showForm.value) {
-    showForm.value = false
-    return
-  }
   navigateBack()
 }
 
 /**
  * saveValue - Método para guardar valor del modal
- * Ahora usa el composable del modal con validación
  */
 const saveValue = (value: any) => {
   const success = saveValueWithValidation(value)
@@ -139,33 +93,12 @@ const handleModalCancel = () => {
   closeModal()
 }
 
-const handleCompletion = () => {
-  if (weeklyClose.value) {
-    const summaryList = [
-      `Comisión por cobranza: ${toCurrency(weeklyClose.value.egresosGerente.comisionCobranzaPagadaEnSemana)}`,
-      `Comisión por ventas: ${toCurrency(weeklyClose.value.egresosGerente.comisionVentasPagadaEnSemana)}`,
-      `Bonos: ${toCurrency(weeklyClose.value.egresosGerente.bonosPagadosEnSemana)}`
-    ]
-
-    revealCircleStore.showRevealCircle({
-      type: 'success',
-      mainText: 'Cierre semanal completado con éxito',
-      secondaryText: `Agencia: <b>${agency.value?.agencia}</b> - Gerencia: <b>${management.value}</b>`,
-      subText: 'Resumen:',
-      list: summaryList
-    })
-  }
-  showForm.value = false
-}
-
 /**
- * Watch para el estado de cierre completado
+ * handleContinue - Navega a la vista de firma
  */
-watch(() => isClosingComplete.value, (newValue) => {
-  if (newValue) {
-    handleCompletion()
-  }
-})
+const handleContinue = () => {
+  navigateToSign()
+}
 
 /**
  * ------------------------------------------
@@ -176,9 +109,9 @@ onBeforeMount(async () => {
   await initializeWeeklyClose()
 })
 
-onUnmounted(() => {
-  resetWeeklyClose()
-})
+// NO limpiamos el store en onUnmounted porque podemos navegar
+// a WeeklyCloseSign.vue y necesitamos mantener los datos
+// El reset se hace desde navigateBack() cuando volvemos al dashboard
 </script>
 
 <template>
@@ -193,7 +126,7 @@ onUnmounted(() => {
   />
 
   <!-- Main Content -->
-  <MainCT :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
+  <MainCT>
     <!-- Top Navigation Bar -->
     <NavbarCT
       :title="navbarLabel"
@@ -202,13 +135,8 @@ onUnmounted(() => {
       @back="handleOnBack"
     />
 
-    <!-- Sign Form View -->
-    <div v-if="showForm" class="p-2">
-      <SignForm @action:completed="handleCompletion"/>
-    </div>
-
     <!-- Weekly Close Content -->
-    <div class="space-y-2 p-2" v-else-if="weeklyClose && !isLoading">
+    <div class="space-y-2 p-2" v-if="weeklyClose && !isLoading">
       <!-- Actions Card -->
       <CardContainer title="Importante">
         <template v-if="!isClosingLocked">
@@ -241,7 +169,7 @@ onUnmounted(() => {
 
       <!-- Continue Button -->
       <button
-        @click="showForm = true"
+        @click="handleContinue"
         class="btn-primary flex w-full items-center justify-center gap-4"
         v-if="!isClosingLocked"
       >
@@ -254,11 +182,7 @@ onUnmounted(() => {
 
     <!-- Empty/Error State -->
     <div v-else-if="!weeklyClose && !isLoading" class="p-2">
-      <EmptyCT
-        v-if="error"
-        message="Error al cargar datos"
-        :description="error"
-      />
+      <EmptyCT v-if="error" message="Error al cargar datos" :description="error" />
       <EmptyCT
         v-else
         message="No hay datos que mostrar"

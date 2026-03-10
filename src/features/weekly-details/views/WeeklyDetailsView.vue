@@ -5,7 +5,7 @@ import { usePdfGenerator } from '@/features/weekly-details/composables/usePdfGen
 import { useStore } from '@/shared/stores';
 import { useWeeklyClosingData } from '@/features/weekly-details/composables/useWeeklyClosingData';
 import { useWeeklyClosingTemplate } from '@/features/weekly-details/composables/useWeeklyClosingTemplate';
-import type { userPDF, IAsignacion } from '@/interfaces';
+import type { userPDF } from '@/interfaces';
 
 /**
  * ------------------------------------------
@@ -25,7 +25,7 @@ import { useRouter } from 'vue-router';
  */
 const $store = useStore();
 const router = useRouter();
-const { tabulation, weeklyClosingDetails, generalBalance, managementNumbers, fetchWeeklyClosingDetails, fetchPdfData } = useWeeklyClosingData()
+const { tabulation, weeklyClosingDetails, generalBalance, managementNumbers, fetchWeeklyClosingDetails,  /*fetchPdfData*/ } = useWeeklyClosingData()
 const { generateHTMLTemplate } = useWeeklyClosingTemplate()
 const { generatePDF, downloadPDF } = usePdfGenerator()
 
@@ -61,12 +61,12 @@ const handleGeneratePDF = async (user: userPDF) => {
   try {
     if (!$store.gerenciaSelected) return;
 
-    await fetchPdfData({
-      userID: $store.user?.usuarioId,
-      managment: $store.gerenciaSelected,
-      year: $store.currentDate.year,
-      week: $store.currentDate.week,
-    })
+    // await fetchPdfData({
+    //   userID: $store.user?.usuarioId,
+    //   managment: $store.gerenciaSelected,
+    //   year: $store.currentDate.year,
+    //   week: $store.currentDate.week,
+    // })
 
     if (!weeklyClosingDetails.value || !generalBalance.value || !managementNumbers.value) return;
 

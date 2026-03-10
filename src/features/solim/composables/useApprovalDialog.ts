@@ -1,84 +1,77 @@
-import { ref, computed } from 'vue'
-import { SOLIM_STATUS, type SolimStatusType } from '../constants'
-import type { CheckInfo } from '../types'
+import { computed, ref } from 'vue'
+import type { ApprovalDecision, ApprovalDialogForm, RevisionApproval } from '../types'
 
+interface OpenDialogOptions {
+  requestId: string
+  currentApproval?: RevisionApproval | null
+  currentPlanId?: number | null
+  defaultDecision?: ApprovalDecision
+}
+
+const createDefaultForm = (): ApprovalDialogForm => ({
+  decision: 'aprobado',
+  comentario: '',
+  pin: '',
+  tablaCargosIdSugerido: '',
+  montoAutorizado: '',
+  incrementoAutorizado: '',
+  nivelAutorizado: '',
+  plazoAutorizado: ''
+})
 
 export function useApprovalDialog() {
   const selectedRequestId = ref<string>()
-  const loanApprovalForm = ref<CheckInfo>({
-    check: null,
-    check_date: null,
-    check_by: null,
-    nota: ""
-  })
-
+  const loanApprovalForm = ref<ApprovalDialogForm>(createDefaultForm())
   const isDialogOpen = ref(false)
-  const currentAction = ref<'approve' | 'reject' | null>(null)
-  const isApprovalAction = computed(() => currentAction.value === 'approve')
-  const isRejectionAction = computed(() => currentAction.value === 'reject')
 
-  const openApprovalDialog = () => {
-    loanApprovalForm.value.check = 'checked'
-    currentAction.value = 'approve'
+  const isAdjustmentDecision = computed(
+    () => loanApprovalForm.value.decision === 'aprobado_con_ajuste'
+  )
+
+  const resetForm = () => {
+    loanApprovalForm.value = createDefaultForm()
   }
 
-  const openRejectionDialog = () => {
-    loanApprovalForm.value.check = null
-    currentAction.value = 'reject'
-  }
-
-  const openDialog = (id: string, status: SolimStatusType) => {
-    if (status === SOLIM_STATUS.APPROVED) {
-      openApprovalDialog()
-    } else {
-      openRejectionDialog()
+  const openDialog = ({
+    requestId,
+    currentApproval,
+    currentPlanId,
+    defaultDecision = 'aprobado'
+  }: OpenDialogOptions) => {
+    selectedRequestId.value = requestId
+    loanApprovalForm.value = {
+      decision:
+        currentApproval?.decision && currentApproval.decision !== 'pendiente' && currentApproval.decision !== 'no_aplica'
+          ? currentApproval.decision
+          : defaultDecision,
+      comentario: currentApproval?.comentario ?? '',
+      pin: '',
+      tablaCargosIdSugerido: String(
+        currentApproval?.tabla_cargos_id_sugerido ?? currentPlanId ?? ''
+      ),
+      montoAutorizado: currentApproval?.monto_autorizado != null ? String(currentApproval.monto_autorizado) : '',
+      incrementoAutorizado:
+        currentApproval?.incremento_autorizado != null
+          ? String(currentApproval.incremento_autorizado)
+          : '',
+      nivelAutorizado: currentApproval?.nivel_autorizado ?? '',
+      plazoAutorizado: currentApproval?.plazo_autorizado != null ? String(currentApproval.plazo_autorizado) : ''
     }
-    selectedRequestId.value = id
     isDialogOpen.value = true
   }
 
   const closeDialog = () => {
     isDialogOpen.value = false
-    currentAction.value = null
+    selectedRequestId.value = undefined
     resetForm()
-  }
-
-  const resetForm = () => {
-    loanApprovalForm.value = {
-      check: null,
-      check_date: null,
-      check_by: null,
-      nota: ""
-    }
-  }
-
-  const confirmAction = async (
-    approveFn?: (updateForm: CheckInfo, id: string) => Promise<void>,
-    rejectFn?: (updateForm: CheckInfo, id: string) => Promise<void>
-  ) => {
-    try {
-      if (isApprovalAction.value && approveFn) {
-        await approveFn(loanApprovalForm.value, selectedRequestId.value as string)
-      } else if (isRejectionAction.value && rejectFn) {
-        await rejectFn(loanApprovalForm.value, selectedRequestId.value as string)
-      }
-      closeDialog()
-    } catch (error) {
-      console.error('Error processing action:', error)
-      // Keep dialog open on error
-    }
   }
 
   return {
     loanApprovalForm,
     isDialogOpen,
-    currentAction,
-    isApprovalAction,
-    isRejectionAction,
+    isAdjustmentDecision,
+    selectedRequestId,
     openDialog,
-    openApprovalDialog,
-    openRejectionDialog,
-    closeDialog,
-    confirmAction
+    closeDialog
   }
 }

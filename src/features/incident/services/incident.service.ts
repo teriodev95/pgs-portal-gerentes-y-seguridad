@@ -10,7 +10,14 @@ class IncidentService {
   }
 
   async createIncident(incident: IIncident) {
-    return this.apiFax.post(`/incidentes-reposiciones/`, incident)
+    return this.apiFax.post(`/incidentes-reposiciones/`, incident, {
+      meta: {
+        successNotification: {
+          mainText: '¡Incidente registrado!',
+          secondaryText: 'El incidente se ha guardado correctamente'
+        }
+      }
+    })
   }
 }
 

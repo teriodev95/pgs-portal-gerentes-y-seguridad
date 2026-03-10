@@ -232,11 +232,11 @@ export function useHomeMenu() {
     },
     {
       id: 'solim',
-      title: 'Admin Solim',
+      title: 'Solicitudes app',
       icon: FileCheck,
       route: ROUTE_NAME.ADMIN_SOLIM,
       disabled: isRegionalUser.value,
-      description: 'Administrar solicitudes'
+      description: 'Revisar solicitudes'
     },
     {
       id: 'no-pagos',
