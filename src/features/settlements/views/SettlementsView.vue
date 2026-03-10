@@ -2,7 +2,6 @@
 import { onBeforeMount } from 'vue'
 import { ROUTE_NAME } from '@/router'
 import { useRoute, useRouter } from 'vue-router'
-import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 
 // Components
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
@@ -21,7 +20,6 @@ import SectionContainer from '@/shared/components/SectionContainer.vue'
 // Services and route
 const $route = useRoute()
 const $router = useRouter()
-const revealCircleStore = useRevealCircleStore()
 
 // Use composables for data management
 const {
@@ -58,7 +56,7 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <MainCT :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
+  <MainCT >
     <!-- Top Navigation Bar -->
     <NavbarCT title="Liquidación" :subtitle="`${settlementData?.prestamoId || ''} - ${settlementData?.cliente || ''}`"
       :show-back-button="true" @back="handleBack" />

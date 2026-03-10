@@ -34,7 +34,6 @@ const {
 const {
   isLoadingPayments,
   isProcessing,
-  selectedAmount,
   selectedPayment,
   loadPayments,
   processPayment,
@@ -44,8 +43,7 @@ const {
 
 const {
   isFromWeeklyClosureError,
-  payments,
-  showSuccessReveal
+  payments
 } = usePaymentUIState()
 
 // Computed properties
@@ -62,7 +60,6 @@ async function handlePayment() {
   const success = await processPayment(paymentForm.value.amount, paymentForm.value.paymentSource, paymentForm.value.paymentRecovery)
 
   if (success && selectedPayment.value) {
-    showSuccessReveal(selectedPayment.value, selectedAmount.value)
     paymentFormBottomSheetRef.value?.close()
     paymentFormBottomSheetRef.value?.resetSlide()
     resetSelectedPayment()

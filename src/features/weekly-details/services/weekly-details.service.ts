@@ -6,10 +6,11 @@ import type {
 } from '@/interfaces'
 
 class WeeklyDetailsService {
-  private mainV2Client = createApiClientFromPreset('mainV2')
+  //private mainV2Client = createApiClientFromPreset('mainV2')
   private fastApiClient = createApiClientFromPreset('fastApi')
   private readonly STATIC_TOKEN = 'c4u&S7HizL5!PU$5c2gwYastgMs5%RUViAbK'
 
+  /*
   async getGeneralBalance(management: string) {
     return this.mainV2Client.get<IGeneralBalance>(
       `/detalles-cierres-agencias/gerencia/${management}`,
@@ -31,6 +32,8 @@ class WeeklyDetailsService {
       }
     )
   }
+  
+  */
 
   async getWeeklyDetails(management: string, week: number, anio: number) {
     return this.fastApiClient.get<IWeeklyDetails>(

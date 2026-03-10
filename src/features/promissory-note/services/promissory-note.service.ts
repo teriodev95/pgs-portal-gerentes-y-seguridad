@@ -37,10 +37,20 @@ class PromissoryNoteService {
   /**
    * [PATCH] /pagares/:id -> Actualizar información del pagaré
    */
-  async updatePagare(id: string, payload: ActualizarPagarePayload) {
+  async updatePagare(id: string, payload: ActualizarPagarePayload, onSuccess?: () => void) {
     const { data } = await this.apiElysia.patch<{ data: { updated_fields: string[] } }>(
       `/pagares/${id}`,
-      payload
+      payload,
+      {
+        meta: {
+          successNotification: {
+            mainText: '¡Pagaré actualizado con éxito!',
+            secondaryText: 'La información de entrega del pagaré ha sido registrada correctamente.',
+            ctaText: 'Continuar',
+            onClose: onSuccess
+          }
+        }
+      }
     )
     return data.data
   }

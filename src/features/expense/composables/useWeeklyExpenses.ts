@@ -1,6 +1,5 @@
 import { computed, onBeforeMount, ref } from 'vue'
 import { useStore } from '@/shared/stores'
-import { useToast } from 'vue-toast-notification'
 import type { ExpenseFormData, WeeklyExpense } from '../types'
 import { weeklyExpenseService } from '../services/expense.service'
 import { useExpenseErrorHandler } from './useExpenseErrorHandler'
@@ -8,27 +7,27 @@ import { useExpenseErrorHandler } from './useExpenseErrorHandler'
 // Validation function
 function validateExpenseData(expense: WeeklyExpense): { isValid: boolean; errors: string[] } {
   const errors: string[] = []
-  
+
   if (!expense.monto || expense.monto <= 0) {
     errors.push('El monto debe ser mayor a 0')
   }
-  
+
   if (!expense.tipoGasto) {
     errors.push('El tipo de gasto es requerido')
   }
-  
+
   if (expense.tipoGasto === 'GASOLINA' && (!expense.litros || expense.litros <= 0)) {
     errors.push('Los litros son requeridos para gastos de gasolina')
   }
-  
+
   if (!expense.creadoPorId) {
     errors.push('Usuario no válido')
   }
-  
+
   if (!expense.fecha) {
     errors.push('La fecha es requerida')
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -38,7 +37,6 @@ function validateExpenseData(expense: WeeklyExpense): { isValid: boolean; errors
 export function useWeeklyExpenses() {
   // Services, Composables and Stores initialization
   const $store = useStore()
-  const $toast = useToast()
   const { handleError } = useExpenseErrorHandler()
 
   // State definitions
@@ -104,7 +102,6 @@ export function useWeeklyExpenses() {
 
     try {
       await weeklyExpenseService.createExpense(expense)
-      $toast.success('Gasto guardado correctamente')
       await fetchWeeklyExpenses()
       return Promise.resolve()
     } catch (error) {
