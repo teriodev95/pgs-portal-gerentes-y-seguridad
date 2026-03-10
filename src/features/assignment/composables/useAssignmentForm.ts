@@ -3,18 +3,29 @@ import { computed, ref } from 'vue';
 import { useStore } from '@/shared/stores';
 import { assignmentService } from '../services/assignment.service';
 import type { ICreateAssignment, IUserVerificationPin } from '@/features/assignment/types';
-import { useAssignmentErrorHandler } from './useAssignmentErrorHandler';
+import { ASSIGNMENT_ERROR_MESSAGES } from '../constants';
+import { useNotification } from '@/shared/composables/useNotification';
+
+type ValidationStatus = 'default' | 'success' | 'error';
 
 export function useAssignmentForm() {
   // Services
   const $store = useStore();
-  const { handleError } = useAssignmentErrorHandler();
+  const { showError } = useNotification();
 
-  // State
+  // State - Users
   const senderUser = ref<IUserVerificationPin>();
   const recipientUser = ref<IUserVerificationPin>();
-  const isRecipientUserVerified = ref(false);
-  const isSenderUserVerified = ref(false);
+
+  // State - Validation
+  const senderStatus = ref<ValidationStatus>('default');
+  const recipientStatus = ref<ValidationStatus>('default');
+  const senderErrorMessage = ref('');
+  const recipientErrorMessage = ref('');
+  const isVerifyingSenderPin = ref(false);
+  const isVerifyingRecipientPin = ref(false);
+
+  // State - Form
   const amount = ref(0);
   const selectedManagementSender = ref('');
   const selectedManagementRecipient = ref('');
@@ -24,8 +35,6 @@ export function useAssignmentForm() {
 
   // Refs para componentes
   const vueSlideUnlockRef = ref();
-  const SenderValidationPin = ref();
-  const RecipientValidationPin = ref();
 
   // Computed properties
   const hasSenderMultipleManagements = computed<boolean>(
@@ -59,8 +68,8 @@ export function useAssignmentForm() {
   });
 
   const isSlideUnlockDisabled = computed(() => {
-    const basicValidation = !isRecipientUserVerified.value ||
-      !isSenderUserVerified.value ||
+    const basicValidation = senderStatus.value !== 'success' ||
+      recipientStatus.value !== 'success' ||
       amount.value <= 0;
 
     const senderManagementValidation = hasSenderMultipleManagements.value &&
@@ -72,31 +81,94 @@ export function useAssignmentForm() {
     return basicValidation || senderManagementValidation || recipientManagementValidation;
   });
 
-  // Methods
-  const handleRecipientPasswordResult = (isCorrect: boolean, msg?: string) => {
-    if (!isCorrect && msg) {
-      handleError(new Error(msg), 'PIN_VALIDATION_FAILED');
+  // PIN Validation Methods
+  const validateSenderPin = async () => {
+    if (!inputSenderPin.value.trim()) {
+      senderStatus.value = 'error';
+      senderErrorMessage.value = ASSIGNMENT_ERROR_MESSAGES.PIN_REQUIRED;
+      return;
     }
-    isRecipientUserVerified.value = isCorrect;
+
+    try {
+      isVerifyingSenderPin.value = true;
+      const response = await assignmentService.verificationByPin(inputSenderPin.value);
+
+      if (response.status !== 200) {
+        senderStatus.value = 'error';
+        senderErrorMessage.value = ASSIGNMENT_ERROR_MESSAGES.PIN_INCORRECT;
+        return;
+      }
+
+      senderUser.value = response.data;
+      senderStatus.value = 'success';
+      senderErrorMessage.value = '';
+    } catch (error) {
+      senderStatus.value = 'error';
+      senderErrorMessage.value = 'Error al validar PIN';
+      showError('Error al validar PIN del remitente');
+    } finally {
+      isVerifyingSenderPin.value = false;
+    }
   };
 
-  const handleSenderPasswordResult = (isCorrect: boolean) => {
-    isSenderUserVerified.value = isCorrect;
+  const validateRecipientPin = async () => {
+    if (!inputRecipientPin.value.trim()) {
+      recipientStatus.value = 'error';
+      recipientErrorMessage.value = ASSIGNMENT_ERROR_MESSAGES.PIN_REQUIRED;
+      return;
+    }
+
+    try {
+      isVerifyingRecipientPin.value = true;
+      const response = await assignmentService.verificationByPin(inputRecipientPin.value);
+
+      if (response.status !== 200) {
+        recipientStatus.value = 'error';
+        recipientErrorMessage.value = ASSIGNMENT_ERROR_MESSAGES.PIN_INCORRECT;
+        return;
+      }
+
+      recipientUser.value = response.data;
+
+      // Validar que no sea un agente
+      if (recipientUser.value.tipo === 'Agente') {
+        recipientStatus.value = 'error';
+        recipientErrorMessage.value = ASSIGNMENT_ERROR_MESSAGES.AGENT_CANNOT_RECEIVE;
+        return;
+      }
+
+      recipientStatus.value = 'success';
+      recipientErrorMessage.value = '';
+    } catch (error) {
+      recipientStatus.value = 'error';
+      recipientErrorMessage.value = 'Error al validar PIN';
+      showError('Error al validar PIN del destinatario');
+    } finally {
+      isVerifyingRecipientPin.value = false;
+    }
+  };
+
+  const resetSenderValidation = () => {
+    senderStatus.value = 'default';
+    senderErrorMessage.value = '';
+    senderUser.value = undefined;
+    inputSenderPin.value = '';
+  };
+
+  const resetRecipientValidation = () => {
+    recipientStatus.value = 'default';
+    recipientErrorMessage.value = '';
+    recipientUser.value = undefined;
+    inputRecipientPin.value = '';
   };
 
   const resetValues = () => {
     amount.value = 0;
-    inputRecipientPin.value = '';
-    inputSenderPin.value = '';
     isCreatingAssignment.value = false;
-    isRecipientUserVerified.value = false;
-    isSenderUserVerified.value = false;
-    recipientUser.value = undefined;
-    RecipientValidationPin.value?.resetStatus();
     selectedManagementRecipient.value = '';
     selectedManagementSender.value = '';
-    senderUser.value = undefined;
-    SenderValidationPin.value?.resetStatus();
+    resetSenderValidation();
+    resetRecipientValidation();
   };
 
   const createAssignmentData = (): ICreateAssignment => {
@@ -126,40 +198,51 @@ export function useAssignmentForm() {
       vueSlideUnlockRef.value.reset();
       resetValues();
     } catch (error) {
-      handleError(error, 'ASSIGNMENT_CREATE_FAILED');
+      console.error('Error creating assignment:', error);
+      showError('Error al crear la asignación');
     } finally {
       isCreatingAssignment.value = false;
     }
   };
 
   return {
-    // State
+    // State - Users
     senderUser,
     recipientUser,
-    isRecipientUserVerified,
-    isSenderUserVerified,
+
+    // State - Validation
+    senderStatus,
+    recipientStatus,
+    senderErrorMessage,
+    recipientErrorMessage,
+    isVerifyingSenderPin,
+    isVerifyingRecipientPin,
+
+    // State - Form
     amount,
     selectedManagementSender,
     selectedManagementRecipient,
     inputSenderPin,
     inputRecipientPin,
     isCreatingAssignment,
-    
+
     // Refs
     vueSlideUnlockRef,
-    SenderValidationPin,
-    RecipientValidationPin,
-    
+
     // Computed
     hasSenderMultipleManagements,
     hasRecipientMultipleManagements,
     senderSelectorText,
     recipientSelectorText,
     isSlideUnlockDisabled,
-    
-    // Methods
-    handleRecipientPasswordResult,
-    handleSenderPasswordResult,
+
+    // Methods - Validation
+    validateSenderPin,
+    validateRecipientPin,
+    resetSenderValidation,
+    resetRecipientValidation,
+
+    // Methods - Form
     resetValues,
     handleCompletion,
   };

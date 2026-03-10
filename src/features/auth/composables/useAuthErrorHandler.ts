@@ -1,5 +1,5 @@
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'
-import { useToast } from 'vue-toast-notification'
+import { useNotification } from '@/shared/composables/useNotification'
 import { AUTH_ERROR_MESSAGES, type AuthErrorType } from '../constants/errorMessages'
 
 export function useAuthErrorHandler() {
@@ -7,7 +7,7 @@ export function useAuthErrorHandler() {
     AUTH_ERROR_MESSAGES,
     'Auth'
   )
-  const $toast = useToast()
+  const { showError } = useNotification()
 
   function handleAuthError(error: unknown): void {
     console.error('Auth Error:', error)
@@ -18,7 +18,7 @@ export function useAuthErrorHandler() {
       // Use server message if available, otherwise fallback to constants
       const serverMessage = response?.data
       if (serverMessage && typeof serverMessage === 'string') {
-        $toast.error(serverMessage)
+        showError(serverMessage)
         return
       }
 

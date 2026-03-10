@@ -2,7 +2,6 @@ import { computed, onBeforeMount, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/shared/stores'
 import { assignmentService } from '../services/assignment.service'
-import { useAssignmentErrorHandler } from './useAssignmentErrorHandler'
 import { ROUTE_NAME } from '@/router'
 import type { INewAssignment } from '../types'
 
@@ -18,7 +17,6 @@ export function useAssignmentsData(viewType: AssignmentViewType) {
   // Services and Composables
   const $store = useStore()
   const $router = useRouter()
-  const { handleError } = useAssignmentErrorHandler()
 
   // State
   const assignments = ref<INewAssignment[]>([])
@@ -62,7 +60,7 @@ export function useAssignmentsData(viewType: AssignmentViewType) {
       )
       assignments.value = response.data
     } catch (error) {
-      handleError(error, 'ASSIGNMENT_LOAD_FAILED')
+      console.error('ASSIGNMENT_LOAD_FAILED', error)
       throw error
     }
   }
@@ -87,7 +85,7 @@ export function useAssignmentsData(viewType: AssignmentViewType) {
       incomes.value = incomesResponse.data
       expenses.value = expensesResponse.data
     } catch (error) {
-      handleError(error, 'ASSIGNMENT_LOAD_FAILED')
+      console.error('ASSIGNMENT_LOAD_FAILED', error)
       throw error
     }
   }

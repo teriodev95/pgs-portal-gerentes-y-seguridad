@@ -6,7 +6,8 @@ import {
   loggingInterceptor,
   errorHandlerInterceptor,
   elysiaAuthInterceptor,
-  successNotificationInterceptor
+  successNotificationInterceptor,
+  errorNotificationInterceptor
 } from './interceptors'
 
 // Predefined API configurations based on current implementation
@@ -87,7 +88,8 @@ class ApiClientFactory implements IApiClientFactory {
     const interceptors: InterceptorConfig[] = [
       contentTypeInterceptor,
       errorHandlerInterceptor,
-      successNotificationInterceptor()
+      successNotificationInterceptor(),
+      errorNotificationInterceptor()
     ]
 
     // Add development logging in dev mode

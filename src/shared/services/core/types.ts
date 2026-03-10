@@ -60,12 +60,21 @@ export interface SuccessNotificationMeta {
   onClose?: () => void
 }
 
+// Error notification metadata interface
+export interface ErrorNotificationMeta {
+  title: string
+  message: string
+  type?: 'error' | 'warning' | 'info'
+}
+
 // Extend Axios types to support notification metadata
 declare module 'axios' {
   export interface AxiosRequestConfig {
     meta?: {
       successNotification?: SuccessNotificationMeta
       skipSuccessNotification?: boolean
+      errorNotification?: ErrorNotificationMeta
+      skipErrorNotification?: boolean
     }
   }
 
@@ -73,6 +82,8 @@ declare module 'axios' {
     meta?: {
       successNotification?: SuccessNotificationMeta
       skipSuccessNotification?: boolean
+      errorNotification?: ErrorNotificationMeta
+      skipErrorNotification?: boolean
     }
   }
 }
