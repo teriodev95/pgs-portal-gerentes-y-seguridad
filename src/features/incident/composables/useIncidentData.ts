@@ -1,6 +1,5 @@
 import { computed, onBeforeMount } from 'vue'
 import { useStore } from '@/shared/stores'
-import { useToast } from 'vue-toast-notification'
 import type { IIncident, IIncidentFormData } from '../types'
 import { incidentService } from '../services/incident.service'
 import { useIncidentErrorHandler } from './useIncidentErrorHandler'
@@ -44,7 +43,6 @@ function validateIncidentData(incident: IIncident): { isValid: boolean; errors: 
 export function useIncidentData() {
   // Services, Composables and Stores initialization
   const $store = useStore()
-  const $toast = useToast()
   const { handleError } = useIncidentErrorHandler()
   const incidentStore = useIncidentStore()
 
@@ -125,7 +123,6 @@ export function useIncidentData() {
 
     try {
       await incidentService.createIncident(incident)
-      $toast.success('Incidente guardado correctamente')
       // Refrescar la lista después de guardar
       await fetchIncidents()
       return Promise.resolve()

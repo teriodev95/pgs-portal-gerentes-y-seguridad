@@ -13,7 +13,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  titleClass: 'text-lg font-semibold mb-3 text-blue-800'
+  titleClass: 'mb-4 text-lg font-semibold text-slate-800'
 })
 </script>
 

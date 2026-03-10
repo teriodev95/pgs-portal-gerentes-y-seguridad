@@ -111,3 +111,44 @@ export const errorHandlerInterceptor: InterceptorConfig = {
     }
   }
 }
+
+// Success notification interceptor
+export const successNotificationInterceptor = (): InterceptorConfig => ({
+  response: {
+    onFulfilled: async (response) => {
+      const config = response.config
+      const method = config.method?.toLowerCase()
+
+      // Solo para POST/PATCH/PUT exitosos
+      if (!['post', 'patch', 'put'].includes(method || '')) {
+        return response
+      }
+
+      // Skip si está explícitamente deshabilitado
+      if (config.meta?.skipSuccessNotification) {
+        return response
+      }
+
+      // Si hay configuración de notificación, mostrarla
+      if (config.meta?.successNotification) {
+        try {
+          const { useRevealCircleStore } = await import('@/shared/stores/revealCircle')
+          const revealCircleStore = useRevealCircleStore()
+
+          revealCircleStore.showRevealCircle({
+            type: 'success',
+            mainText: config.meta.successNotification.mainText,
+            secondaryText: config.meta.successNotification.secondaryText,
+            list: config.meta.successNotification.list,
+            subText: config.meta.successNotification.subText,
+            ctaText: config.meta.successNotification.ctaText
+          }, config.meta.successNotification.onClose)
+        } catch (error) {
+          console.warn('Could not show success notification:', error)
+        }
+      }
+
+      return response
+    }
+  }
+})

@@ -10,7 +10,14 @@ class WeeklyExpenseService {
   }
 
   async createExpense(expense: WeeklyExpense) {
-    return this.apiClient.post<string>(`/gastos/`, expense)
+    return this.apiClient.post<string>(`/gastos/`, expense, {
+      meta: {
+        successNotification: {
+          mainText: '¡Gasto registrado!',
+          secondaryText: 'El gasto se ha guardado correctamente'
+        }
+      }
+    })
   }
 }
 

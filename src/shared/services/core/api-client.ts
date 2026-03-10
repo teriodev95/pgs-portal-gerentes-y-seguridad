@@ -5,19 +5,12 @@ import {
   apiKeyInterceptor,
   loggingInterceptor,
   errorHandlerInterceptor,
-  elysiaAuthInterceptor
+  elysiaAuthInterceptor,
+  successNotificationInterceptor
 } from './interceptors'
 
 // Predefined API configurations based on current implementation
 export const API_CONFIGURATIONS: ApiConfigurations = {
-  main: {
-    baseURL: 'https://sfast.xpress1.cc/xpress/v1',
-    timeout: 90000
-  },
-  mainV2: {
-    baseURL: 'https://sfast.xpress1.cc/api/v2',
-    timeout: 90000
-  },
   fastApi: {
     baseURL: `${import.meta.env.VITE_FAX_API_URL}/api`,
     apiKey: 'ua7Sj^e6Qn#7m7BDW#8oX9*52#KDqPuK',
@@ -93,7 +86,8 @@ class ApiClientFactory implements IApiClientFactory {
     // Default interceptors for all instances
     const interceptors: InterceptorConfig[] = [
       contentTypeInterceptor,
-      errorHandlerInterceptor
+      errorHandlerInterceptor,
+      successNotificationInterceptor()
     ]
 
     // Add development logging in dev mode

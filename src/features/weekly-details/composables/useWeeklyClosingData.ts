@@ -36,6 +36,7 @@ export const useWeeklyClosingData = () => {
     }
   }
 
+  /*
   const fetchPdfData = async ({ managment, year, week }: GetBaseProps): Promise<void> => {
     try {
       if (!managment || !year || !week) {
@@ -69,6 +70,7 @@ export const useWeeklyClosingData = () => {
       }
     }
   }
+  */
 
   const isResultString = (
     data: MoneyTabulation | { result: string }
@@ -83,7 +85,7 @@ export const useWeeklyClosingData = () => {
     tabulation,
     weeklyClosingDetails,
 
-    fetchPdfData,
+    //fetchPdfData,
     fetchWeeklyClosingDetails
   }
 }

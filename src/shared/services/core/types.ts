@@ -26,8 +26,6 @@ export interface ApiConfigurations {
   fastApi: ApiConfig
   hono: ApiConfig
   javalin: ApiConfig
-  main: ApiConfig
-  mainV2: ApiConfig
   n8nCreateComision: ApiConfig
   workerUploadExpenseImage: ApiConfig
   workerUploadVideo: ApiConfig,
@@ -50,4 +48,31 @@ export interface IServiceRegistry {
 export interface IApiClientFactory {
   create(config: ApiConfig): AxiosInstance
   createFromPreset(preset: keyof ApiConfigurations): AxiosInstance
+}
+
+// Success notification metadata interface
+export interface SuccessNotificationMeta {
+  mainText: string
+  secondaryText: string
+  list?: string[]
+  subText?: string
+  ctaText?: string
+  onClose?: () => void
+}
+
+// Extend Axios types to support notification metadata
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    meta?: {
+      successNotification?: SuccessNotificationMeta
+      skipSuccessNotification?: boolean
+    }
+  }
+
+  export interface InternalAxiosRequestConfig {
+    meta?: {
+      successNotification?: SuccessNotificationMeta
+      skipSuccessNotification?: boolean
+    }
+  }
 }

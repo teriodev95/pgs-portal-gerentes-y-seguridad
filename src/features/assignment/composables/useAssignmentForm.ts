@@ -4,12 +4,11 @@ import { useStore } from '@/shared/stores';
 import { assignmentService } from '../services/assignment.service';
 import type { ICreateAssignment, IUserVerificationPin } from '@/features/assignment/types';
 import { useAssignmentErrorHandler } from './useAssignmentErrorHandler';
-import { VALIDATION_MESSAGES } from '../constants';
 
 export function useAssignmentForm() {
   // Services
   const $store = useStore();
-  const { handleError, handleSuccessMessage } = useAssignmentErrorHandler();
+  const { handleError } = useAssignmentErrorHandler();
 
   // State
   const senderUser = ref<IUserVerificationPin>();
@@ -126,8 +125,6 @@ export function useAssignmentForm() {
       await assignmentService.createAssignment(assignment);
       vueSlideUnlockRef.value.reset();
       resetValues();
-      
-      handleSuccessMessage(VALIDATION_MESSAGES.SUCCESS.ASSIGNMENT_CREATED);
     } catch (error) {
       handleError(error, 'ASSIGNMENT_CREATE_FAILED');
     } finally {

@@ -41,6 +41,11 @@ const router = createRouter({
               component: WeeklyClose
             },
             {
+              path: 'cierre/firmar',
+              name: ROUTE_NAME.WEEKLY_CLOSE_SIGN,
+              component: () => import('@/features/weekly-close/views/WeeklyCloseSign.vue')
+            },
+            {
               path: 'cierre-error',
               name: ROUTE_NAME.WEEKLY_CLOSE_ERROR,
               component: () => import('@/features/weekly-close/views/WeeklyClosureError.vue')

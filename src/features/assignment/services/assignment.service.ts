@@ -29,7 +29,14 @@ class AssignmentService {
   }
 
   async createAssignment(data: ICreateAssignment) {
-    return this.apiClient.post<ICreateAssignment>(`/asignaciones/`, data)
+    return this.apiClient.post<ICreateAssignment>(`/asignaciones/`, data, {
+      meta: {
+        successNotification: {
+          mainText: '¡Asignación creada 2!',
+          secondaryText: 'La asignación se ha registrado exitosamente'
+        }
+      }
+    })
   }
 }
 
