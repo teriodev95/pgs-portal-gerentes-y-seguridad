@@ -58,7 +58,7 @@ function validateSaleData(sale: SaleDetails): { isValid: boolean; errors: string
 export function useSaleData() {
   // Services, Composables and Stores initialization
   const $store = useStore()
-  const { handleError, handleSuccess } = useSaleErrorHandler()
+  const { handleError } = useSaleErrorHandler()
   const saleStore = useSaleStore()
 
   // Computed properties (datos del store global)
@@ -128,7 +128,6 @@ export function useSaleData() {
 
     try {
       await salesService.createSale(saleData)
-      handleSuccess('Venta creada exitosamente')
       // Refrescar la lista después de guardar
       await fetchSales()
       return Promise.resolve()

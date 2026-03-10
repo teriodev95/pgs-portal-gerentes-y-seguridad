@@ -2,7 +2,6 @@
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSettlement } from '../composables/useSettlement'
-import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
@@ -16,7 +15,6 @@ import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 
 const route = useRoute()
 const router = useRouter()
-const revealCircleStore = useRevealCircleStore()
 
 const {
   // Special Settlement State
@@ -61,7 +59,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <MainCT :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
+  <MainCT>
     <!-- Top Navigation Bar -->
     <NavbarCT
       title="Liquidación Especial"

@@ -36,16 +36,30 @@ class SettlementsService {
     }
 
     // El interceptor elysiaAuthInterceptor se encarga automáticamente de agregar el token
-    return this.apiElysia.post<string>(`/liquidaciones/`, dataMapped)
+    return this.apiElysia.post<string>(`/liquidaciones/`, dataMapped, {
+      meta: {
+        successNotification: {
+          mainText: 'Liquidación exitosa',
+          secondaryText: `Se guardó con éxito la liquidación de ${data.cliente}`
+        }
+      }
+    })
   }
 
 
   async getSpecialSettlement(id : string) {
-    return this.apiJavalin.get<ISpecialSettlement>(`/liquidaciones-especiales/prestamo/${id}`)    
+    return this.apiJavalin.get<ISpecialSettlement>(`/liquidaciones-especiales/prestamo/${id}`)
   }
 
   async createSpecialSettlement(data: IPayloadSpecialSettlement) {
-    return this.apiFax.post<string>(`/liquidaciones/especiales`, data)
+    return this.apiFax.post<string>(`/liquidaciones/especiales`, data, {
+      meta: {
+        successNotification: {
+          mainText: '¡Liquidación especial procesada!',
+          secondaryText: 'La liquidación especial se completó exitosamente'
+        }
+      }
+    })
   }
 }
 
