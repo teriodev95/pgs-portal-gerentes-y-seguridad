@@ -9,7 +9,6 @@ import type {
   ICallCenterFilters,
   ICallCenterSummaryReport
 } from '../types'
-import type { ItemSearchFilter } from '@/shared/composables/useItemRenderer'
 
 // Servicio puro de API
 import { useCallCenterService } from './useCallCenterService'
@@ -228,7 +227,7 @@ export const useCallCenter = () => {
 
       console.log('Creando visita con datos:', visit, typeof visit)
 
-      await service.createVisit(visit)
+      await service.createVisit(visit, selectedReport.value.nombres_cliente)
       finishVisitCreation()
 
       // Recargar reportes para actualizar el estado

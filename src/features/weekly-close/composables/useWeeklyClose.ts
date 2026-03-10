@@ -287,7 +287,7 @@ export const useWeeklyClose = () => {
   /**
    * Guarda el cierre semanal en la API
    */
-  const saveWeeklyClose = async (): Promise<boolean> => {
+  const saveWeeklyClose = async (onSuccess?: () => void): Promise<boolean> => {
     if (!store.weeklyClose || !management.value) {
       errorDialogStore.showSimpleError(
         'Datos incompletos',
@@ -309,7 +309,12 @@ export const useWeeklyClose = () => {
       )
 
       // Guardar cierre y crear comisión
-      await api.createWeeklyClose(cierreData)
+      await api.createWeeklyClose(
+        cierreData,
+        agency.value?.agencia || '',
+        management.value || '',
+        onSuccess
+      )
       await api.createCommission(globalStore.agencySelected as string)
 
       // Recargar datos actualizados

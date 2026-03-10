@@ -8,6 +8,7 @@ import type {
   IAgencyDashboard
 } from '@/features/weekly-close/types'
 import type { GetBaseProps } from '@/interfaces'
+import { toCurrency } from '@/shared/utils'
 
 
 class WeeklyClosingService {
@@ -25,8 +26,24 @@ class WeeklyClosingService {
     )
   }
 
-  async createWeeklyClose(data: ICreateCierreSemana) {
-    return this.fastApiClient.post(`/cierres-agencias/`, data)
+  async createWeeklyClose(data: ICreateCierreSemana, agencyName: string, managementName: string, onClose?: () => void) {
+    const summaryList = [
+      `Comisión por cobranza: ${toCurrency(data.comisionCobranzaPagadaEnSemana)}`,
+      `Comisión por ventas: ${toCurrency(data.comisionVentasPagadaEnSemana)}`,
+      `Bonos: ${toCurrency(data.bonosPagadosEnSemana)}`
+    ]
+
+    return this.fastApiClient.post(`/cierres-agencias/`, data, {
+      meta: {
+        successNotification: {
+          mainText: 'Cierre semanal completado con éxito',
+          secondaryText: `Agencia: <b>${agencyName}</b> - Gerencia: <b>${managementName}</b>`,
+          subText: 'Resumen:',
+          list: summaryList,
+          onClose
+        }
+      }
+    })
   }
 
   async uploadVideo(video: File) {

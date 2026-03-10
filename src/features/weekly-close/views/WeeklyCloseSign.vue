@@ -2,8 +2,6 @@
 import '@webzlodimir/vue-bottom-sheet/dist/style.css'
 import { computed, onBeforeMount, onUnmounted, ref } from 'vue'
 import { STEPS } from '@/features/weekly-close/constants'
-import { toCurrency } from '@/shared/utils'
-import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 import { useSignWeeklyClose } from '@/features/weekly-close/composables/useSignWeeklyClose'
 import { useWeeklyClose } from '@/features/weekly-close/composables/useWeeklyClose'
 import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
@@ -23,8 +21,6 @@ import SlideUnlock from 'vue-slide-unlock'
 import TextCT from '@/shared/components/ui/TextCT.vue'
 import VerificationButton from '@/features/weekly-close/components/VerificationButton.vue'
 
-const revealCircleStore = useRevealCircleStore()
-
 // Composables
 const {
   weeklyClose,
@@ -33,7 +29,6 @@ const {
   isAgencyVacant,
   isAgencyActive,
   saveWeeklyClose,
-  management,
   isLoading,
   initializeWeeklyClose
 } = useWeeklyClose()
@@ -148,51 +143,14 @@ const handleOnBack = () => {
  * Maneja el evento de completado del slide unlock
  */
 const handleSlideUnlockCompletion = async () => {
-  const success = await handleSubmit(saveWeeklyClose)
-
-  if (success) {
-    handleCompletionSuccess()
-  }
-
+  await handleSubmit(() => saveWeeklyClose(navigateBackToWeeklyClose))
   vueSlideUnlockRef.value?.reset()
-}
-
-/**
- * Muestra el mensaje de éxito tras completar el cierre
- */
-const handleCompletionSuccess = () => {
-  if (weeklyClose.value) {
-    const summaryList = [
-      `Comisión por cobranza: ${toCurrency(
-        weeklyClose.value.egresosGerente.comisionCobranzaPagadaEnSemana
-      )}`,
-      `Comisión por ventas: ${toCurrency(
-        weeklyClose.value.egresosGerente.comisionVentasPagadaEnSemana
-      )}`,
-      `Bonos: ${toCurrency(weeklyClose.value.egresosGerente.bonosPagadosEnSemana)}`
-    ]
-
-    revealCircleStore.showRevealCircle({
-      type: 'success',
-      mainText: 'Cierre semanal completado con éxito',
-      secondaryText: `Agencia: <b>${agency.value?.agencia}</b> - Gerencia: <b>${management.value}</b>`,
-      subText: 'Resumen:',
-      list: summaryList
-    })
-
-    // Navegar de regreso después de mostrar el mensaje
-    setTimeout(() => {
-      navigateBackToWeeklyClose()
-    }, 3000)
-  }
 }
 
 // ============================================================================
 // LIFECYCLE
 // ============================================================================
 onBeforeMount(async () => {
-  // Si no hay datos del cierre cargados, cargarlos
-  // Esto puede pasar si el usuario recarga la página directamente en esta ruta
   if (!weeklyClose.value && !isLoading.value) {
     await initializeWeeklyClose()
   }
@@ -204,7 +162,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <MainCT :class="{ 'overflow-hidden': revealCircleStore.isVisible }">
+  <MainCT>
     <!-- Top Navigation Bar -->
     <NavbarCT
       title="Verificación"

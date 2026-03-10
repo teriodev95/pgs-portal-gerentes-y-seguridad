@@ -14,12 +14,10 @@ import {
 } from '@/components/ui/drawer'
 import ReportDetailsBS from './ReportDetailsBS.vue'
 import CreateVisitBS from './CreateVisitBS.vue'
-import { useRevealCircleStore } from '@/shared/stores/revealCircle'
 
 // Composables
 const callCenter = useCallCenter()
 const reportDrawer = useDrawer<ICallCenterReport>('call-center-report')
-const revealCircleStore = useRevealCircleStore()
 
 // Refs
 const reportDetailsComponent = ref<InstanceType<typeof ReportDetailsBS>>()
@@ -74,12 +72,6 @@ async function handleCreateVisit(observations: string, visitStatus: string) {
 
     // Pequeño delay para permitir que el overlay desaparezca antes de cerrar el drawer
     await new Promise(resolve => setTimeout(resolve, 100))
-
-    // Cerrar drawer
-    revealCircleStore.showSuccess(
-      'Visita registrada',
-      `Se guardó con éxito la visita al cliente ${reportDrawer.selectedData.value?.nombres_cliente || ''}`
-    )
   } catch (error) {
     console.error('❌ Error creating visit:', error)
     isSubmittingVisit.value = false

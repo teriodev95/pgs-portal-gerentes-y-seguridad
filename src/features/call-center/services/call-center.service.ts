@@ -5,8 +5,15 @@ import type { GetBaseProps } from '@/interfaces'
 class CallCenterService {
   private faxClient = createApiClientFromPreset('fastApi')
 
-  async createVisit(visita: ICallCenterVisit) {
-    return this.faxClient.post(`/visitas/call-center`, visita)
+  async createVisit(visita: ICallCenterVisit, clientName: string) {
+    return this.faxClient.post(`/visitas/call-center`, visita, {
+      meta: {
+        successNotification: {
+          mainText: 'Visita registrada x',
+          secondaryText: `Se guardó con éxito la visita al cliente ${clientName}`
+        }
+      }
+    })
   }
 
   async getCallCenterReports({managment, year, week}: GetBaseProps) {
