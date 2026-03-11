@@ -8,7 +8,6 @@ export function useCalendar() {
   const currentView: Ref<CalendarView> = ref('anual')
   const selectedMonth = ref<string>('')
   const loading = ref(false)
-  const error = ref<string | null>(null)
 
   const monthsGroup = computed<MonthGroup[]>(() => {
     const monthsMap = new Map<string, CalendarWeek[]>()
@@ -79,19 +78,15 @@ export function useCalendar() {
     }
 
     loading.value = true
-    error.value = null
 
     try {
       const response = await calendarService.getCalendarByYear(currentYear.value)
 
       if (response.success) {
         weeks.value = response.data
-      } else {
-        error.value = response.message || 'Error al obtener el calendario'
-      }
+      } 
     } catch (err) {
       console.error('Error fetching calendar:', err)
-      error.value = 'Error de conexión al obtener el calendario'
     } finally {
       loading.value = false
     }
@@ -185,7 +180,6 @@ export function useCalendar() {
     currentView,
     selectedMonth,
     loading,
-    error,
 
     // Computed
     monthsGroup,
