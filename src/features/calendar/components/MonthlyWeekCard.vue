@@ -1,3 +1,30 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { CalendarWeek } from '../types'
+
+interface Props {
+  week: CalendarWeek
+  formatDateRange: (desde: string, hasta: string) => string
+}
+
+interface Emits {
+  (e: 'click', week: CalendarWeek): void
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
+
+const weekCardClasses = computed(() => [
+  props.week.pago_bono
+    ? 'border-green-300 shadow-green-100/50 hover:border-green-400 hover:shadow-green-200/50'
+    : 'border-gray-200 hover:border-gray-300 hover:shadow-gray-100'
+])
+
+function handleClick() {
+  emit('click', props.week)
+}
+</script>
+
 <template>
   <div
     class="relative p-4 rounded-lg border transition-all duration-200 hover:shadow-sm cursor-pointer bg-white"
@@ -31,44 +58,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-import type { CalendarWeek } from '../types'
-
-interface Props {
-  week: CalendarWeek
-  formatDateRange: (desde: string, hasta: string) => string
-}
-
-interface Emits {
-  (e: 'click', week: CalendarWeek): void
-}
-
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
-
-const weekCardClasses = computed(() => [
-  props.week.pago_bono
-    ? 'border-green-300 shadow-green-100/50 hover:border-green-400 hover:shadow-green-200/50'
-    : 'border-gray-200 hover:border-gray-300 hover:shadow-gray-100'
-])
-
-function formatStartDate(date: string): string {
-  return new Date(date).toLocaleDateString('es', {
-    day: 'numeric',
-    month: 'short'
-  })
-}
-
-function formatEndDate(date: string): string {
-  return new Date(date).toLocaleDateString('es', {
-    day: 'numeric',
-    month: 'short'
-  })
-}
-
-function handleClick() {
-  emit('click', props.week)
-}
-</script>
