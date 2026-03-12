@@ -105,6 +105,10 @@ function formatStepDetail(step: RutaSolicitudPaso): string {
   }
 
   if (step.status === 'bloqueado') {
+    const rejected = approvals.value.filter((a) => a.decision === 'rechazado')
+    if (rejected.length > 0) {
+      return `${rejected.length} rechazo${rejected.length > 1 ? 's' : ''}`
+    }
     return 'Hay rechazo'
   }
 
@@ -135,6 +139,10 @@ const requiredApprovalLabels = computed(() => {
   return requiredApprovalTypes.value.map((tipo) => APPROVAL_LABELS[tipo])
 })
 
+const rejectedApprovals = computed(() =>
+  approvals.value.filter((a) => a.decision === 'rechazado')
+)
+
 const routeSummary = computed(() => {
   const route = rutaSolicitud.value
   if (!route) return 'La ruta aún no está disponible'
@@ -142,6 +150,11 @@ const routeSummary = computed(() => {
   const currentStep = route.paso_actual ? STEP_COPY[route.paso_actual] : null
 
   if (route.status === 'bloqueada') {
+    const rejected = approvals.value.filter((a) => a.decision === 'rechazado')
+    if (rejected.length > 0) {
+      const names = rejected.map((r) => APPROVAL_LABELS[r.tipo] || r.tipo)
+      return `Rechazado por ${names.join(', ')}`
+    }
     return currentStep ? `${currentStep.title} requiere atención` : 'Hay pasos que requieren atención'
   }
 
@@ -335,6 +348,30 @@ function isAnimatedStatus(status: StepItem['status']) {
                 <span class="shrink-0 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold" :class="stepClasses(step.status).detail">
                   {{ step.detail }}
                 </span>
+              </div>
+            </div>
+
+            <!-- Detalle de rechazos en vistos buenos -->
+            <div
+              v-if="step.id === 'vistos_buenos' && rejectedApprovals.length > 0"
+              class="mt-3 space-y-2 border-t border-red-200/60 pt-3"
+            >
+              <div
+                v-for="rejection in rejectedApprovals"
+                :key="rejection.tipo"
+                class="flex items-start gap-2.5 rounded-xl bg-red-50 px-3 py-2.5 text-[13px]"
+              >
+                <span class="mt-px inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">✕</span>
+                <div class="min-w-0">
+                  <p class="font-semibold text-red-800">
+                    {{ APPROVAL_LABELS[rejection.tipo] || rejection.tipo }}
+                    <span v-if="rejection.usuario_nombre" class="font-normal text-red-700"> · {{ rejection.usuario_nombre }}</span>
+                  </p>
+                  <p v-if="rejection.comentario" class="mt-0.5 leading-relaxed text-red-700">
+                    {{ rejection.comentario }}
+                  </p>
+                  <p v-else class="mt-0.5 italic text-red-600/70">Sin motivo registrado</p>
+                </div>
               </div>
             </div>
           </div>

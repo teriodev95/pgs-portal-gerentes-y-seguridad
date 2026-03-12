@@ -38,7 +38,7 @@ const decisionOptions: Array<{ label: string; value: ApprovalDecision }> = [
 ]
 
 const isAdjustmentDecision = computed(() => props.form.decision === 'aprobado_con_ajuste')
-const showsPlanRoute = computed(() => props.form.decision !== 'rechazado')
+const showsPlanRoute = computed(() => props.form.decision === 'aprobado_con_ajuste')
 
 const selectedPlan = computed(() => {
   const selectedId = Number(props.form.tablaCargosIdSugerido || props.currentPlanId || 0)
