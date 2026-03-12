@@ -6,9 +6,7 @@ import { ROUTE_NAME } from '@/router'
 import { PaymentSource, RecoverySource } from '@/features/loan/types'
 
 // Composables
-import { usePaymentFilters } from '@/features/loan/composables/usePaymentFilter'
-import { usePaymentManagement } from '@/features/loan/composables/usePaymentManagement'
-import { usePaymentUIState } from '@/features/loan/composables/usePaymentUIState'
+import { usePaymentFilters, usePaymentManagement, usePaymentUIState } from '@/features/loan/composables'
 
 // Components
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
@@ -58,6 +56,10 @@ const paymentForm = ref({
 // Enhanced handlers
 async function handlePayment() {
   const success = await processPayment(paymentForm.value.amount, paymentForm.value.paymentSource, paymentForm.value.paymentRecovery)
+
+  if(!success) {
+    paymentFormBottomSheetRef.value?.resetSlide()
+  }
 
   if (success && selectedPayment.value) {
     paymentFormBottomSheetRef.value?.close()

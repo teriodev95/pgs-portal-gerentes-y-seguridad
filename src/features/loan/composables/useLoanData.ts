@@ -1,7 +1,6 @@
 import { computed, ref } from 'vue'
 import { loanAndPaymentService } from '../services/loan.service'
 import { settlementsService } from '@/features/settlements/services/settlements.service'
-import { useLoanErrorHandler } from './useLoanErrorHandler'
 import { useRoute } from 'vue-router'
 import { useStore } from '@/shared/stores'
 import { toCurrency } from '@/shared/utils'
@@ -12,7 +11,6 @@ import type { Liquidacion } from '@/features/settlements/types'
 export function useLoanData() {
   const $route = useRoute()
   const $store = useStore()
-  const { handleError } = useLoanErrorHandler()
 
   // State
   const isLoading = ref(true)
@@ -112,7 +110,7 @@ export function useLoanData() {
       const response = await loanAndPaymentService.getLoanById(id)
       loanData.value = response.data
     } catch (error) {
-      handleError(error, 'LOAN_DATA_LOAD_FAILED', { loanId: id })
+      console.error('Error al cargar datos del préstamo:', error)
     }
     $store.loading = false
   }
@@ -122,7 +120,7 @@ export function useLoanData() {
       const data = await settlementsService.getLiquidacion(id)
       settlementData.value = data
     } catch (error) {
-      handleError(error, 'SETTLEMENT_DATA_LOAD_FAILED', { loanId: id }, false)
+      console.error('Error al cargar datos de liquidación:', error)
     }
   }
 
@@ -140,7 +138,7 @@ export function useLoanData() {
         await fetchSettlementData(loanId)
       }
     } catch (error) {
-      handleError(error, 'LOAN_DATA_LOAD_FAILED')
+      console.error('Error al inicializar datos del préstamo:', error)
     } finally {
       isLoading.value = false
     }

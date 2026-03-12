@@ -6,7 +6,15 @@ class LoanAndPaymentService {
   private apiFastApi = createApiClientFromPreset('fastApi')
 
   async getLoanById(id: string) {
-    return this.apiFastApi.get<ILoan>(`/prestamos/${id}`)
+    return this.apiFastApi.get<ILoan>(`/prestamos/${id}`, {
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar préstamo',
+          message: 'No se pudo cargar la información del préstamo. Por favor, intenta nuevamente.',
+          type: 'error'
+        }
+      }
+    })
   }
 
   async createPayment(pago: IPaymentCreate) {
@@ -22,6 +30,11 @@ class LoanAndPaymentService {
           secondaryText: `Se ha registrado correctamente el pago de <span class='font-extrabold'>${pago.cliente}</span>`,
           subText: 'A continuación, los detalles de la transacción:',
           list: transactionDetails
+        },
+        errorNotification: {
+          title: 'Error al registrar pago',
+          message: 'No se pudo registrar el pago. Por favor, intenta nuevamente.',
+          type: 'error'
         }
       }
     })
