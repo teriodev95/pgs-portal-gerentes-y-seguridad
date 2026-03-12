@@ -2,11 +2,9 @@ import { computed, onBeforeMount, ref } from 'vue'
 import { entityService } from '../services/entity.service'
 import { useStore } from '@/shared/stores'
 import type { IManagementDashboard, IManagementDebts } from '@/features/entity/types'
-import { useEntityErrorHandler } from './useEntityErrorHandler'
 
 export function useGerencyDetails() {
   const $store = useStore()
-  const { handleError } = useEntityErrorHandler()
 
   const dashboardData = ref<IManagementDashboard>()
   const managementDebts = ref<IManagementDebts>()
@@ -38,7 +36,7 @@ export function useGerencyDetails() {
 
         dashboardData.value = data
       } catch (error) {
-        handleError(error, 'GERENCY_DASHBOARD_LOAD_FAILED')
+        console.error('Error fetching management dashboard:', error)
       }
       $store.loading = false
     }
