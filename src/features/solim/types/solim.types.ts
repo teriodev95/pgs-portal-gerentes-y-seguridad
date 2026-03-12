@@ -13,6 +13,29 @@ export type RevisionStatus =
   | 'aprobada_condicionada'
   | 'rechazada'
   | 'corregir'
+  | 'requiere_correccion'
+  | 'sin_hallazgos'
+  | 'con_hallazgos'
+
+export type RutaSolicitudStatus = 'pendiente' | 'bloqueada' | 'completa'
+export type RutaSolicitudPasoStatus = 'pendiente' | 'completo' | 'bloqueado' | 'no_aplica'
+export type RutaSolicitudPasoId = 'prevalidacion_app' | 'filtrado' | 'vistos_buenos'
+
+export interface RutaSolicitudPaso {
+  id: RutaSolicitudPasoId
+  orden: number
+  status: RutaSolicitudPasoStatus
+  total: number
+  completos: number
+  pendientes: number
+}
+
+export interface RutaSolicitud {
+  version: string
+  status: RutaSolicitudStatus
+  paso_actual?: RutaSolicitudPasoId | null
+  pasos: RutaSolicitudPaso[]
+}
 
 export interface ApprovalRequirements {
   version?: string
@@ -191,6 +214,7 @@ export interface Solicitud {
   tabla_cargos_snapshot?: TablaCargosSnapshot | null
   revision?: RevisionSummary | null
   revision_aprobaciones?: RevisionApproval[] | null
+  ruta_solicitud?: RutaSolicitud | null
 }
 
 export interface LoanRequestsListResponse {
@@ -223,7 +247,6 @@ export interface TablaCargosOptionsResponse {
 export interface ApprovalDialogForm {
   decision: ApprovalDecision
   comentario: string
-  pin: string
   tablaCargosIdSugerido: string
   montoAutorizado: string
   incrementoAutorizado: string

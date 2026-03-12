@@ -11,7 +11,6 @@ interface OpenDialogOptions {
 const createDefaultForm = (): ApprovalDialogForm => ({
   decision: 'aprobado',
   comentario: '',
-  pin: '',
   tablaCargosIdSugerido: '',
   montoAutorizado: '',
   incrementoAutorizado: '',
@@ -45,7 +44,6 @@ export function useApprovalDialog() {
           ? currentApproval.decision
           : defaultDecision,
       comentario: currentApproval?.comentario ?? '',
-      pin: '',
       tablaCargosIdSugerido: String(
         currentApproval?.tabla_cargos_id_sugerido ?? currentPlanId ?? ''
       ),

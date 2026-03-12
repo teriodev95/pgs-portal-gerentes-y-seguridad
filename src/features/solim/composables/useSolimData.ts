@@ -57,8 +57,6 @@ export function useSolimData() {
     currentApprovalType.value === 'seguridad' ? 'Seguridad' : 'Gerente'
   )
 
-  const expectedPin = computed(() => String($store.authPin ?? $store.user?.pin ?? '').trim())
-
   const filteredLoanRequests = computed(() =>
     loanRequests.value.filter((request) => {
       const requirements = request.approval_requirements ?? request.revision?.approval_requirements
@@ -149,14 +147,6 @@ export function useSolimData() {
     }
   }
 
-  function validatePin(pin: string): boolean {
-    if (!expectedPin.value) {
-      return true
-    }
-
-    return pin.trim() === expectedPin.value
-  }
-
   function buildDecisionPayload(loanApprovalForm: ApprovalDialogForm) {
     if (loanApprovalForm.decision !== 'aprobado_con_ajuste') {
       return null
@@ -185,16 +175,6 @@ export function useSolimData() {
   }
 
   async function processLoanRequest(loanApprovalForm: ApprovalDialogForm, id: string): Promise<void> {
-    if (!loanApprovalForm.pin.trim()) {
-      $toast.error('Captura tu PIN para registrar la decisión.')
-      return
-    }
-
-    if (!validatePin(loanApprovalForm.pin)) {
-      $toast.error('El PIN no coincide con tu sesión.')
-      return
-    }
-
     if (loanApprovalForm.decision === 'rechazado' && !loanApprovalForm.comentario.trim()) {
       $toast.error('Agrega un comentario para justificar el rechazo.')
       return
