@@ -7,6 +7,10 @@ import type {
   TablaCargosOptionsResponse,
   UpdateCheckPayload
 } from '../types'
+import {
+  mapLoanRequestDetailResponse,
+  mapLoanRequestsListResponse
+} from './solim.mapper'
 
 class SolimService {
   private apiClient = createApiClientFromPreset('elysia')
@@ -30,13 +34,25 @@ class SolimService {
       params.set('agencia', agency)
     }
 
-    return this.apiClient.get<LoanRequestsListResponse>(
+    const response = await this.apiClient.get<LoanRequestsListResponse>(
       `/solicitudes-app?${params.toString()}`
     )
+
+    if (response.data?.success) {
+      response.data = mapLoanRequestsListResponse(response.data)
+    }
+
+    return response
   }
 
   async getLoanApplicationDetail(id: string) {
-    return this.apiClient.get<LoanRequestDetailResponse>(`/solicitudes-app/${id}`)
+    const response = await this.apiClient.get<LoanRequestDetailResponse>(`/solicitudes-app/${id}`)
+
+    if (response.data?.success) {
+      response.data = mapLoanRequestDetailResponse(response.data)
+    }
+
+    return response
   }
 
   async getTablaCargos() {

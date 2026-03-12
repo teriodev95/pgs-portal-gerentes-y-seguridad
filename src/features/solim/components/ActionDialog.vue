@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { ApprovalDecision, ApprovalDialogForm, TablaCargosOption } from '../types'
 import {
   Dialog,
@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import SlideUnlock from 'vue-slide-unlock'
 
 interface Props {
   isOpen: boolean
@@ -26,6 +27,9 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+const slideUnlockRef = ref()
+const slideButtonColor = ref('rgb(15 75 103 / 1)')
 
 const decisionOptions: Array<{ label: string; value: ApprovalDecision }> = [
   { label: 'Aprobar', value: 'aprobado' },
@@ -146,9 +150,16 @@ function formatMoney(value: number) {
   }).format(value)
 }
 
+function resetSlide() {
+  slideUnlockRef.value?.reset()
+  slideButtonColor.value = 'rgb(15 75 103 / 1)'
+}
+
 function selectDecision(value: ApprovalDecision) {
   updateField('decision', value)
 }
+
+defineExpose({ resetSlide })
 
 function selectLevel(value: string) {
   selectedLevel.value = value
@@ -176,7 +187,7 @@ function selectMonto(value: number) {
             Aprobación de {{ roleLabel.toLowerCase() }}
           </DialogTitle>
           <DialogDescription class="relative mt-3 max-w-xl text-[15px] leading-relaxed text-slate-100/78">
-            Registra la decisión, confirma con tu PIN y, si hace falta, sugiere un plan alternativo.
+            Registra la decisión y desliza para confirmar. Si hace falta, sugiere un plan alternativo.
           </DialogDescription>
         </div>
       </DialogHeader>
@@ -298,21 +309,6 @@ function selectMonto(value: number) {
           />
         </section>
 
-        <section class="space-y-2">
-          <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-            PIN de validación
-          </label>
-          <input
-            :value="form.pin"
-            type="password"
-            inputmode="numeric"
-            class="h-14 w-full rounded-[22px] border border-slate-300 bg-white px-5 text-[15px] text-slate-900 outline-none transition focus:border-slate-900"
-            :disabled="isLoading"
-            placeholder="Confirma con tu PIN"
-            @input="updateField('pin', ($event.target as HTMLInputElement).value)"
-          />
-        </section>
-
         <section
           v-if="isAdjustmentDecision"
           class="space-y-4 rounded-[28px] border border-amber-200 bg-[linear-gradient(180deg,#fff7ed_0%,#fff3e0_100%)] px-6 py-6"
@@ -382,20 +378,31 @@ function selectMonto(value: number) {
           </div>
         </section>
 
-        <div class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-end">
+        <div class="space-y-3 border-t border-slate-200 pt-6">
+          <slide-unlock
+            ref="slideUnlockRef"
+            :auto-width="true"
+            :circle="true"
+            :disabled="isLoading"
+            :noanimate="false"
+            :text="isLoading ? 'Guardando...' : 'Desliza para confirmar'"
+            success-text="Confirmado"
+            name="solim-approval"
+            :style="{
+              '--su-color-text-normal': 'white',
+              '--su-color-bg': slideButtonColor,
+              '--su-color-progress-normal-bg': 'rgb(14 159 110 / 1)',
+              '--su-color-progress-complete-bg': 'rgb(14 159 110 / 1)',
+              '--su-size-padding': '0'
+            }"
+            @completed="() => { slideButtonColor = 'rgb(14 159 110 / 1)'; $emit('confirm') }"
+          />
           <button
-            class="inline-flex h-12 items-center justify-center rounded-[18px] border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            class="inline-flex h-10 w-full items-center justify-center rounded-[18px] text-sm font-medium text-slate-500 transition hover:text-slate-700"
             :disabled="isLoading"
             @click="$emit('cancel')"
           >
             Cancelar
-          </button>
-          <button
-            class="inline-flex h-12 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#0f1b3d_0%,#111c45_100%)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.65)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="isLoading"
-            @click="$emit('confirm')"
-          >
-            {{ isLoading ? 'Guardando...' : 'Guardar decisión' }}
           </button>
         </div>
       </div>

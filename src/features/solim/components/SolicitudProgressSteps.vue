@@ -3,13 +3,22 @@ import '@webzlodimir/vue-bottom-sheet/dist/style.css'
 import { computed, ref } from 'vue'
 import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
 import { ChevronRight, LoaderCircle, Route } from 'lucide-vue-next'
-import type { ApprovalRequirements, ApprovalType, RevisionApproval, RevisionStatus, Solicitud } from '../types'
+import type {
+  ApprovalRequirements,
+  ApprovalType,
+  RevisionApproval,
+  RutaSolicitud,
+  RutaSolicitudPaso,
+  RutaSolicitudPasoId,
+  Solicitud
+} from '../types'
 
 interface StepItem {
+  id: RutaSolicitudPasoId
   number: number
   title: string
   description: string
-  status: 'complete' | 'pending' | 'warning' | 'progress'
+  status: 'complete' | 'pending' | 'warning' | 'progress' | 'neutral'
   detail: string
 }
 
@@ -21,11 +30,28 @@ const APPROVAL_LABELS: Record<ApprovalType, string> = {
   direccion: 'Dirección general'
 }
 
+const STEP_COPY: Record<RutaSolicitudPasoId, { title: string; description: string }> = {
+  prevalidacion_app: {
+    title: 'Prevalidación app',
+    description: 'Validaciones rápidas capturadas por la app antes de pasar a revisión.'
+  },
+  filtrado: {
+    title: 'Filtro',
+    description: 'Resultado del filtrado operativo y del análisis documental.'
+  },
+  vistos_buenos: {
+    title: 'Vistos buenos',
+    description: 'Autorizaciones requeridas por el plan o por la tabla de cargos.'
+  }
+}
+
 const props = defineProps<{
   solicitud: Solicitud
 }>()
 
 const bottomSheetRef = ref<InstanceType<typeof VueBottomSheet>>()
+
+const rutaSolicitud = computed<RutaSolicitud | null>(() => props.solicitud.ruta_solicitud ?? null)
 
 const approvalRequirements = computed<ApprovalRequirements | null>(() => {
   return props.solicitud.approval_requirements ?? props.solicitud.revision?.approval_requirements ?? null
@@ -50,158 +76,89 @@ const requiredApprovalTypes = computed<ApprovalType[]>(() => {
   return approvals.value.filter((approval) => approval.requerido === 1).map((approval) => approval.tipo)
 })
 
-const prevalidationChecks = computed(() => {
-  const checks =
-    props.solicitud.prevalidacion_app?.checks ??
-    props.solicitud.revision?.prevalidacion_app?.checks
+function toUiStatus(step: RutaSolicitudPaso, route: RutaSolicitud | null): StepItem['status'] {
+  if (step.status === 'completo') return 'complete'
+  if (step.status === 'bloqueado') return 'warning'
+  if (step.status === 'no_aplica') return 'neutral'
+  if (route?.paso_actual === step.id) return 'progress'
+  return 'pending'
+}
 
-  if (!checks || typeof checks !== 'object') {
-    return []
+function formatStepDetail(step: RutaSolicitudPaso): string {
+  if (step.status === 'no_aplica') {
+    return 'Sin requerimientos'
   }
 
-  return Object.values(checks).filter((value) => value !== null && value !== 'no_aplica')
+  if (step.id === 'prevalidacion_app') {
+    if (step.total === 0) return 'Pendiente'
+    return `${step.completos}/${step.total} correctas`
+  }
+
+  if (step.id === 'filtrado') {
+    if (step.status === 'completo') return 'Sin hallazgos'
+    if (step.status === 'bloqueado') return 'Con observaciones'
+    return 'En espera'
+  }
+
+  if (step.total === 0) {
+    return 'Sin requerimientos'
+  }
+
+  if (step.status === 'bloqueado') {
+    return 'Hay rechazo'
+  }
+
+  if (step.status === 'completo') {
+    return `${step.completos}/${step.total} resueltos`
+  }
+
+  return `${step.pendientes} pendiente${step.pendientes === 1 ? '' : 's'}`
+}
+
+const steps = computed<StepItem[]>(() => {
+  const route = rutaSolicitud.value
+  const pasos = route?.pasos ?? []
+
+  return [...pasos]
+    .sort((first, second) => first.orden - second.orden)
+    .map((step) => ({
+      id: step.id,
+      number: step.orden,
+      title: STEP_COPY[step.id].title,
+      description: STEP_COPY[step.id].description,
+      status: toUiStatus(step, route),
+      detail: formatStepDetail(step)
+    }))
 })
-
-const prevalidationStep = computed<StepItem>(() => {
-  const checks = prevalidationChecks.value
-  const okCount = checks.filter((value) => value === true).length
-
-  if (checks.length === 0) {
-    return {
-      number: 1,
-      title: 'Prevalidación app',
-      description: 'La app revisa documentos y reglas iniciales.',
-      status: 'pending',
-      detail: 'Pendiente'
-    }
-  }
-
-  if (okCount === checks.length) {
-    return {
-      number: 1,
-      title: 'Prevalidación app',
-      description: 'La app revisa documentos y reglas iniciales.',
-      status: 'complete',
-      detail: `${okCount}/${checks.length} correctas`
-    }
-  }
-
-  return {
-    number: 1,
-    title: 'Prevalidación app',
-    description: 'La app revisa documentos y reglas iniciales.',
-    status: 'warning',
-    detail: `${okCount}/${checks.length} correctas`
-  }
-})
-
-const revisionStep = computed<StepItem>(() => {
-  const status = props.solicitud.status_revision as RevisionStatus
-  const hasDiagnosis = Boolean(props.solicitud.diagnostico || props.solicitud.revision?.diagnostico)
-
-  if (status === 'aprobada' || status === 'aprobada_con_ajuste' || status === 'aprobada_condicionada') {
-    return {
-      number: 2,
-      title: 'Filtro',
-      description: 'La solicitud ya pasó por el filtro y el diagnóstico de oficina.',
-      status: 'complete',
-      detail: 'Concluido'
-    }
-  }
-
-  if (status === 'rechazada' || status === 'corregir') {
-    return {
-      number: 2,
-      title: 'Filtro',
-      description: 'El filtro detectó observaciones y ya dejó un resultado para atender.',
-      status: 'warning',
-      detail: status === 'rechazada' ? 'Rechazada' : 'Corregir'
-    }
-  }
-
-  return {
-    number: 2,
-    title: 'Filtro',
-    description: 'La solicitud se está filtrando con reglas automáticas y revisión de oficina.',
-    status: hasDiagnosis ? 'progress' : 'pending',
-    detail: hasDiagnosis ? 'Filtrándose' : 'En espera'
-  }
-})
-
-const approvalsSummary = computed(() => {
-  const required = requiredApprovalTypes.value
-  const relevant = approvals.value.filter((approval) => required.includes(approval.tipo))
-  const resolved = relevant.filter(
-    (approval) => approval.decision && approval.decision !== 'pendiente' && approval.decision !== 'no_aplica'
-  )
-
-  return {
-    required,
-    resolved
-  }
-})
-
-const approvalsStep = computed<StepItem>(() => {
-  const { required, resolved } = approvalsSummary.value
-
-  if (required.length === 0) {
-    return {
-      number: 3,
-      title: 'Vistos buenos',
-      description: 'Checks exigidos por la tabla de cargos.',
-      status: 'complete',
-      detail: 'Sin requerimientos'
-    }
-  }
-
-  if (resolved.length === 0) {
-    return {
-      number: 3,
-      title: 'Vistos buenos',
-      description: 'Checks exigidos por la tabla de cargos.',
-      status: 'pending',
-      detail: `${required.length} pendiente${required.length === 1 ? '' : 's'}`
-    }
-  }
-
-  if (resolved.length < required.length) {
-    return {
-      number: 3,
-      title: 'Vistos buenos',
-      description: 'Checks exigidos por la tabla de cargos.',
-      status: 'progress',
-      detail: `${resolved.length}/${required.length} resueltos`
-    }
-  }
-
-  return {
-    number: 3,
-    title: 'Vistos buenos',
-    description: 'Checks exigidos por la tabla de cargos.',
-    status: 'complete',
-    detail: 'Completos'
-  }
-})
-
-const steps = computed(() => [prevalidationStep.value, revisionStep.value, approvalsStep.value])
 
 const requiredApprovalLabels = computed(() => {
   return requiredApprovalTypes.value.map((tipo) => APPROVAL_LABELS[tipo])
 })
 
 const routeSummary = computed(() => {
-  const completed = steps.value.filter((step) => step.status === 'complete').length
-  const warnings = steps.value.filter((step) => step.status === 'warning').length
-  const inProgress = steps.value.filter((step) => step.status === 'progress').length
+  const route = rutaSolicitud.value
+  if (!route) return 'La ruta aún no está disponible'
 
-  if (warnings > 0) return 'Hay pasos que requieren atención'
-  if (completed === steps.value.length) return 'Los 3 pasos ya quedaron cubiertos'
-  if (inProgress > 0) return 'La solicitud sigue avanzando en su ruta de revisión'
+  const currentStep = route.paso_actual ? STEP_COPY[route.paso_actual] : null
+
+  if (route.status === 'bloqueada') {
+    return currentStep ? `${currentStep.title} requiere atención` : 'Hay pasos que requieren atención'
+  }
+
+  if (route.status === 'completa') {
+    return 'Todos los pasos ya quedaron cubiertos'
+  }
+
+  if (currentStep) {
+    return `Pendiente en ${currentStep.title.toLowerCase()}`
+  }
+
   return 'Aún hay pasos pendientes por completar'
 })
 
 const compactPills = computed(() =>
   steps.value.map((step) => ({
+    id: step.id,
     number: step.number,
     title: step.title,
     detail: step.detail,
@@ -243,6 +200,12 @@ function stepClasses(status: StepItem['status']) {
         badge: 'bg-blue-600 text-white',
         detail: 'text-blue-700'
       }
+    case 'neutral':
+      return {
+        ring: 'border-slate-200 bg-white',
+        badge: 'bg-slate-100 text-slate-600',
+        detail: 'text-slate-500'
+      }
     default:
       return {
         ring: 'border-slate-200 bg-slate-50',
@@ -261,7 +224,7 @@ function closeSheet() {
 }
 
 function isAnimatedStatus(status: StepItem['status']) {
-  return status === 'pending' || status === 'progress'
+  return status === 'progress'
 }
 </script>
 
@@ -287,7 +250,7 @@ function isAnimatedStatus(status: StepItem['status']) {
       </span>
     </div>
 
-    <div class="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
+    <div v-if="compactPills.length" class="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
       <template v-for="(pill, index) in compactPills" :key="pill.number">
         <div
           class="inline-flex min-w-fit items-center gap-2 rounded-full border px-3 py-2 text-xs"
@@ -297,7 +260,7 @@ function isAnimatedStatus(status: StepItem['status']) {
             class="inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold"
             :class="stepClasses(pill.status).badge"
           >
-            <LoaderCircle v-if="isAnimatedStatus(pill.status) && pill.number === 2" class="size-3.5 animate-spin" />
+            <LoaderCircle v-if="isAnimatedStatus(pill.status)" class="size-3.5 animate-spin" />
             <template v-else>{{ pill.number }}</template>
           </span>
           <span class="font-semibold text-slate-800">{{ pill.title }}</span>
@@ -308,6 +271,12 @@ function isAnimatedStatus(status: StepItem['status']) {
           class="h-px min-w-6 flex-1 rounded-full bg-slate-200"
         />
       </template>
+    </div>
+    <div
+      v-else
+      class="mt-4 rounded-[18px] border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500"
+    >
+      Esta solicitud aún no expone una ruta de revisión.
     </div>
   </button>
 
@@ -330,7 +299,7 @@ function isAnimatedStatus(status: StepItem['status']) {
         </button>
       </div>
 
-      <div class="space-y-3">
+      <div v-if="steps.length" class="space-y-3">
         <div
           v-for="(step, index) in steps"
           :key="step.number"
@@ -344,7 +313,7 @@ function isAnimatedStatus(status: StepItem['status']) {
             class="absolute left-0 top-5 inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold shadow-sm"
             :class="stepClasses(step.status).badge"
           >
-            <LoaderCircle v-if="isAnimatedStatus(step.status) && step.number === 2" class="size-4 animate-spin" />
+            <LoaderCircle v-if="isAnimatedStatus(step.status)" class="size-4 animate-spin" />
             <template v-else>{{ step.number }}</template>
           </span>
 
@@ -370,6 +339,12 @@ function isAnimatedStatus(status: StepItem['status']) {
             </div>
           </div>
         </div>
+      </div>
+      <div
+        v-else
+        class="rounded-[22px] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm leading-7 text-slate-500"
+      >
+        El servicio aún no devolvió `ruta_solicitud` para este expediente.
       </div>
 
       <div class="rounded-[20px] border border-slate-200 bg-white px-4 py-4">

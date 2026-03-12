@@ -331,6 +331,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 </script>
 
 <template>
+  <div class="relative pb-52">
   <Tabs default-value="revision" class="space-y-4">
     <TabsList class="grid h-auto w-full grid-cols-4 rounded-[24px] bg-white p-2 shadow-sm">
       <TabsTrigger value="revision" class="rounded-[18px] py-3 text-sm font-semibold">Revisión</TabsTrigger>
@@ -340,94 +341,41 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
     </TabsList>
 
     <TabsContent value="revision" class="space-y-4">
-      <div class="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
-        <CardContainer>
-          <div class="space-y-5">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <p class="flex items-center gap-2 text-lg font-semibold text-slate-800">
-                  <ShieldCheck class="size-5 text-[#0f4a67]" />
-                  Diagnóstico de revisión
-                </p>
-                <p class="mt-1 text-sm text-slate-500">
-                  Estado global del expediente y resumen de lo ya revisado.
-                </p>
-              </div>
-              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                {{ request.status_revision }}
-              </span>
+      <CardContainer>
+        <div class="space-y-5">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="flex items-center gap-2 text-lg font-semibold text-slate-800">
+                <ShieldCheck class="size-5 text-[#0f4a67]" />
+                Diagnóstico de revisión
+              </p>
+              <p class="mt-1 text-sm text-slate-500">
+                Estado global del expediente y resumen de lo ya revisado.
+              </p>
             </div>
+            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+              {{ request.status_revision }}
+            </span>
+          </div>
 
-            <div class="grid gap-y-4 border-t border-slate-200 pt-4 text-sm">
-              <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                <span class="text-slate-500">Motivo rechazo</span>
-                <span class="text-right font-medium text-slate-800">{{ request.motivo_rechazo || '-' }}</span>
-              </div>
-              <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                <span class="text-slate-500">Documento inválido</span>
-                <span class="text-right font-medium text-slate-800">{{ request.doc_invalido_detalle || '-' }}</span>
-              </div>
-              <div class="space-y-2">
-                <span class="text-slate-500">Diagnóstico</span>
-                <p class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 text-base leading-relaxed text-slate-800">
-                  {{ request.diagnostico || 'Sin diagnóstico registrado.' }}
-                </p>
-              </div>
+          <div class="grid gap-y-4 border-t border-slate-200 pt-4 text-sm">
+            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <span class="text-slate-500">Motivo rechazo</span>
+              <span class="text-right font-medium text-slate-800">{{ request.motivo_rechazo || '-' }}</span>
+            </div>
+            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <span class="text-slate-500">Documento inválido</span>
+              <span class="text-right font-medium text-slate-800">{{ request.doc_invalido_detalle || '-' }}</span>
+            </div>
+            <div class="space-y-2">
+              <span class="text-slate-500">Diagnóstico</span>
+              <p class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 text-base leading-relaxed text-slate-800">
+                {{ request.diagnostico || 'Sin diagnóstico registrado.' }}
+              </p>
             </div>
           </div>
-        </CardContainer>
-
-        <CardContainer>
-          <div class="space-y-5">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <p class="flex items-center gap-2 text-lg font-semibold text-slate-800">
-                  <UserRoundCheck class="size-5 text-[#0f4a67]" />
-                  Aprobación de {{ roleLabel.toLowerCase() }}
-                </p>
-                <p class="mt-1 text-sm text-slate-500">
-                  Registra la validación puntual de tu área sin mover el resto del expediente.
-                </p>
-              </div>
-              <span
-                class="rounded-full px-3 py-1 text-xs font-semibold"
-                :class="currentApproval?.requerido ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'"
-              >
-                {{ currentApproval?.requerido ? 'Requerido' : 'No requerido' }}
-              </span>
-            </div>
-
-            <div class="grid gap-3 md:grid-cols-2">
-              <div class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Estado</p>
-                <p class="mt-2 text-lg font-semibold text-slate-900">
-                  {{ formatApprovalDecision(currentApproval?.decision) }}
-                </p>
-              </div>
-              <div class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">PIN validado</p>
-                <p class="mt-2 text-lg font-semibold text-slate-900">
-                  {{ currentApproval?.pin_validado ? 'Sí' : 'No' }}
-                </p>
-              </div>
-            </div>
-
-            <div class="space-y-3 text-sm text-slate-700">
-              <p><span class="font-semibold">Responsable:</span> {{ currentApproval?.usuario_nombre || 'Pendiente' }}</p>
-              <p><span class="font-semibold">Comentario:</span> {{ currentApproval?.comentario || 'Sin comentario registrado' }}</p>
-              <p><span class="font-semibold">Plan sugerido:</span> {{ currentApproval?.tabla_cargos_id_sugerido || 'Sin ajuste' }}</p>
-            </div>
-
-            <button
-              class="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="!canRegisterDecision || isLoadingAction"
-              @click="$emit('open:review')"
-            >
-              {{ isLoadingAction ? 'Guardando...' : 'Registrar decisión' }}
-            </button>
-          </div>
-        </CardContainer>
-      </div>
+        </div>
+      </CardContainer>
 
       <div class="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
         <CardContainer>
@@ -661,4 +609,40 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
       </CardContainer>
     </TabsContent>
   </Tabs>
+
+  <!-- CTA fijo de aprobación -->
+  <div class="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur-md">
+    <div class="mx-auto max-w-2xl px-4 py-4">
+      <CardContainer class="!p-4">
+        <div class="space-y-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <p class="flex items-center gap-2 text-base font-semibold text-slate-800">
+                <UserRoundCheck class="size-5 shrink-0 text-[#0f4a67]" />
+                Aprobación de {{ roleLabel.toLowerCase() }}
+              </p>
+              <p class="mt-1 text-sm text-slate-500">
+                {{ formatApprovalDecision(currentApproval?.decision) }} · {{ currentApproval?.usuario_nombre || 'Sin responsable' }}
+              </p>
+            </div>
+            <span
+              class="shrink-0 rounded-full px-3 py-1 text-xs font-semibold"
+              :class="currentApproval?.requerido ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'"
+            >
+              {{ currentApproval?.requerido ? 'Requerido' : 'No requerido' }}
+            </span>
+          </div>
+
+          <button
+            class="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="!canRegisterDecision || isLoadingAction"
+            @click="$emit('open:review')"
+          >
+            {{ isLoadingAction ? 'Guardando...' : 'Registrar decisión' }}
+          </button>
+        </div>
+      </CardContainer>
+    </div>
+  </div>
+  </div>
 </template>
