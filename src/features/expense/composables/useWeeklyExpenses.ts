@@ -2,7 +2,7 @@ import { computed, onBeforeMount, ref } from 'vue'
 import { useStore } from '@/shared/stores'
 import type { ExpenseFormData, WeeklyExpense } from '../types'
 import { weeklyExpenseService } from '../services/expense.service'
-import { useExpenseErrorHandler } from './useExpenseErrorHandler'
+import { useNotification } from '@/shared/composables/useNotification'
 
 // Validation function
 function validateExpenseData(expense: WeeklyExpense): { isValid: boolean; errors: string[] } {
@@ -37,7 +37,7 @@ function validateExpenseData(expense: WeeklyExpense): { isValid: boolean; errors
 export function useWeeklyExpenses() {
   // Services, Composables and Stores initialization
   const $store = useStore()
-  const { handleError } = useExpenseErrorHandler()
+  const { showError } = useNotification()
 
   // State definitions
   const weeklyExpenses = ref<WeeklyExpense[]>([])
@@ -68,7 +68,7 @@ export function useWeeklyExpenses() {
       const { data } = await weeklyExpenseService.getWeeklyExpenses(user.value.usuarioId, currentDate.value.week, currentDate.value.year)
       weeklyExpenses.value = data
     } catch (error) {
-      handleError(error, 'WEEKLY_EXPENSES_LOAD_FAILED')
+      console.error('Error fetching weekly expenses:', error)
     } finally {
       isLoadingExpenses.value = false
     }
@@ -76,7 +76,7 @@ export function useWeeklyExpenses() {
 
   async function saveExpense(formData: ExpenseFormData): Promise<void> {
     if (!user.value?.usuarioId) {
-      handleError(new Error('Usuario no autenticado'), 'UNKNOWN_ERROR')
+      showError('Usuario no autenticado')
       return Promise.reject(new Error('Usuario no autenticado'))
     }
 
@@ -94,7 +94,7 @@ export function useWeeklyExpenses() {
     // Validation before mutation
     const validation = validateExpenseData(expense)
     if (!validation.isValid) {
-      validation.errors.forEach(error => handleError(new Error(error), 'UNKNOWN_ERROR'))
+      validation.errors.forEach(error => showError(error))
       return Promise.reject(new Error(validation.errors.join(', ')))
     }
 
@@ -105,8 +105,7 @@ export function useWeeklyExpenses() {
       await fetchWeeklyExpenses()
       return Promise.resolve()
     } catch (error) {
-      handleError(error, 'EXPENSE_SAVE_FAILED')
-      return Promise.reject(error)
+      console.error('Error saving expense:', error)
     } finally {
       isSavingExpense.value = false
     }
