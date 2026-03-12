@@ -4,13 +4,11 @@ import { useStore } from '@/shared/stores'
 import { ROUTE_NAME } from '@/router'
 import type { IAgencyFinancialSummary, ILoansAboutToEnd } from '../types/agency.types'
 import { entityService } from '../services/entity.service'
-import { useEntityErrorHandler } from './useEntityErrorHandler'
 
 export function useAgencyDetails() {
   // Services, Composables and Stores initialization
   const $router = useRouter()
   const $store = useStore()
-  const { handleError } = useEntityErrorHandler()
 
   // State definitions
   const dashboardData = ref<IAgencyFinancialSummary>()
@@ -57,7 +55,7 @@ export function useAgencyDetails() {
 
       dashboardData.value = response.data
     } catch (error) {
-      handleError(error, 'DASHBOARD_BY_DATE_LOAD_FAILED')
+      console.error('Error fetching dashboard data:', error)
     } finally {
       isLoading.value = false
     }
@@ -80,7 +78,7 @@ export function useAgencyDetails() {
 
       loansAboutToEnd.value = data
     } catch (error) {
-      handleError(error, 'LOANS_ABOUT_TO_END_LOAD_FAILED')
+      console.error('Error fetching loans about to end:', error)
     } finally {
       isLoading.value = false
     }

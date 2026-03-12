@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
-import { toCurrency } from '@/shared/utils'
 
 // Components
 import CardContainer from '@/shared/components/CardContainer.vue'
