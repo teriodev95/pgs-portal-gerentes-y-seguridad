@@ -1,11 +1,8 @@
-import { useToast } from 'vue-toast-notification'
 import { callCenterService } from '../services/call-center.service'
 import { commonService } from '@/shared/services/modules/common'
 import type {
   ICallCenterReport,
   ICallCenterVisit,
-  ICallCenterSummaryReport,
-  ICallCenterSearchResult
 } from '../types'
 import { useStore } from '@/shared/stores'
 
@@ -14,7 +11,6 @@ import { useStore } from '@/shared/stores'
  * NO mantiene estado reactivo - solo hace llamadas y transforma datos
  */
 export const useCallCenterService = () => {
-  const toast = useToast()
   const $store = useStore()
 
   /**
@@ -68,7 +64,7 @@ export const useCallCenterService = () => {
     managment: string,
     year: number,
     week: number
-  ): Promise<ICallCenterReport[]> => {
+  ) => {
     try {
       const { data } = await callCenterService.getCallCenterReports({
         managment,
@@ -80,29 +76,25 @@ export const useCallCenterService = () => {
       return (data || []).map(transformReportToSnakeCase)
     } catch (error) {
       console.error('Error obteniendo reportes del call center:', error)
-      toast.error('Error al cargar los reportes del call center')
-      throw new Error('No se pudieron obtener los reportes del call center')
     }
   }
 
   /**
    * Crea una nueva visita del call center
    */
-  const createVisit = async (visit: ICallCenterVisit, clientName: string): Promise<string> => {
+  const createVisit = async (visit: ICallCenterVisit, clientName: string) => {
     try {
       const { data } = await callCenterService.createVisit(visit, clientName)
       return data
     } catch (error) {
       console.error('Error creando visita del call center:', error)
-      toast.error('Error al registrar la visita')
-      throw new Error('No se pudo registrar la visita del call center')
     }
   }
 
   /**
    * Obtiene la lista de gerencias disponibles para un usuario
    */
-  const fetchManagements = async (username: string): Promise<string[]> => {
+  const fetchManagements = async (username: string) => {
     try {
       const { data } = await commonService.getGerenciesCopy(username)
       const nombresGerencias: string[] = Object.values(data)
@@ -111,36 +103,30 @@ export const useCallCenterService = () => {
       return nombresGerencias
     } catch (error) {
       console.error('Error obteniendo gerencias:', error)
-      toast.error('Error al cargar las gerencias')
-      throw new Error('No se pudieron obtener las gerencias')
     }
   }
 
   /**
    * Obtiene el resumen de reportes agrupados por gerencia
    */
-  const fetchSummaryReportsByManagement = async (userId: number): Promise<ICallCenterSummaryReport[]> => {
+  const fetchSummaryReportsByManagement = async (userId: number) => {
     try {
       const { data } = await callCenterService.getSummaryReportsByManagement(userId)
       return data || []
     } catch (error) {
       console.error('Error obteniendo reportes por gerencia:', error)
-      toast.error('Error al cargar los reportes por gerencia')
-      throw new Error('No se pudieron obtener los reportes por gerencia')
     }
   }
 
   /**
    * Busca reportes por nombre de cliente o aval
    */
-  const searchReportByName = async (name: string): Promise<ICallCenterSearchResult[]> => {
+  const searchReportByName = async (name: string) => {
     try {
       const { data } = await callCenterService.searchReportByName(name, $store.user?.usuarioId || 0)
       return data || []
     } catch (error) {
       console.error('Error buscando reportes por nombre:', error)
-      toast.error('Error al buscar reportes')
-      throw new Error('No se pudieron buscar los reportes')
     }
   }
 

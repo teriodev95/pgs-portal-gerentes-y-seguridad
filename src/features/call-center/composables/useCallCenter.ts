@@ -12,6 +12,7 @@ import type {
 
 // Servicio puro de API
 import { useCallCenterService } from './useCallCenterService'
+import { useNotification } from '@/shared/composables/useNotification'
 
 /**
  * Composable principal para la funcionalidad Call Center
@@ -20,6 +21,7 @@ import { useCallCenterService } from './useCallCenterService'
 export const useCallCenter = () => {
   const router = useRouter()
   const store = useStore()
+  const { showError } = useNotification()
   const { userLocation, hasPermission } = useGeolocation()
 
   // Servicio puro de API (sin estado)
@@ -54,7 +56,6 @@ export const useCallCenter = () => {
   // Estado de UI 
   // ===================================
   const isLoading = ref<boolean>(false)
-  const error = ref<string | null>(null)
   const creatingVisit = ref<boolean>(false)
 
   // Estado de selección
@@ -159,7 +160,7 @@ export const useCallCenter = () => {
   const loadManagements = async () => {
     try {
       const managementsData = await service.fetchManagements(username.value)
-      setManagements(managementsData)
+      setManagements(managementsData || [])
     } catch (error) {
       console.error('Error cargando gerencias:', error)
       throw error
@@ -176,13 +177,12 @@ export const useCallCenter = () => {
    */
   const initializeCallCenter = async () => {
     if (!username.value) {
-      error.value = 'Usuario no disponible'
+      showError('Usuario no disponible')
       return
     }
 
     try {
       isLoading.value = true
-      error.value = null
 
       // Cargar solo gerencias y resumen de reportes
       await Promise.all([
@@ -191,7 +191,6 @@ export const useCallCenter = () => {
       ])
     } catch (err) {
       console.error('Error inicializando Call Center:', err)
-      error.value = 'Error cargando datos del Call Center'
     } finally {
       isLoading.value = false
     }
@@ -229,12 +228,8 @@ export const useCallCenter = () => {
 
       await service.createVisit(visit, selectedReport.value.nombres_cliente)
       finishVisitCreation()
-
-      // Recargar reportes para actualizar el estado
-      // await loadCallCenterReports()
     } catch (error) {
       console.error('Error creando visita:', error)
-      throw error
     }
   }
 
@@ -264,7 +259,6 @@ export const useCallCenter = () => {
   const selectWeekAndManagement = async (gerencia: string, semana: number, anio: number) => {
     try {
       isLoading.value = true
-      error.value = null
 
       // Actualizar el estado de selección
       selectWeekAndManagementState(gerencia, semana, anio)
@@ -277,8 +271,8 @@ export const useCallCenter = () => {
 
       window.scrollTo({ top: 0 })
     } catch (err) {
+      setReports([]) 
       console.error('Error cargando reportes de gerencia:', err)
-      error.value = 'Error cargando reportes de la gerencia'
     } finally {
       isLoading.value = false
     }

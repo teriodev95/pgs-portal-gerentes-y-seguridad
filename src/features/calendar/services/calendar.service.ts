@@ -5,7 +5,7 @@ class CalendarService {
   private apiClient = createApiClientFromPreset('elysia')
 
   async getCalendarByYear(year: number): Promise<CalendarResponse> {
-    const response = await this.apiClient.get<CalendarResponse>(`ncalendario?anio=${year}`, {
+    const response = await this.apiClient.get<CalendarResponse>(`calendario?anio=${year}`, {
       meta: {
         errorNotification: {
           title: 'Error al obtener calendario',
