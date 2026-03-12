@@ -2,8 +2,8 @@ import { computed, onBeforeMount } from 'vue'
 import { useStore } from '@/shared/stores'
 import type { IIncident, IIncidentFormData } from '../types'
 import { incidentService } from '../services/incident.service'
-import { useIncidentErrorHandler } from './useIncidentErrorHandler'
 import { useIncidentStore } from '../stores'
+import { useNotification } from '@/shared/composables/useNotification'
 
 // Validation function
 function validateIncidentData(incident: IIncident): { isValid: boolean; errors: string[] } {
@@ -43,8 +43,8 @@ function validateIncidentData(incident: IIncident): { isValid: boolean; errors: 
 export function useIncidentData() {
   // Services, Composables and Stores initialization
   const $store = useStore()
-  const { handleError } = useIncidentErrorHandler()
   const incidentStore = useIncidentStore()
+  const { showError } = useNotification()
 
   // Computed properties (datos del store global)
   const user = computed(() => $store.user)
@@ -79,7 +79,7 @@ export function useIncidentData() {
 
       incidentStore.setIncidents(filteredIncidents)
     } catch (error) {
-      handleError(error, 'INCIDENTS_LOAD_FAILED')
+      console.error('Error fetching incidents:', error)
     } finally {
       incidentStore.setLoadingIncidents(false)
     }
@@ -95,7 +95,7 @@ export function useIncidentData() {
    */
   async function saveIncident(formData: IIncidentFormData): Promise<void> {
     if (!user.value?.usuarioId) {
-      handleError(new Error('Usuario no autenticado'), 'UNKNOWN_ERROR')
+      showError('Usuario no autenticado')
       return Promise.reject(new Error('Usuario no autenticado'))
     }
 
@@ -115,7 +115,7 @@ export function useIncidentData() {
     // Validation before mutation
     const validation = validateIncidentData(incident)
     if (!validation.isValid) {
-      validation.errors.forEach(error => handleError(new Error(error), 'UNKNOWN_ERROR'))
+      validation.errors.forEach(error => showError(error))
       return Promise.reject(new Error(validation.errors.join(', ')))
     }
 
@@ -127,7 +127,7 @@ export function useIncidentData() {
       await fetchIncidents()
       return Promise.resolve()
     } catch (error) {
-      handleError(error, 'INCIDENT_SAVE_FAILED')
+      console.error('Error saving incident:', error)
       return Promise.reject(error)
     } finally {
       incidentStore.setSavingIncident(false)
@@ -142,7 +142,7 @@ export function useIncidentData() {
     try {
       await fetchIncidents()
     } catch (error) {
-      handleError(error, 'INCIDENT_INIT_FAILED')
+      console.error('Error initializing incidents:', error)
     }
   })
 
