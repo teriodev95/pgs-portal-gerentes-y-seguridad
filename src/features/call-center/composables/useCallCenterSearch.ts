@@ -54,11 +54,6 @@ export const useCallCenterSearch = () => {
 
       searchResults.value = results
       showResults.value = true
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        searchError.value = 'Error al buscar reportes'
-        console.error('Search error:', error)
-      }
     } finally {
       isSearching.value = false
       abortController = null
