@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { ApprovalType, Solicitud } from '@/features/solim/types'
-import { BadgeDollarSign, ShieldCheck } from 'lucide-vue-next'
+import { BadgeDollarSign, ChevronDown, CircleCheck, CircleDashed, XCircle } from 'lucide-vue-next'
 import { toCurrency } from '@/shared/utils'
 import SolicitudProgressSteps from './SolicitudProgressSteps.vue'
 
@@ -17,6 +17,8 @@ interface Emits {
 
 const props = defineProps<Props>()
 defineEmits<Emits>()
+
+const isExpanded = ref(false)
 
 const currentApproval = computed(() => {
   const approvals = props.solicitud.revision_aprobaciones ?? props.solicitud.revision?.aprobaciones ?? []
@@ -44,114 +46,154 @@ const statusLabel = computed(() => {
     case 'aprobado':
       return 'Aprobado'
     case 'aprobado_con_ajuste':
-      return 'Aprobado con ajuste'
+      return 'Con ajuste'
     case 'rechazado':
       return 'Rechazado'
     case 'no_aplica':
       return 'No aplica'
     default:
-      return approvalRequirement.value ? 'Pendiente' : 'No requerido'
+      return 'Pendiente'
   }
+})
+
+const isDecided = computed(() => {
+  const d = currentApproval.value?.decision
+  return d === 'aprobado' || d === 'aprobado_con_ajuste' || d === 'rechazado'
+})
+
+const statusConfig = computed(() => {
+  const d = currentApproval.value?.decision
+  if (d === 'aprobado' || d === 'aprobado_con_ajuste')
+    return { icon: CircleCheck, iconColor: 'text-emerald-500', badgeBg: 'bg-emerald-500', badgeText: 'text-white', strip: 'bg-emerald-500' }
+  if (d === 'rechazado')
+    return { icon: XCircle, iconColor: 'text-red-500', badgeBg: 'bg-red-500', badgeText: 'text-white', strip: 'bg-red-500' }
+  return { icon: CircleDashed, iconColor: 'text-amber-500', badgeBg: 'bg-amber-100', badgeText: 'text-amber-800', strip: 'bg-amber-400' }
 })
 </script>
 
 <template>
-  <article class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_60px_-42px_rgba(15,23,42,0.35)]">
-    <div class="border-b border-slate-200 bg-[linear-gradient(135deg,#0f4a67_0%,#0d3c55_100%)] px-5 py-4 text-white">
-      <div class="flex flex-wrap items-start justify-between gap-3">
-        <div class="space-y-1">
-          <p class="text-[19px] font-semibold tracking-[-0.02em]">{{ clientName }}</p>
-          <p class="text-sm text-slate-100/85">
-            {{ solicitud.agencia }} · {{ solicitud.gerencia }}
-          </p>
-          <p class="text-xs text-slate-100/70">{{ solicitud.id }}</p>
-        </div>
+  <article class="relative overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+    <!-- Strip lateral -->
+    <div class="absolute inset-y-0 left-0 w-1" :class="statusConfig.strip" />
 
-        <div class="flex flex-wrap justify-end gap-2">
+    <!-- Header compacto — siempre visible -->
+    <button
+      type="button"
+      class="flex w-full items-center gap-3 px-5 py-3.5 text-left transition hover:bg-slate-50/60"
+      @click="isExpanded = !isExpanded"
+    >
+      <component :is="statusConfig.icon" class="size-5 shrink-0" :class="statusConfig.iconColor" />
+
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <p class="truncate text-[15px] font-semibold text-slate-900">{{ clientName }}</p>
           <span
-            class="inline-flex min-h-9 items-center rounded-full border px-4 py-2 text-xs font-semibold"
-            :class="approvalRequirement ? 'border-white/25 bg-white/10 text-white' : 'border-white/15 bg-white/5 text-slate-100/75'"
+            class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+            :class="[statusConfig.badgeBg, statusConfig.badgeText]"
           >
-            {{ approvalRequirement ? 'Check requerido' : 'No requerido' }}
-          </span>
-          <span class="inline-flex min-h-9 items-center rounded-full bg-white px-4 py-2 text-xs font-semibold text-slate-900">
             {{ statusLabel }}
           </span>
         </div>
+        <div class="mt-0.5 flex items-center gap-2 text-[13px] text-slate-500">
+          <span>{{ solicitud.agencia }}</span>
+          <span class="text-slate-300">·</span>
+          <span class="font-medium text-slate-700">{{ toCurrency(solicitud.monto_solicitado ?? 0) }}</span>
+          <span class="text-slate-300">·</span>
+          <span>{{ solicitud.plazo_semanas ?? '-' }} sem</span>
+        </div>
+      </div>
+
+      <ChevronDown
+        class="size-5 shrink-0 text-slate-400 transition-transform duration-200"
+        :class="{ 'rotate-180': isExpanded }"
+      />
+    </button>
+
+    <!-- Contenido expandible -->
+    <div
+      class="grid transition-[grid-template-rows] duration-200"
+      :class="isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+    >
+      <div class="overflow-hidden">
+        <div class="space-y-3 border-t border-slate-100 px-5 pb-4 pt-3">
+          <!-- Info cards inline -->
+          <div class="grid gap-2 grid-cols-2">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+              <div class="flex items-center gap-1.5 text-slate-500">
+                <BadgeDollarSign class="size-3.5" />
+                <span class="text-[11px] font-semibold uppercase tracking-wider">Plan</span>
+              </div>
+              <p class="mt-1 text-lg font-semibold text-slate-900">{{ toCurrency(solicitud.monto_solicitado ?? 0) }}</p>
+              <p class="text-[13px] text-slate-500">{{ solicitud.plazo_semanas ?? '-' }} sem · cargo {{ solicitud.tabla_cargos_snapshot?.id ?? solicitud.tabla_cargos_id ?? '-' }}</p>
+            </div>
+
+            <div
+              class="rounded-xl border px-3 py-2.5"
+              :class="isDecided
+                ? (currentApproval?.decision === 'rechazado' ? 'border-red-200 bg-red-50' : 'border-emerald-200 bg-emerald-50')
+                : 'border-amber-200 bg-amber-50'"
+            >
+              <div class="flex items-center gap-1.5" :class="statusConfig.iconColor">
+                <component :is="statusConfig.icon" class="size-3.5" />
+                <span class="text-[11px] font-semibold uppercase tracking-wider">Revisión</span>
+              </div>
+              <p class="mt-1 text-base font-semibold text-slate-900">{{ statusLabel }}</p>
+              <p class="text-[13px] text-slate-500">{{ currentApproval?.usuario_nombre || 'Sin responsable' }}</p>
+            </div>
+          </div>
+
+          <!-- Progress steps -->
+          <SolicitudProgressSteps :solicitud="solicitud" />
+
+          <!-- Comentario si existe -->
+          <div
+            v-if="currentApproval?.comentario"
+            class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[13px] text-amber-900"
+          >
+            <span class="font-semibold">Comentario:</span> {{ currentApproval.comentario }}
+          </div>
+
+          <!-- Plan sugerido si existe -->
+          <p
+            v-if="currentApproval?.tabla_cargos_id_sugerido"
+            class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-[13px] text-emerald-900"
+          >
+            Plan sugerido: {{ currentApproval.tabla_cargos_id_sugerido }}
+          </p>
+
+          <!-- Diagnóstico compacto -->
+          <p
+            v-if="solicitud.revision?.diagnostico"
+            class="line-clamp-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-[13px] leading-relaxed text-slate-600"
+          >
+            {{ solicitud.revision.diagnostico }}
+          </p>
+
+          <!-- Acciones -->
+          <div class="flex gap-2 pt-1">
+            <button
+              class="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              @click="$emit('action:details', solicitud.id)"
+            >
+              Ver detalles
+            </button>
+            <button
+              v-if="!isDecided"
+              class="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-slate-900 text-sm font-semibold text-white transition hover:bg-slate-800"
+              @click="$emit('action:review', solicitud.id)"
+            >
+              Registrar check
+            </button>
+            <button
+              v-else
+              class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-500 transition hover:bg-slate-50"
+              @click="$emit('action:review', solicitud.id)"
+            >
+              Modificar
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-
-    <section class="space-y-5 p-5">
-      <div class="grid gap-3 md:grid-cols-2">
-        <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-          <div class="mb-2 flex items-center gap-2 text-slate-500">
-            <BadgeDollarSign class="size-4" />
-            <span class="text-xs font-semibold uppercase tracking-[0.18em]">Plan</span>
-          </div>
-          <p class="text-2xl font-semibold text-slate-900">
-            {{ toCurrency(solicitud.monto_solicitado ?? 0) }}
-          </p>
-          <p class="mt-1 text-sm text-slate-600">
-            {{ solicitud.plazo_semanas ?? '-' }} semanas · cargo {{ solicitud.tabla_cargos_snapshot?.id ?? solicitud.tabla_cargos_id ?? '-' }}
-          </p>
-        </div>
-
-        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-          <div class="mb-2 flex items-center gap-2 text-slate-500">
-            <ShieldCheck class="size-4" />
-            <span class="text-xs font-semibold uppercase tracking-[0.18em]">Revisión</span>
-          </div>
-          <p class="text-lg font-semibold text-slate-900">{{ statusLabel }}</p>
-          <p class="mt-1 text-sm text-slate-600">
-            {{ props.approvalType === 'seguridad' ? 'Seguridad' : 'Gerente' }} ·
-            {{ currentApproval?.usuario_nombre || 'Sin responsable' }}
-          </p>
-        </div>
-      </div>
-
-      <SolicitudProgressSteps :solicitud="solicitud" />
-
-      <div class="rounded-[24px] border border-slate-200 bg-slate-50 p-2">
-        <div class="grid gap-2 sm:grid-cols-2">
-          <button
-            class="inline-flex min-h-[52px] items-center justify-center rounded-[18px] border border-slate-300 bg-white px-5 text-[15px] font-semibold text-slate-700 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition hover:border-slate-400 hover:bg-slate-100"
-            @click="$emit('action:details', solicitud.id)"
-          >
-            Ver detalles
-          </button>
-          <button
-            class="inline-flex min-h-[52px] items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#0f1b3d_0%,#111c45_100%)] px-5 text-[15px] font-semibold text-white shadow-[0_16px_30px_-18px_rgba(15,23,42,0.6)] transition hover:brightness-110"
-            @click="$emit('action:review', solicitud.id)"
-          >
-            Registrar check
-          </button>
-        </div>
-      </div>
-      <div
-        v-if="currentApproval?.comentario"
-        class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-      >
-        <p class="mb-1 font-semibold">Comentario actual</p>
-        <p class="leading-relaxed">{{ currentApproval.comentario }}</p>
-      </div>
-      <div
-        v-if="currentApproval?.tabla_cargos_id_sugerido"
-        class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
-      >
-        Plan sugerido: {{ currentApproval.tabla_cargos_id_sugerido }}
-      </div>
-      <div
-        v-if="solicitud.revision?.diagnostico"
-        class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-700"
-      >
-        {{ solicitud.revision.diagnostico }}
-      </div>
-      <div
-        v-else
-        class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-3 text-sm text-slate-500"
-      >
-        Aún no hay diagnóstico registrado. Puedes abrir el detalle para revisar documentos, plan y requerimientos.
-      </div>
-    </section>
   </article>
 </template>
