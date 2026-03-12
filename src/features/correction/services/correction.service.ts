@@ -13,6 +13,11 @@ class CorrectionService {
           subText: '¿Tienes dudas? Contáctanos al número de soporte.',
           ctaText: 'Volver al inicio',
           onClose
+        },
+        errorNotification: {
+          title: 'Error al enviar corrección',
+          message: 'No se pudo registrar la corrección. Por favor, intenta nuevamente.',
+          type: 'error'
         }
       }
     })

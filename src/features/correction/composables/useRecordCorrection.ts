@@ -7,7 +7,6 @@ import { useStore } from '@/shared/stores';
 import { useCorrectionValidation } from './useCorrectionValidation';
 import { useCorrectionData } from './useCorrectionData';
 import { TYPE_LABELS } from '../constants';
-import { useCorrectionErrorHandler } from './useCorrectionErrorHandler';
 
 // Types
 type ActionType = 'correct' | 'delete' | '';
@@ -27,7 +26,6 @@ export function useRecordCorrection() {
   const $store = useStore();
   const { validationState, validateForm } = useCorrectionValidation();
   const { buildCorrectionData, buildCorrectionRequest, parseAmountFromUrl } = useCorrectionData();
-  const { handleError } = useCorrectionErrorHandler();
 
   // Get params from URL
   console.log(route.params, "PARAMS")
@@ -137,8 +135,6 @@ export function useRecordCorrection() {
       return response.data;
     } catch (error: any) {
       console.error('Error submitting correction:', error);
-      handleError(error, 'CORRECTION_SUBMIT_FAILED');
-      throw error;
     } finally {
       state.value.isSubmitting = false;
     }
