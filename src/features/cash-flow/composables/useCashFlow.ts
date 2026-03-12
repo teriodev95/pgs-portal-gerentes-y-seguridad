@@ -1,13 +1,11 @@
 import { ref, computed, onBeforeMount } from 'vue'
 import { useStore } from '@/shared/stores/app'
 import { cashFlowService } from '../services/cashFlow.service'
-import { useCashFlowErrorHandler } from './useCashFlowErrorHandler'
 import type { Movimiento, ResumenCashFlow } from '../types/cashFlow.types'
 
 export function useCashFlow() {
   // 1. Services / Stores
   const $store = useStore()
-  const { handleError } = useCashFlowErrorHandler()
 
   // 2. State
   const movimientos = ref<Movimiento[]>([])
@@ -57,7 +55,7 @@ export function useCashFlow() {
         resumen.value = response.data.resumen
       }
     } catch (error) {
-      handleError(error, 'LOAD_FAILED')
+      console.error('Error fetching cash flow data:', error)
     } finally {
       loading.value = false
     }
