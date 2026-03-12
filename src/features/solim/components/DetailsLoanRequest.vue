@@ -2,11 +2,15 @@
 import { computed } from 'vue'
 import {
   AlertCircle,
+  CircleCheck,
+  CircleDashed,
+  CircleMinus,
   ClipboardList,
   CreditCard,
   FileCheck2,
   ShieldCheck,
-  UserRoundCheck
+  UserRoundCheck,
+  XCircle
 } from 'lucide-vue-next'
 import CardContainer from '@/shared/components/CardContainer.vue'
 import DocumentViewer from './DocumentViewer.vue'
@@ -267,6 +271,84 @@ const openStreetMapUrl = computed(() => {
   return `https://www.openstreetmap.org/?mlat=${props.request.gps_lat}&mlon=${props.request.gps_lng}#map=16/${props.request.gps_lat}/${props.request.gps_lng}`
 })
 
+const revisionStatusConfig = computed(() => {
+  const status = props.request.status_revision
+  const configs: Record<string, { label: string; bg: string; text: string }> = {
+    sin_hallazgos: { label: 'Sin hallazgos', bg: 'bg-emerald-100', text: 'text-emerald-800' },
+    con_hallazgos: { label: 'Con hallazgos', bg: 'bg-amber-100', text: 'text-amber-800' },
+    pendiente: { label: 'Pendiente', bg: 'bg-slate-100', text: 'text-slate-700' },
+    aprobada: { label: 'Aprobada', bg: 'bg-emerald-100', text: 'text-emerald-800' },
+    aprobada_con_ajuste: { label: 'Aprobada con ajuste', bg: 'bg-blue-100', text: 'text-blue-800' },
+    aprobada_condicionada: { label: 'Aprobada condicionada', bg: 'bg-blue-100', text: 'text-blue-800' },
+    rechazada: { label: 'Rechazada', bg: 'bg-red-100', text: 'text-red-800' },
+    corregir: { label: 'Corregir', bg: 'bg-amber-100', text: 'text-amber-800' },
+    requiere_correccion: { label: 'Requiere corrección', bg: 'bg-amber-100', text: 'text-amber-800' }
+  }
+  return configs[status] ?? { label: status, bg: 'bg-slate-100', text: 'text-slate-700' }
+})
+
+const isApprovalAlreadyDecided = computed(() => {
+  const decision = currentApproval.value?.decision
+  return decision === 'aprobado' || decision === 'aprobado_con_ajuste' || decision === 'rechazado'
+})
+
+const approvalCtaConfig = computed(() => {
+  const decision = currentApproval.value?.decision
+  if (decision === 'aprobado' || decision === 'aprobado_con_ajuste') {
+    return { borderColor: 'border-emerald-200', bgGradient: 'bg-[linear-gradient(180deg,#f0fdf4_0%,#dcfce7_100%)]', iconColor: 'text-emerald-600' }
+  }
+  if (decision === 'rechazado') {
+    return { borderColor: 'border-red-200', bgGradient: 'bg-[linear-gradient(180deg,#fef2f2_0%,#fee2e2_100%)]', iconColor: 'text-red-600' }
+  }
+  return { borderColor: 'border-slate-200', bgGradient: 'bg-white', iconColor: 'text-[#0f4a67]' }
+})
+
+const APPROVAL_TYPE_LABELS: Record<string, string> = {
+  gerente: 'Gerente',
+  oficina: 'Oficina',
+  garantias: 'Garantías',
+  seguridad: 'Seguridad',
+  direccion: 'Dirección'
+}
+
+function getApprovalCardConfig(decision?: ApprovalDecision) {
+  switch (decision) {
+    case 'aprobado':
+    case 'aprobado_con_ajuste':
+      return {
+        border: 'border-emerald-200',
+        bg: 'bg-[linear-gradient(180deg,#f0fdf4_0%,#ecfdf5_100%)]',
+        icon: CircleCheck,
+        iconColor: 'text-emerald-500',
+        strip: 'bg-emerald-500'
+      }
+    case 'rechazado':
+      return {
+        border: 'border-red-200',
+        bg: 'bg-[linear-gradient(180deg,#fef2f2_0%,#fef2f2_100%)]',
+        icon: XCircle,
+        iconColor: 'text-red-500',
+        strip: 'bg-red-500'
+      }
+    case 'no_aplica':
+      return {
+        border: 'border-slate-200',
+        bg: 'bg-slate-50',
+        icon: CircleMinus,
+        iconColor: 'text-slate-400',
+        strip: 'bg-slate-300'
+      }
+    default:
+      return {
+        border: 'border-amber-200',
+        bg: 'bg-[linear-gradient(180deg,#fffbeb_0%,#fef9c3_100%)]',
+        icon: CircleDashed,
+        iconColor: 'text-amber-500',
+        strip: 'bg-amber-400'
+      }
+  }
+}
+
 function formatMoney(value?: number | null) {
   return value != null
     ? new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 2 }).format(value)
@@ -353,8 +435,11 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
                 Estado global del expediente y resumen de lo ya revisado.
               </p>
             </div>
-            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-              {{ request.status_revision }}
+            <span
+              class="rounded-full px-3 py-1 text-xs font-semibold"
+              :class="[revisionStatusConfig.bg, revisionStatusConfig.text]"
+            >
+              {{ revisionStatusConfig.label }}
             </span>
           </div>
 
@@ -454,24 +539,47 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
             <AlertCircle class="size-5 text-[#0f4a67]" />
             Aprobaciones del flujo
           </p>
-          <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             <div
               v-for="approval in approvals"
               :key="approval.tipo"
-              class="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4"
+              class="relative overflow-hidden rounded-[20px] border p-4"
+              :class="[getApprovalCardConfig(approval.decision).border, getApprovalCardConfig(approval.decision).bg]"
             >
-              <div class="mb-3 flex items-center justify-between gap-3">
-                <p class="text-base font-semibold capitalize text-slate-900">{{ approval.tipo }}</p>
-                <span
-                  class="rounded-full px-3 py-1 text-xs font-semibold"
-                  :class="approval.requerido ? 'bg-amber-100 text-amber-900' : 'bg-slate-200 text-slate-700'"
-                >
-                  {{ approval.requerido ? 'Requerido' : 'No aplica' }}
-                </span>
+              <!-- Strip lateral de estado -->
+              <div
+                class="absolute inset-y-0 left-0 w-1 rounded-l-[20px]"
+                :class="getApprovalCardConfig(approval.decision).strip"
+              />
+
+              <div class="flex items-center gap-3">
+                <component
+                  :is="getApprovalCardConfig(approval.decision).icon"
+                  class="size-6 shrink-0"
+                  :class="getApprovalCardConfig(approval.decision).iconColor"
+                />
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-sm font-semibold text-slate-900">
+                      {{ APPROVAL_TYPE_LABELS[approval.tipo] || approval.tipo }}
+                    </p>
+                    <span
+                      class="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+                      :class="approval.requerido ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-500'"
+                    >
+                      {{ approval.requerido ? 'Requerido' : 'No aplica' }}
+                    </span>
+                  </div>
+                  <p class="mt-0.5 text-sm font-medium" :class="getApprovalCardConfig(approval.decision).iconColor">
+                    {{ formatApprovalDecision(approval.decision) }}
+                  </p>
+                </div>
               </div>
-              <p class="text-sm text-slate-700"><span class="font-semibold">Estado:</span> {{ formatApprovalDecision(approval.decision) }}</p>
-              <p class="mt-2 text-sm text-slate-700"><span class="font-semibold">Responsable:</span> {{ approval.usuario_nombre || 'Pendiente' }}</p>
-              <p class="mt-2 text-sm text-slate-700"><span class="font-semibold">Comentario:</span> {{ approval.comentario || 'Sin comentario' }}</p>
+
+              <div class="mt-3 space-y-1 border-t border-black/5 pt-3 text-[13px] text-slate-600">
+                <p>{{ approval.usuario_nombre || 'Sin responsable asignado' }}</p>
+                <p v-if="approval.comentario" class="italic text-slate-500">« {{ approval.comentario }} »</p>
+              </div>
             </div>
           </div>
         </div>
@@ -613,35 +721,50 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
   <!-- CTA fijo de aprobación -->
   <div class="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur-md">
     <div class="mx-auto max-w-2xl px-4 py-4">
-      <CardContainer class="!p-4">
-        <div class="space-y-4">
-          <div class="flex items-start justify-between gap-4">
-            <div class="min-w-0">
-              <p class="flex items-center gap-2 text-base font-semibold text-slate-800">
-                <UserRoundCheck class="size-5 shrink-0 text-[#0f4a67]" />
-                Aprobación de {{ roleLabel.toLowerCase() }}
-              </p>
-              <p class="mt-1 text-sm text-slate-500">
-                {{ formatApprovalDecision(currentApproval?.decision) }} · {{ currentApproval?.usuario_nombre || 'Sin responsable' }}
-              </p>
-            </div>
-            <span
-              class="shrink-0 rounded-full px-3 py-1 text-xs font-semibold"
-              :class="currentApproval?.requerido ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'"
-            >
-              {{ currentApproval?.requerido ? 'Requerido' : 'No requerido' }}
-            </span>
+      <div
+        class="rounded-[24px] border px-5 py-4 shadow-sm"
+        :class="[approvalCtaConfig.borderColor, approvalCtaConfig.bgGradient]"
+      >
+        <div class="flex items-center justify-between gap-4">
+          <div class="min-w-0">
+            <p class="flex items-center gap-2 text-base font-semibold text-slate-800">
+              <component
+                :is="isApprovalAlreadyDecided ? CircleCheck : UserRoundCheck"
+                class="size-5 shrink-0"
+                :class="approvalCtaConfig.iconColor"
+              />
+              {{ formatApprovalDecision(currentApproval?.decision) }}
+            </p>
+            <p class="mt-0.5 text-sm text-slate-500">
+              {{ currentApproval?.usuario_nombre || 'Sin responsable' }}
+              <template v-if="currentApproval?.comentario"> · {{ currentApproval.comentario }}</template>
+            </p>
           </div>
-
-          <button
-            class="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="!canRegisterDecision || isLoadingAction"
-            @click="$emit('open:review')"
+          <span
+            class="shrink-0 rounded-full px-3 py-1 text-xs font-semibold"
+            :class="currentApproval?.requerido ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'"
           >
-            {{ isLoadingAction ? 'Guardando...' : 'Registrar decisión' }}
-          </button>
+            {{ currentApproval?.requerido ? 'Requerido' : 'No requerido' }}
+          </span>
         </div>
-      </CardContainer>
+
+        <button
+          v-if="!isApprovalAlreadyDecided"
+          class="mt-4 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          :disabled="!canRegisterDecision || isLoadingAction"
+          @click="$emit('open:review')"
+        >
+          {{ isLoadingAction ? 'Guardando...' : 'Registrar decisión' }}
+        </button>
+        <button
+          v-else
+          class="mt-3 inline-flex h-10 w-full items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+          :disabled="isLoadingAction"
+          @click="$emit('open:review')"
+        >
+          Modificar decisión
+        </button>
+      </div>
     </div>
   </div>
   </div>
