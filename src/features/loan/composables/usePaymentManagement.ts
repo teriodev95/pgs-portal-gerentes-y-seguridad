@@ -6,12 +6,12 @@ import { useStore } from '@/shared/stores'
 import type { ICobranza  } from '@/interfaces'
 import type { PaymentSource, RecoverySource, IPaymentCreate } from '../types'
 import useGeolocation from '@/shared/composables/useGeolocation'
-import { useToast } from 'vue-toast-notification'
+import { useNotification } from '@/shared/composables/useNotification'
 
 export function usePaymentManagement() {
   const $store = useStore()
-  const $toast = useToast()
   const { userLocation, hasPermission } = useGeolocation()
+  const { showWarning } = useNotification()
 
   const isLoadingPayments = ref(false)
   const isProcessing = ref(false)
@@ -38,7 +38,7 @@ export function usePaymentManagement() {
 
       $store.cobranzas = data.cobranza
     } catch (error) {
-      $toast.error('Error al obtener las cobranzas')
+      console.error('Error al obtener las cobranzas:', error)
     } finally {
       isLoadingPayments.value = false
     }
@@ -83,19 +83,18 @@ export function usePaymentManagement() {
         tipo: 'Pago',
       }
 
-      console.log('Payment data:', paymentData)
 
       await loanAndPaymentService.createPayment(paymentData)
 
       // Solo mostrar advertencia si no hay permisos de geolocalización
       if (!hasPermission.value) {
-        $toast.warning('No se guardó la ubicación. Los permisos de localización están desactivados.')
+        showWarning('No se guardó la ubicación. Los permisos de localización están desactivados.')
       }
 
       await loadPayments()
       return true
     } catch (error) {
-      $toast.error(error instanceof Error ? error.message : 'Error al procesar el pago')
+      console.error('Error al procesar el pago:', error)
       return false
     } finally {
       isProcessing.value = false

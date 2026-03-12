@@ -4,10 +4,7 @@ import { useRouter } from 'vue-router'
 import { LOAN_SECTION_TITLES, LOAN_BUTTON_LABELS } from '@/features/loan/constants'
 
 // Composables
-import { useLoanData } from '@/features/loan/composables/useLoanData'
-import { useNavigation } from '@/features/loan/composables/useNavigation'
-import { useModalManager } from '@/features/loan/composables/useModalManager'
-import { useSettlementLogic } from '@/features/loan/composables/useSettlementLogic'
+import { useLoanData, useNavigation, useModalManager, useSettlementLogic } from '@/features/loan/composables'
 
 const router = useRouter()
 
