@@ -22,7 +22,7 @@ class CallCenterService {
   }
 
   async getCallCenterReports({managment, year, week}: GetBaseProps) {
-    return this.faxClient.get(`/call-center1/reportes?gerencia=${managment}&anio=${year}&semana=${week}`, {
+    return this.faxClient.get(`/call-center/reportes?gerencia=${managment}&anio=${year}&semana=${week}`, {
       meta: {
         errorNotification: {
           title: 'Error al obtener reportes de call center',
