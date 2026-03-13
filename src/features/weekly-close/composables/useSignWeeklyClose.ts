@@ -257,10 +257,12 @@ export const useSignWeeklyClose = () => {
   }
 
   const handleStartCamera = async () => {
-    // Verificar permisos antes de iniciar
-    await checkAllPermissions()
     startCamera.value = true
     showInformationalMessage.value = true
+
+    // Solicitar permisos inmediatamente al iniciar la cámara
+    // Esto mostrará el diálogo nativo del navegador/PWA
+    await requestCameraPermissions(true) // silentMode = true para no mostrar toasts en este punto
   }
 
   /**
@@ -283,13 +285,20 @@ export const useSignWeeklyClose = () => {
       currentState.value = 'capturing-video'
 
       try {
+        // Cerrar cualquier stream anterior si existe
+        if (cameraStream.value) {
+          cameraStream.value.getTracks().forEach((track) => track.stop())
+          cameraStream.value = undefined
+        }
+
         // Solicitar permisos usando el composable compartido
-        const stream = await requestCameraPermissions()
+        // Cada vez que se graba, se solicitan permisos frescos
+        const stream = await requestCameraPermissions(false) // silentMode = false para mostrar mensajes
 
         if (!stream) {
           // Si no se obtuvieron permisos, revertir el estado
           isCameraOpen.value = false
-          currentState.value = 'error'
+          currentState.value = 'idle'
           return
         }
 

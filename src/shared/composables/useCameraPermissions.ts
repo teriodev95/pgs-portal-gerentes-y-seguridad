@@ -124,11 +124,17 @@ export const useCameraPermissions = () => {
     requestingPermissions.value = true
 
     try {
+      console.log('[CameraPermissions] Solicitando permisos de cámara y micrófono...')
+
       // Siempre intentar solicitar permisos, el navegador/PWA mostrará su diálogo nativo
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: {
+          facingMode: 'user' // Preferir cámara frontal en dispositivos móviles
+        },
         audio: true
       })
+
+      console.log('[CameraPermissions] ✓ Permisos concedidos')
 
       // Si obtuvimos el stream, actualizar los estados
       cameraPermissionState.value = 'granted'
@@ -140,20 +146,24 @@ export const useCameraPermissions = () => {
 
       return stream
     } catch (error) {
+      console.error('[CameraPermissions] ✗ Error al solicitar permisos:', error)
+
       // Manejar diferentes tipos de errores
       if (error instanceof DOMException) {
         switch (error.name) {
           case 'NotAllowedError':
           case 'PermissionDeniedError':
+            console.warn('[CameraPermissions] Permisos denegados por el usuario')
             cameraPermissionState.value = 'denied'
             microphonePermissionState.value = 'denied'
             if (!silentMode) {
-              toast.warning('Necesitas permitir el acceso a la cámara para continuar')
+              toast.warning('Debes permitir el acceso a la cámara para grabar la verificación. Por favor, intenta nuevamente.')
             }
             break
 
           case 'NotFoundError':
           case 'DevicesNotFoundError':
+            console.warn('[CameraPermissions] No se encontró cámara o micrófono')
             if (!silentMode) {
               toast.error('No se encontró cámara o micrófono en este dispositivo')
             }
@@ -161,6 +171,7 @@ export const useCameraPermissions = () => {
 
           case 'NotReadableError':
           case 'TrackStartError':
+            console.warn('[CameraPermissions] Cámara en uso por otra aplicación')
             if (!silentMode) {
               toast.error('La cámara está siendo usada por otra aplicación')
             }
@@ -168,24 +179,28 @@ export const useCameraPermissions = () => {
 
           case 'OverconstrainedError':
           case 'ConstraintNotSatisfiedError':
+            console.warn('[CameraPermissions] Configuración no compatible')
             if (!silentMode) {
               toast.error('Configuración de cámara no compatible')
             }
             break
 
           case 'TypeError':
+            console.warn('[CameraPermissions] Error de tipo en configuración')
             if (!silentMode) {
               toast.error('Error en la configuración de permisos')
             }
             break
 
           default:
+            console.warn('[CameraPermissions] Error desconocido:', error.name)
             if (!silentMode) {
               toast.error('Error al acceder a la cámara')
             }
             console.error('Camera permission error:', error)
         }
       } else {
+        console.warn('[CameraPermissions] Error no-DOMException:', error)
         if (!silentMode) {
           toast.error('Error desconocido al acceder a la cámara')
         }
