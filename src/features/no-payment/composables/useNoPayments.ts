@@ -3,14 +3,12 @@ import { useStore } from '@/shared/stores'
 import { type LatLng, type PointExpression } from 'leaflet'
 import { noPaymentService } from '../services/no-payment.service'
 import type { INoPago, IVisita } from '../types'
-import { useNoPaymentErrorHandler } from './useNoPaymentErrorHandler'
 import { useNoPaymentFilters } from './useNoPaymentFilters'
 import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
 
 export function useNoPayments() {
   // Services and stores
   const $store = useStore()
-  const { handleError } = useNoPaymentErrorHandler()
 
   // Filter composable
   const {
@@ -63,7 +61,7 @@ export function useNoPayments() {
       console.log('Fetched No Payments:', data)
       noPaymentsList.value = data
     } catch (error) {
-      handleError(error, 'NO_PAYMENTS_LOAD_FAILED')
+      console.error('Error fetching no payments:', error)
     } finally {
       isLoading.value = false
     }
