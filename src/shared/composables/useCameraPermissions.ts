@@ -222,6 +222,25 @@ export const useCameraPermissions = () => {
   }
 
   /**
+   * Intenta revocar permisos si es posible (experimental)
+   * NOTA: La revocación programática no está soportada en la mayoría de navegadores
+   */
+  const revokePermissions = async (): Promise<void> => {
+    try {
+      // Intentar detener todos los streams activos
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      console.log('[CameraPermissions] Dispositivos disponibles:', devices.length)
+
+      // Resetear estado local
+      resetPermissions()
+
+      console.log('[CameraPermissions] Estado de permisos reseteado')
+    } catch (error) {
+      console.warn('[CameraPermissions] No se pudo enumerar dispositivos:', error)
+    }
+  }
+
+  /**
    * Obtiene instrucciones para reactivar permisos según el navegador
    */
   const getPermissionInstructions = (): string => {
