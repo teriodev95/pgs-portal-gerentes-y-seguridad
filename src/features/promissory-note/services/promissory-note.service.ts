@@ -22,7 +22,15 @@ class PromissoryNoteService {
       order: 'desc'
     }
 
-    const { data } = await this.apiElysia.post<{ data: Pagare[] }>('/pagares/search', payload)
+    const { data } = await this.apiElysia.post<{ data: Pagare[] }>('/pagares/search', payload, {
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar pagarés',
+          message: 'No se pudieron cargar los pagarés de la gerencia. Por favor, intenta nuevamente.',
+          type: 'error'
+        }
+      }
+    })
     return data.data
   }
 
@@ -30,7 +38,15 @@ class PromissoryNoteService {
    * [GET] /pagares/:id -> Obtener información completa de un pagaré específico
    */
   async getPagareById(id: string) {
-    const { data } = await this.apiElysia.get<{ data: Pagare }>(`/pagares/${id}`)
+    const { data } = await this.apiElysia.get<{ data: Pagare }>(`/pagares/${id}`, {
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar pagaré',
+          message: 'No se pudo cargar la información del pagaré. Por favor, intenta nuevamente.',
+          type: 'error'
+        }
+      }
+    })
     return data.data
   }
 
@@ -48,6 +64,11 @@ class PromissoryNoteService {
             secondaryText: 'La información de entrega del pagaré ha sido registrada correctamente.',
             ctaText: 'Continuar',
             onClose: onSuccess
+          },
+          errorNotification: {
+            title: 'Error al actualizar pagaré',
+            message: 'No se pudo actualizar la información del pagaré. Por favor, intenta nuevamente.',
+            type: 'error'
           }
         }
       }

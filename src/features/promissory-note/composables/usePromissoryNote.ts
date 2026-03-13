@@ -40,7 +40,6 @@ export function usePromissoryNote() {
     try {
       loading.value = true
       pagares.value = await promissoryNoteService.getPagaresByGerencia(store.gerenciaSelected)
-      console.log('Pagarés obtenidos:', pagares.value)
     } catch (error) {
       console.error('Error al obtener pagarés:', error)
     } finally {

@@ -112,7 +112,6 @@ export function usePromissoryNoteDetail(pagareRef: Ref<Pagare | null>) {
 
       return true
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Error al guardar pagaré'
       console.error('Error al guardar pagaré:', err)
       return false
     } finally {
