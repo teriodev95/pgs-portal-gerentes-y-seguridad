@@ -1,14 +1,12 @@
 import { commonService } from '@/shared/services/modules'
 import { computed, ref } from 'vue'
-import { useNoPaymentErrorHandler } from './useNoPaymentErrorHandler'
 import { useStore } from '@/shared/stores'
 import type { INoPago } from '../types'
 
 export function useNoPaymentFilters() {
   // Services and stores
   const $store = useStore()
-  const { handleError } = useNoPaymentErrorHandler()
-
+  
   // Filter state
   const agencyList = ref<string[]>()
   const selectedAgency = ref<string>('')
@@ -36,7 +34,7 @@ export function useNoPaymentFilters() {
       managementList.value = managementNames
       selectedManagement.value = managementNames[0]
     } catch (error) {
-      handleError(error, 'MANAGEMENTS_LOAD_FAILED')
+      console.error('Error fetching managements:', error)
     } finally {
       isLoadingFilters.value = false
     }
@@ -52,7 +50,7 @@ export function useNoPaymentFilters() {
       selectedAgency.value = agencyList.value[0] || ''
       
     } catch (error) {
-      handleError(error, 'AGENCIES_LOAD_FAILED')
+      console.error('Error fetching agencies:', error)
     } finally {
       isLoadingFilters.value = false
     }
