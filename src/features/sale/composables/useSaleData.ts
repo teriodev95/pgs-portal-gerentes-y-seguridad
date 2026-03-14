@@ -2,8 +2,8 @@ import { computed, onBeforeMount } from 'vue'
 import { useStore } from '@/shared/stores'
 import type { SaleDetails, SaleFormData } from '../types'
 import { salesService } from '../services/sale.service'
-import { useSaleErrorHandler } from './useSaleErrorHandler'
 import { useSaleStore } from '../stores'
+import { useNotification } from '@/shared/composables/useNotification'
 
 function validateSaleData(sale: SaleDetails): { isValid: boolean; errors: string[] } {
   const errors: string[] = []
@@ -58,8 +58,8 @@ function validateSaleData(sale: SaleDetails): { isValid: boolean; errors: string
 export function useSaleData() {
   // Services, Composables and Stores initialization
   const $store = useStore()
-  const { handleError } = useSaleErrorHandler()
   const saleStore = useSaleStore()
+  const { showError } = useNotification()
 
   // Computed properties (datos del store global)
   const currentDate = computed(() => $store.currentDate)
@@ -85,7 +85,7 @@ export function useSaleData() {
 
       saleStore.setSales(response.data)
     } catch (error) {
-      handleError(error, 'SALES_LOAD_FAILED')
+      console.error('Error al cargar ventas:', error)
     } finally {
       saleStore.setLoadingSales(false)
     }
@@ -101,12 +101,12 @@ export function useSaleData() {
    */
   async function saveSale(formData: SaleFormData): Promise<void> {
     if (!gerenciaSelected.value) {
-      handleError(new Error('Gerencia no seleccionada'), 'VALIDATION_ERROR')
+      console.error('Gerencia no seleccionada')
       return Promise.reject(new Error('Gerencia no seleccionada'))
     }
 
     if (formData.primerPago === 0) {
-      handleError(new Error('El primer pago no puede ser 0'), 'VALIDATION_ERROR')
+      console.error('El primer pago no puede ser 0')
       return Promise.reject(new Error('El primer pago no puede ser 0'))
     }
 
@@ -120,7 +120,7 @@ export function useSaleData() {
     // Validation before mutation
     const validation = validateSaleData(saleData)
     if (!validation.isValid) {
-      validation.errors.forEach(error => handleError(new Error(error), 'VALIDATION_ERROR'))
+      validation.errors.forEach(error => showError(error))
       return Promise.reject(new Error(validation.errors.join(', ')))
     }
 
@@ -132,7 +132,7 @@ export function useSaleData() {
       await fetchSales()
       return Promise.resolve()
     } catch (error) {
-      handleError(error, 'SALE_SAVE_FAILED')
+      console.error('Error al guardar venta:', error)
       return Promise.reject(error)
     } finally {
       saleStore.setSavingSale(false)
@@ -147,7 +147,7 @@ export function useSaleData() {
     try {
       await fetchSales()
     } catch (error) {
-      handleError(error, 'SALE_INIT_FAILED')
+      console.error('Error al inicializar ventas:', error)
     }
   })
 

@@ -6,7 +6,6 @@ import { settlementsService } from '../services/settlements.service'
 export function useSpecialSettlement() {
   const settlement: Ref<ISpecialSettlement | null> = ref(null)
   const loading = ref(false)
-  const error = ref<string | null>(null)
   const selectedDiscountPercentage = ref<number>(0)
   const paymentForm = ref<IPaymentFormData>({
     amount: 0,
@@ -54,18 +53,14 @@ export function useSpecialSettlement() {
 
   async function fetchSpecialSettlement(loanId: string) {
     loading.value = true
-    error.value = null
     settlement.value = null
 
     try {
-
-
       const response = await settlementsService.getSpecialSettlement(loanId)
       console.log('Fetched special settlement:', response.data)
       settlement.value = response.data
     } catch (err) {
       console.error('Error fetching special settlement:', err)
-      error.value = 'Error de conexión al obtener la liquidación especial'
     } finally {
       loading.value = false
     }
@@ -99,7 +94,6 @@ export function useSpecialSettlement() {
 
   function clearData() {
     settlement.value = null
-    error.value = null
     selectedDiscountPercentage.value = 0
   }
 
@@ -107,7 +101,6 @@ export function useSpecialSettlement() {
     // State
     settlement,
     loading,
-    error,
     selectedDiscountPercentage,
     paymentForm,
 

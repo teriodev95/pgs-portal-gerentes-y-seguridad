@@ -5,12 +5,12 @@ import type { IPayment } from '../types'
 import type { ILoan } from '@/features/loan/types'
 import { loanAndPaymentService } from '@/features/loan/services/loan.service'
 import { paymentDetailsService } from '../services/payment-details.service'
-import { usePaymentDetailsErrorHandler } from './usePaymentHistoryErrorHandler'
+import { useNotification } from '@/shared/composables/useNotification'
 
 export function usePaymentHistory() {
   // Services and composables initialization
   const $store = useStore()
-  const { handleError } = usePaymentDetailsErrorHandler()
+  const { showError } = useNotification()
 
   // State definitions
   const historyList = ref<IPayment[]>([])
@@ -26,7 +26,7 @@ export function usePaymentHistory() {
   // Methods
   async function loadLoanHistory(loanId: string): Promise<void> {
     if (!loanId) {
-      handleError(new Error('ID de préstamo no proporcionado'), 'UNKNOWN_ERROR')
+      showError('ID de préstamo no proporcionado')
       return
     }
 
@@ -42,7 +42,7 @@ export function usePaymentHistory() {
       loanData.value = loanResponse.data
       historyList.value = historyResponse.data.pagos
     } catch (error) {
-      handleError(error, 'LOAD_FAILED')
+      console.error('Error al cargar historial de pagos:', error)
     } finally {
       $store.loading = false
     }
