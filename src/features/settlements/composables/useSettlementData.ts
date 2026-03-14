@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { Liquidacion } from '../types'
 import { settlementsService } from '../services/settlements.service'
-import { useSettlementErrorHandler } from './useSettlementErrorHandler'
+import { useNotification } from '@/shared/composables/useNotification'
 
 // Validation function
 function validateSettlementData(settlement: Liquidacion): { isValid: boolean; errors: string[] } {
@@ -25,7 +25,7 @@ function validateSettlementData(settlement: Liquidacion): { isValid: boolean; er
 export function useSettlementData() {
   // Services and composables
   const $route = useRoute()
-  const { handleError } = useSettlementErrorHandler()
+  const { showError } = useNotification()
 
   // State definitions
   const settlementData = ref<Liquidacion>()
@@ -56,7 +56,7 @@ export function useSettlementData() {
   // Methods
   async function fetchSettlementData(loanId: string): Promise<void> {
     if (!loanId) {
-      handleError(new Error('ID de préstamo no proporcionado'), 'VALIDATION_ERROR')
+      showError('ID de préstamo no proporcionado')
       return
     }
 
@@ -65,7 +65,7 @@ export function useSettlementData() {
       const data = await settlementsService.getLiquidacion(loanId)
       settlementData.value = data
     } catch (error) {
-      handleError(error, 'SETTLEMENT_LOAD_FAILED')
+      showError('Error al cargar los datos de la liquidación')
     } finally {
       isLoading.value = false
     }

@@ -1,1 +1,0 @@
-export { SALE_ERROR_MESSAGES, type SaleErrorMessageKey } from './errorMessages'

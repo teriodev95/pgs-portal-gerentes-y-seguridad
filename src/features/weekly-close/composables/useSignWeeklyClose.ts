@@ -7,6 +7,7 @@ import { useStore } from '@/shared/stores'
 import { useWeeklyCloseApi } from './useWeeklyCloseApi'
 import { blob2base64 } from '@/shared/utils'
 import { securityPinService } from '@/features/security-pin/services/security.service'
+import { useCameraPermissions } from '@/shared/composables/useCameraPermissions'
 import { STEPS } from '../constants'
 import { WEEKLY_CLOSE_ERROR_MESSAGES } from '../constants/errorMessages'
 import { ROUTE_NAME } from '@/router'
@@ -76,6 +77,17 @@ export const useSignWeeklyClose = () => {
   const showInformationalMessage = ref(false)
 
   let stopTimeoutId: ReturnType<typeof setTimeout> | null = null
+
+  // Composable de permisos de cámara
+  const {
+    isCameraGranted,
+    isCameraDenied,
+    arePermissionsDenied,
+    checkAllPermissions,
+    requestCameraPermissions,
+    resetPermissions,
+    getPermissionInstructions
+  } = useCameraPermissions()
 
   // ============================================================================
   // ESTADO - Confirmación y envío
@@ -244,9 +256,12 @@ export const useSignWeeklyClose = () => {
     }
   }
 
-  const handleStartCamera = () => {
+  const handleStartCamera = async () => {
     startCamera.value = true
     showInformationalMessage.value = true
+
+    // NO solicitar permisos aquí, esperar a que el usuario haga clic en "Grabar"
+    // Esto permite que el navegador muestre el diálogo en respuesta a una acción del usuario
   }
 
   /**
@@ -269,10 +284,28 @@ export const useSignWeeklyClose = () => {
       currentState.value = 'capturing-video'
 
       try {
-        cameraStream.value = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
-        })
+        // Cerrar cualquier stream anterior si existe
+        if (cameraStream.value) {
+          cameraStream.value.getTracks().forEach((track) => track.stop())
+          cameraStream.value = undefined
+        }
+
+        // CRÍTICO: Resetear estado de permisos antes de solicitar
+        // Esto evita que el navegador cachee la decisión anterior
+        resetPermissions()
+
+        // Solicitar permisos usando el composable compartido
+        // Cada vez que se graba, se solicitan permisos frescos
+        const stream = await requestCameraPermissions(false) // silentMode = false para mostrar mensajes
+
+        if (!stream) {
+          // Si no se obtuvieron permisos, revertir el estado
+          isCameraOpen.value = false
+          currentState.value = 'idle'
+          return
+        }
+
+        cameraStream.value = stream
 
         if (!MediaRecorder.isTypeSupported('video/webm')) {
           toast.warning('video/webm no es soportado, se usará formato por defecto')
@@ -298,6 +331,7 @@ export const useSignWeeklyClose = () => {
         })
       } catch (error) {
         currentState.value = 'error'
+        isCameraOpen.value = false
         toast.error('No se pudo acceder a la cámara')
         console.error('Error accessing camera:', error)
       }
@@ -580,6 +614,14 @@ export const useSignWeeklyClose = () => {
     navigateBackToWeeklyClose,
 
     // Reset
-    resetSignFlow
+    resetSignFlow,
+
+    // Permisos de cámara
+    isCameraGranted,
+    isCameraDenied,
+    arePermissionsDenied,
+    checkAllPermissions,
+    resetPermissions,
+    getPermissionInstructions
   }
 }

@@ -6,14 +6,14 @@ import { paymentDetailsService } from '../services/payment-details.service'
 import type { IMapPayment } from '../types'
 import { useMapbox } from '../helpers'
 import { MAP_CONFIG } from '../constants'
-import { usePaymentDetailsErrorHandler } from './usePaymentHistoryErrorHandler'
+import { useNotification } from '@/shared/composables/useNotification'
 
 export function useMapPaymentData() {
   // Services, Composables and Stores initialization
   const $store = useStore()
   const $router = useRouter()
   const { initMap, generateGeoJson, heatMap } = useMapbox()
-  const { handleApiError, handleMapInitError, showSuccess } = usePaymentDetailsErrorHandler()
+  const { showError, showSuccess } = useNotification()
 
   // State definitions
   const loadedData = ref(false)
@@ -108,11 +108,11 @@ export function useMapPaymentData() {
 
           showSuccess('Datos de pagos cargados correctamente')
         } catch (mapError) {
-          handleMapInitError(mapError)
+          showError('Error al inicializar el mapa. Por favor, intenta nuevamente.')
         }
       }
     } catch (error) {
-      handleApiError(error)
+      showError('Error al cargar los datos de pagos. Por favor, intenta nuevamente.')
     } finally {
       $store.loading = false
     }

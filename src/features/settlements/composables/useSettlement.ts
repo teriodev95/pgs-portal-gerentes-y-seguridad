@@ -2,13 +2,13 @@ import { ref, computed, type Ref } from 'vue'
 import type { ISpecialSettlement, IPayloadSpecialSettlement, IPaymentFormData, Liquidacion } from '../types'
 import { PaymentSource, RecoverySource } from '@/features/loan/types'
 import { settlementsService } from '../services/settlements.service'
-import { useSettlementErrorHandler } from './useSettlementErrorHandler'
 import { useErrorDialogStore } from '@/shared/stores'
+import { useNotification } from '@/shared/composables/useNotification'
 
 export function useSettlement() {
   // Services and composables
-  const { handleError } = useSettlementErrorHandler()
   const errorDialogStore = useErrorDialogStore()
+  const { showError } = useNotification()
 
   // === SPECIAL SETTLEMENT STATE ===
   const specialSettlement: Ref<ISpecialSettlement | null> = ref(null)
@@ -104,7 +104,7 @@ export function useSettlement() {
   async function processSettlement(settlementData: Liquidacion): Promise<void> {
     try {
       if (!settlementData) {
-        handleError(new Error('Datos de liquidación no disponibles'), 'VALIDATION_ERROR')
+        showError('Datos de liquidación no disponibles')
         return
       }
 
@@ -137,7 +137,7 @@ export function useSettlement() {
       isProcessing.value = true
       const specialData = creatPayloadSpecialSettlement()
       if (!specialData) {
-        handleError(new Error('No se pudo crear la liquidación especial'), 'VALIDATION_ERROR')
+        showError('No se pudo crear la liquidación especial')
         return
       }
 
