@@ -8,7 +8,15 @@ class SettlementsService {
   private apiFax = createApiClientFromPreset('fastApi')
 
   async getLiquidacion(id: string) {
-    const { data } = await this.apiJavalin.get<settlementDetails>(`/liquidaciones/prestamo/${id}`)
+    const { data } = await this.apiJavalin.get<settlementDetails>(`/liquidaciones/prestamo/${id}`, {
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar liquidación',
+          message: 'No se pudo cargar la información de la liquidación. Por favor, intenta nuevamente.',
+          type: 'error'
+        }
+      }
+    })
     const dataMapped: Liquidacion = {
       cargo: data.cargo,
       cliente: data.cliente,
@@ -41,6 +49,11 @@ class SettlementsService {
         successNotification: {
           mainText: 'Liquidación exitosa',
           secondaryText: `Se guardó con éxito la liquidación de ${data.cliente}`
+        },
+        errorNotification: {
+          title: 'Error al crear liquidación',
+          message: 'No se pudo procesar la liquidación. Por favor, intenta nuevamente.',
+          type: 'error'
         }
       }
     })
@@ -48,7 +61,15 @@ class SettlementsService {
 
 
   async getSpecialSettlement(id : string) {
-    return this.apiJavalin.get<ISpecialSettlement>(`/liquidaciones-especiales/prestamo/${id}`)
+    return this.apiJavalin.get<ISpecialSettlement>(`/liquidaciones-especiales/prestamo/${id}`, {
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar liquidación especial',
+          message: 'No se pudo cargar la información de la liquidación especial. Por favor, intenta nuevamente.',
+          type: 'error'
+        }
+      }
+    })
   }
 
   async createSpecialSettlement(data: IPayloadSpecialSettlement) {
@@ -57,6 +78,11 @@ class SettlementsService {
         successNotification: {
           mainText: '¡Liquidación especial procesada!',
           secondaryText: 'La liquidación especial se completó exitosamente'
+        },
+        errorNotification: {
+          title: 'Error al crear liquidación especial',
+          message: 'No se pudo procesar la liquidación especial. Por favor, intenta nuevamente.',
+          type: 'error'
         }
       }
     })

@@ -2,13 +2,13 @@ import { ref } from 'vue'
 import type { IPaymentFormData, Liquidacion } from '../types'
 import { PaymentSource, RecoverySource } from '@/features/loan/types'
 import { settlementsService } from '../services/settlements.service'
-import { useSettlementErrorHandler } from './useSettlementErrorHandler'
 import { useErrorDialogStore } from '@/shared/stores'
+import { useNotification } from '@/shared/composables/useNotification'
 
 export function useSettlementProcessor() {
   // Services and composables
-  const { handleError, handleSuccess } = useSettlementErrorHandler()
   const errorDialogStore = useErrorDialogStore()
+  const { showError, showSuccess } = useNotification()
 
 
   // State definitions
@@ -24,7 +24,7 @@ export function useSettlementProcessor() {
   async function processSettlement(settlementData: Liquidacion): Promise<void> {
     try {
       if (!settlementData) {
-        handleError(new Error('Datos de liquidación no disponibles'), 'VALIDATION_ERROR')
+        showError('Datos de liquidación no disponibles')
         return
       }
 
@@ -41,7 +41,6 @@ export function useSettlementProcessor() {
       processedData.recuperadoPor = paymentForm.value.paymentRecovery
 
       await settlementsService.createSettlement(processedData)
-      handleSuccess(`Liquidación exitosa para ${processedData.cliente}`)
       showSuccessCircle.value = true
     } catch (error) {
       const errorCode = (error as any)?.code || 'UNKNOWN_ERROR'

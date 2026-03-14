@@ -3,13 +3,11 @@ import { useStore } from '@/shared/stores'
 import type { IGerencia } from '@/interfaces'
 import type { CircularTimerProps } from '../components/CircularTimer.vue'
 import { securityPinService } from '../services/security.service'
-import { useSecurityPinErrorHandler } from './useSecurityPinErrorHandler'
 import { TIMER_CONFIG } from '../constants'
 
 export function useSecurityPin() {
   // Services, Composables and Stores initialization
   const $store = useStore()
-  const { handleError } = useSecurityPinErrorHandler()
 
   // State definitions
   const isLoading = ref(false)
@@ -61,7 +59,7 @@ export function useSecurityPin() {
         }
       }
     } catch (error) {
-      handleError(error, 'PIN_LOAD_FAILED')
+      console.error("Error al obtener o crear el PIN:", error)
       throw error
     }
   }
@@ -71,7 +69,6 @@ export function useSecurityPin() {
       await getPin(id)
     } catch (error) {
       console.error("Error al manejar la selección de gerencia:", error)
-      handleError(error, 'MANAGEMENT_SELECTION_FAILED')
     } finally {
       isLoading.value = false
     }
@@ -84,7 +81,6 @@ export function useSecurityPin() {
         await getPin(selectedManagement.value)
       } catch (error) {
         console.error("Error al generar nuevo pin:", error)
-        handleError(error, 'PIN_CREATE_FAILED')
       } finally {
         isLoading.value = false
       }
