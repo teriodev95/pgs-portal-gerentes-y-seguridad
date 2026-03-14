@@ -15,11 +15,11 @@ export const API_CONFIGURATIONS: ApiConfigurations = {
   fastApi: {
     baseURL: `${import.meta.env.VITE_FAX_API_URL}/api`,
     apiKey: 'ua7Sj^e6Qn#7m7BDW#8oX9*52#KDqPuK',
-    timeout: 60000
+    timeout: 100000
   },
   javalin: {
     baseURL: 'https://javalin.xpress1.cc/api',
-    timeout: 10000
+    timeout: 100000
   },
   hono: {
     baseURL: 'https://xpress-correcciones-back-hono.clvrt.workers.dev',
