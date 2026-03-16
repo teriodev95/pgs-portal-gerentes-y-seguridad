@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import '@webzlodimir/vue-bottom-sheet/dist/style.css'
 import { computed, onBeforeMount, onUnmounted, ref } from 'vue'
 import { STEPS } from '@/features/weekly-close/constants'
 import { useSignWeeklyClose } from '@/features/weekly-close/composables/useSignWeeklyClose'
 import { useWeeklyClose } from '@/features/weekly-close/composables/useWeeklyClose'
-import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from '@/components/ui/drawer'
 
 // Components
 import BtnComponent from '@/shared/components/BtnComponent.vue'
@@ -76,7 +81,7 @@ const {
 // ============================================================================
 // DATA
 // ============================================================================
-const bottomSheetRef = ref<InstanceType<typeof VueBottomSheet>>()
+const isSecurityPinDrawerOpen = ref(false)
 const vueSlideUnlockRef = ref()
 
 // ============================================================================
@@ -109,10 +114,17 @@ const handleGerentPasswordResult = (isCorrect: boolean) => {
 }
 
 /**
- * Abre el modal de PIN de seguridad
+ * Abre el drawer de PIN de seguridad
  */
 const handleOpenSecurityModal = () => {
-  bottomSheetRef.value?.open()
+  isSecurityPinDrawerOpen.value = true
+}
+
+/**
+ * Cierra el drawer de PIN de seguridad
+ */
+const closeSecurityPinDrawer = () => {
+  isSecurityPinDrawerOpen.value = false
 }
 
 /**
@@ -122,7 +134,7 @@ const signAsSecurity = async () => {
   const isValid = await validateSecurityPin(securityPin.value)
 
   if (isValid) {
-    bottomSheetRef.value?.close()
+    closeSecurityPinDrawer()
     goToStep(STEPS.HOME)
   }
 }
@@ -340,28 +352,37 @@ onUnmounted(() => {
     </main>
   </MainCT>
 
-  <!-- Modal para PIN de seguridad -->
-  <vue-bottom-sheet ref="bottomSheetRef" :max-width="1000" :max-height="1500">
-    <div class="h-72 space-y-4 p-4">
-      <CardTitle
-        title="Ingresa el PIN temporal"
-        subtitle="Introduce el PIN proporcionado por el encargado de seguridad."
-      />
+  <!-- Drawer para PIN de seguridad -->
+  <Drawer
+    :open="isSecurityPinDrawerOpen"
+    @update:open="(value: boolean) => value ? null : closeSecurityPinDrawer()"
+  >
+    <DrawerContent>
+      <div class="mx-auto w-full max-w-lg">
+        <DrawerHeader>
+          <DrawerTitle>Ingresa el PIN temporal</DrawerTitle>
+          <DrawerDescription>
+            Introduce el PIN proporcionado por el encargado de seguridad.
+          </DrawerDescription>
+        </DrawerHeader>
 
-      <div class="space-y-2">
-        <LabelForm for="security-pin"> PIN Temporal de Seguridad </LabelForm>
-        <InputGeneric
-          id="security-pin"
-          type="password"
-          v-model="securityPin"
-          placeholder="Ingresa el PIN temporal"
-          class="w-full"
-        />
+        <div class="p-4 pb-6 space-y-4">
+          <div class="space-y-2">
+            <LabelForm for="security-pin"> PIN Temporal de Seguridad </LabelForm>
+            <InputGeneric
+              id="security-pin"
+              type="password"
+              v-model="securityPin"
+              placeholder="Ingresa el PIN temporal"
+              class="w-full"
+            />
+          </div>
+
+          <BtnComponent @click="signAsSecurity" class="w-full"> Confirmar PIN </BtnComponent>
+        </div>
       </div>
-
-      <BtnComponent @click="signAsSecurity" class="w-full"> Confirmar PIN </BtnComponent>
-    </div>
-  </vue-bottom-sheet>
+    </DrawerContent>
+  </Drawer>
 </template>
 
 <style scoped>
