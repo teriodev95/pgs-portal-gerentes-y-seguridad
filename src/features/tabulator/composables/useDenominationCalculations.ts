@@ -1,10 +1,10 @@
 import { ref, computed } from 'vue'
 import { DEFAULT_DENOMINATIONS, type Denomination } from '../constants/denominations'
 import type { MoneyTabulation, TabulationFormData } from '../types'
-import { useTabulationErrorHandler } from './useTabulationErrorHandler'
+import { useNotification } from '@/shared/composables/useNotification'
 
 export function useDenominationCalculations() {
-  const { handleError } = useTabulationErrorHandler()
+  const { showError } = useNotification()
 
   // State
   const denominations = ref<Denomination[]>(
@@ -32,12 +32,12 @@ export function useDenominationCalculations() {
 
   function updateDenominationQuantity(index: number, quantity: number): void {
     if (index < 0 || index >= denominations.value.length) {
-      handleError(new Error('Invalid denomination index'), 'INVALID_DENOMINATION_VALUE')
+      showError('Índice de denominación inválido')
       return
     }
 
     if (!Number.isInteger(quantity) || quantity < 0) {
-      handleError(new Error('Invalid quantity value'), 'INVALID_DENOMINATION_VALUE')
+      showError('Cantidad de denominación inválida')
       return
     }
 
@@ -57,7 +57,7 @@ export function useDenominationCalculations() {
         den.quantity = Number(value) || 0
       })
     } catch (error) {
-      handleError(error, 'VALIDATION_FAILED')
+      showError('Error al actualizar las denominaciones desde la tabulación. Por favor, verifica los datos ingresados.')
     }
   }
 
@@ -68,7 +68,7 @@ export function useDenominationCalculations() {
         return data
       }, {} as TabulationFormData)
     } catch (error) {
-      handleError(error, 'VALIDATION_FAILED')
+      showError('Error al generar los datos del formulario. Por favor, verifica las cantidades ingresadas.')
       throw error
     }
   }

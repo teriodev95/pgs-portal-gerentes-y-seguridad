@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, onBeforeMount } from 'vue'
 import { RouterView, useRouter } from 'vue-router'
-import { useToast } from 'vue-toast-notification'
 import { ROUTE_NAME } from '@/router'
 import { useStore } from '@/shared/stores'
 import { commonService } from '@/shared/services/modules'
+import { useNotification } from '@/shared/composables/useNotification'
 
 const $router = useRouter()
 const $store = useStore()
-const $toast = useToast()
+const { showError } = useNotification()
 const user = computed(() => $store.user)
 
 /**
@@ -29,7 +29,7 @@ function checkAuthentication(): boolean {
 async function loadManagementData() {
   if (!user.value) return false
   if (!$store.isUserRoleValid) {
-    $toast.error('No puedes ingresar a PGS porque tu cuenta no tiene el rol requerido. Solo usuarios con roles de Gerente, Seguridad o Regional pueden acceder a esta aplicación.')
+    showError('No puedes ingresar a PGS porque tu cuenta no tiene el rol requerido. Solo usuarios con roles de Gerente, Seguridad o Regional pueden acceder a esta aplicación.')
     $router.push({ name: ROUTE_NAME.AUTH_LOGIN })
     return false
   }
@@ -49,7 +49,7 @@ async function loadManagementData() {
 
     return true
   } catch (error) {
-    $toast.error('Error al cargar las gerencias')
+    showError('Error al cargar las gerencias')
     return false
   }
 }
@@ -71,7 +71,7 @@ async function loadAgencyData() {
 
     return false
   } catch (error) {
-    $toast.error('Error al cargar las agencias')
+    showError('Error al cargar las agencias')
     console.error('Error loading agencies:', error)
     return false
   }
@@ -89,7 +89,7 @@ async function loadCurrentDate() {
     }
     return true
   } catch (error) {
-    $toast.error('Error al cargar la fecha actual')
+    showError('Error al cargar la fecha actual')
     console.error('Error loading current date:', error)
     return false
   }
@@ -115,7 +115,7 @@ async function loadCollectionData() {
 
     return true
   } catch (error) {
-    $toast.error('Error al cargar los datos de cobranza')
+    showError('Error al cargar los datos de cobranza')
     console.error('Error loading collection data:', error)
     return false
   }
@@ -137,7 +137,7 @@ async function loadAgencyDetails() {
     $store.agencyData = agencyDetailsResponse.data
     return true
   } catch (error) {
-    $toast.error('Error al cargar los datos de la agencia')
+    showError('Error al cargar los datos de la agencia')
     console.error('Error loading agency details:', error)
     return false
   }
@@ -166,7 +166,7 @@ async function preloadDashboardData() {
       loadAgencyDetails()
     ])
   } catch (error) {
-    $toast.error('Error al cargar los datos')
+    showError('Error al cargar los datos')
     console.error('General error loading dashboard data:', error)
   } finally {
     $store.loading = false

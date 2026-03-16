@@ -2,7 +2,9 @@ import { ref, computed, watch, onBeforeMount } from 'vue'
 import { useStore } from '@/shared/stores'
 import { soliFilterService } from '../services/soliFilter.service'
 import { usePhotoCapture } from './usePhotoCapture'
-import { useSoliFilterErrorHandler } from './useSoliFilterErrorHandler'
+import { useNotification } from '@/shared/composables/useNotification'
+
+
 import type {
   TipoCredito,
   SoliFilterResponse,
@@ -15,7 +17,8 @@ export type ViewState = 'form' | 'loading' | 'result'
 
 export function useSoliFilter() {
   const $store = useStore()
-  const { handleError, handleNetworkError } = useSoliFilterErrorHandler()
+  const { showError } = useNotification()
+  
   const {
     photos,
     previews,
@@ -113,7 +116,7 @@ export function useSoliFilter() {
       const { data: res } = await soliFilterService.getTablaCargos()
       catalogo.value = Array.isArray(res.data) ? res.data : []
     } catch (error) {
-      handleNetworkError(error)
+      console.error('Error fetching catalogo:', error)
       catalogo.value = []
     } finally {
       catalogoLoading.value = false
@@ -128,11 +131,11 @@ export function useSoliFilter() {
 
   async function submitSolicitud(): Promise<void> {
     if (!allPhotosReady.value) {
-      handleError(null, 'PHOTOS_MISSING')
+      showError('Por favor, captura todas las fotos requeridas antes de enviar la solicitud.')
       return
     }
     if (!isFormValid.value || !registroSeleccionado.value) {
-      handleError(null, 'FIELDS_MISSING')
+      showError('Por favor, completa todos los campos requeridos antes de enviar la solicitud.')
       return
     }
 
@@ -156,7 +159,7 @@ export function useSoliFilter() {
       response.value = data
       viewState.value = 'result'
     } catch (error) {
-      handleNetworkError(error)
+      console.error('Error submitting solicitud:', error)
       viewState.value = 'form'
     }
   }
