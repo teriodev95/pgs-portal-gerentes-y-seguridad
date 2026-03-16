@@ -2,7 +2,6 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from '@/shared/stores';
 import { ROUTE_NAME } from '@/router';
-import VueBottomSheet from '@webzlodimir/vue-bottom-sheet';
 
 export function useAuthLogout() {
   // Services
@@ -10,15 +9,15 @@ export function useAuthLogout() {
   const $store = useStore();
 
   // Refs
-  const logoutBottomSheet = ref<InstanceType<typeof VueBottomSheet>>();
+  const isLogoutDrawerOpen = ref(false);
 
   // Methods
-  const openLogoutBottomSheet = (): void => {
-    logoutBottomSheet.value?.open();
+  const openLogoutDrawer = (): void => {
+    isLogoutDrawerOpen.value = true;
   };
 
-  const closeLogoutBottomSheet = (): void => {
-    logoutBottomSheet.value?.close();
+  const closeLogoutDrawer = (): void => {
+    isLogoutDrawerOpen.value = false;
   };
 
   const logout = (): void => {
@@ -29,17 +28,17 @@ export function useAuthLogout() {
   };
 
   const handleLogout = (): void => {
-    closeLogoutBottomSheet();
+    closeLogoutDrawer();
     logout();
   };
 
   return {
     // Refs
-    logoutBottomSheet,
-    
+    isLogoutDrawerOpen,
+
     // Methods
-    openLogoutBottomSheet,
-    closeLogoutBottomSheet,
+    openLogoutDrawer,
+    closeLogoutDrawer,
     handleLogout,
   };
 }

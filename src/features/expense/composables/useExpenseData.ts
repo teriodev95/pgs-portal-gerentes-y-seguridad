@@ -1,7 +1,8 @@
-import { computed, onBeforeMount, ref } from 'vue'
+import { computed, onBeforeMount } from 'vue'
 import { useStore } from '@/shared/stores'
-import type { ExpenseFormData, WeeklyExpense } from '../types'
+import type { WeeklyExpense, ExpenseFormData } from '../types'
 import { weeklyExpenseService } from '../services/expense.service'
+import { useExpenseStore } from '../stores'
 import { useNotification } from '@/shared/composables/useNotification'
 
 // Validation function
@@ -34,53 +35,65 @@ function validateExpenseData(expense: WeeklyExpense): { isValid: boolean; errors
   }
 }
 
-export function useWeeklyExpenses() {
+/**
+ * Composable para la lógica de negocio de gastos semanales
+ * El estado se maneja en el store (useExpenseStore)
+ * Este composable solo contiene lógica de negocio pura
+ */
+export function useExpenseData() {
   // Services, Composables and Stores initialization
   const $store = useStore()
+  const expenseStore = useExpenseStore()
   const { showError } = useNotification()
 
-  // State definitions
-  const weeklyExpenses = ref<WeeklyExpense[]>([])
-  const selectedExpense = ref<WeeklyExpense>()
-  const isLoadingExpenses = ref(false)
-  const isSavingExpense = ref(false)
-
-  // Computed properties
+  // Computed properties (datos del store global)
   const user = computed(() => $store.user)
   const currentDate = computed(() => $store.currentDate)
   const isUserManager = computed(() => $store.isUserManager)
   const gerenciaSelected = computed(() => $store.gerenciaSelected)
-  
-  // Specific computed properties
-  const hasExpenses = computed(() => weeklyExpenses.value.length > 0)
-  const expensesCount = computed(() => weeklyExpenses.value.length)
 
-  const isFormValid = computed(() => 
-    selectedExpense.value ? true : !isSavingExpense.value
-  )
+  // ============================================
+  // Business Logic - Fetch Expenses
+  // ============================================
 
-  // Methods
-  async function fetchWeeklyExpenses(): Promise<void> {
+  /**
+   * Obtiene los gastos del usuario para la semana actual
+   */
+  async function fetchExpenses(): Promise<void> {
     if (!user.value?.usuarioId) return
 
     try {
-      isLoadingExpenses.value = true
-      const { data } = await weeklyExpenseService.getWeeklyExpenses(user.value.usuarioId, currentDate.value.week, currentDate.value.year)
-      weeklyExpenses.value = data
+      expenseStore.setLoadingExpenses(true)
+      const { data } = await weeklyExpenseService.getWeeklyExpenses(
+        user.value.usuarioId,
+        currentDate.value.week,
+        currentDate.value.year
+      )
+      expenseStore.setExpenses(data)
     } catch (error) {
-      console.error('Error fetching weekly expenses:', error)
+      console.error('Error fetching expenses:', error)
     } finally {
-      isLoadingExpenses.value = false
+      expenseStore.setLoadingExpenses(false)
     }
   }
 
+  // ============================================
+  // Business Logic - Save Expense
+  // ============================================
+
+  /**
+   * Guarda un nuevo gasto
+   * Separa la responsabilidad: solo guarda, no refresca
+   */
   async function saveExpense(formData: ExpenseFormData): Promise<void> {
     if (!user.value?.usuarioId) {
       showError('Usuario no autenticado')
       return Promise.reject(new Error('Usuario no autenticado'))
     }
 
-    const currentDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' })
+    const currentDateStr = new Date().toLocaleDateString('en-CA', {
+      timeZone: 'America/Mexico_City'
+    })
 
     const expense: WeeklyExpense = {
       ...formData,
@@ -98,54 +111,46 @@ export function useWeeklyExpenses() {
       return Promise.reject(new Error(validation.errors.join(', ')))
     }
 
-    isSavingExpense.value = true
+    expenseStore.setSavingExpense(true)
 
     try {
       await weeklyExpenseService.createExpense(expense)
-      await fetchWeeklyExpenses()
+      // Refrescar la lista después de guardar
+      await fetchExpenses()
       return Promise.resolve()
     } catch (error) {
       console.error('Error saving expense:', error)
+      return Promise.reject(error)
     } finally {
-      isSavingExpense.value = false
+      expenseStore.setSavingExpense(false)
     }
   }
 
-  function selectExpenseForEditing(expense: WeeklyExpense): void {
-    selectedExpense.value = expense
-  }
-
-  function clearSelectedExpense(): void {
-    selectedExpense.value = undefined
-  }
-
+  // ============================================
   // Lifecycle hooks
+  // ============================================
+
   onBeforeMount(async () => {
-    await fetchWeeklyExpenses()
+    try {
+      await fetchExpenses()
+    } catch (error) {
+      console.error('Error initializing expenses:', error)
+    }
   })
 
+  // ============================================
+  // Return
+  // ============================================
+
   return {
-    // State
-    weeklyExpenses,
-    selectedExpense,
-    isLoadingExpenses,
-    isSavingExpense,
-    
-    // Computed - Basic
+    // Computed - Basic (datos del store global)
     user,
     currentDate,
     isUserManager,
     gerenciaSelected,
-    
-    // Computed - Specific
-    hasExpenses,
-    expensesCount,
-    isFormValid,
-    
+
     // Methods
-    fetchWeeklyExpenses,
+    fetchExpenses,
     saveExpense,
-    selectExpenseForEditing,
-    clearSelectedExpense
   }
 }

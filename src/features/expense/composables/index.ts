@@ -1,1 +1,1 @@
-export { useWeeklyExpenses } from './useWeeklyExpenses'
+export { useExpenseData } from './useExpenseData'

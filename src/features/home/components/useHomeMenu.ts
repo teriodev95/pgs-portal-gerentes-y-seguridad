@@ -1,9 +1,8 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/shared/stores'
 import { getDateTime2 } from '@/shared/utils'
 import { ROUTE_NAME } from '@/router'
-import { useMultipleBottomSheets } from '@/shared/composables/useBottomSheet'
 
 // Lucide Icons
 import {
@@ -53,12 +52,9 @@ export function useHomeMenu() {
   const router = useRouter()
   const $store = useStore()
 
-  // Inicializar bottom sheets
-  const { 
-    registerBottomSheet, 
-    openBottomSheet, 
-    closeBottomSheet 
-  } = useMultipleBottomSheets(['agency', 'general'])
+  // Drawer states
+  const isAgencyDrawerOpen = ref(false)
+  const isGeneralDrawerOpen = ref(false)
 
   // Store computed properties
   const agency = computed(() => $store.agencySelected)
@@ -265,31 +261,31 @@ export function useHomeMenu() {
   ])
 
   /**
-   * Abre el bottom sheet de acciones de agencia
+   * Abre el drawer de acciones de agencia
    */
   const openAgencyActions = () => {
-    openBottomSheet('agency')
+    isAgencyDrawerOpen.value = true
   }
 
   /**
-   * Abre el bottom sheet de acciones generales
+   * Abre el drawer de acciones generales
    */
   const openGeneralActions = () => {
-    openBottomSheet('general')
+    isGeneralDrawerOpen.value = true
   }
 
   /**
-   * Cierra el bottom sheet de acciones de agencia
+   * Cierra el drawer de acciones de agencia
    */
   const closeAgencyActions = () => {
-    closeBottomSheet('agency')
+    isAgencyDrawerOpen.value = false
   }
 
   /**
-   * Cierra el bottom sheet de acciones generales
+   * Cierra el drawer de acciones generales
    */
   const closeGeneralActions = () => {
-    closeBottomSheet('general')
+    isGeneralDrawerOpen.value = false
   }
 
   /**
@@ -321,14 +317,17 @@ export function useHomeMenu() {
     formattedCurrentDate,
     agencyMenuItems,
     generalMenuItems,
-    
-    // Métodos de bottom sheet
-    registerBottomSheet,
+
+    // Drawer states
+    isAgencyDrawerOpen,
+    isGeneralDrawerOpen,
+
+    // Métodos de drawer
     openAgencyActions,
     openGeneralActions,
     closeAgencyActions,
     closeGeneralActions,
-    
+
     // Métodos de navegación
     handleMenuItemClick
   }
