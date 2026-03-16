@@ -1,7 +1,6 @@
 import { ref, computed, watch } from 'vue'
 import { useStore } from '@/shared/stores'
 import { soliFilterService } from '../services/soliFilter.service'
-import { useSoliFilterErrorHandler } from './useSoliFilterErrorHandler'
 import type { SoliFilterListItem, SoliFilterListResponse } from '../types/soliFilter.types'
 
 function normalizeSolicitudes(payload: unknown): SoliFilterListItem[] {
@@ -19,7 +18,6 @@ function normalizeSolicitudes(payload: unknown): SoliFilterListItem[] {
 
 export function useSoliFilterList() {
   const $store = useStore()
-  const { handleNetworkError } = useSoliFilterErrorHandler()
 
   const solicitudes = ref<SoliFilterListItem[]>([])
   const isLoading = ref(false)
@@ -40,7 +38,7 @@ export function useSoliFilterList() {
       const { data: responseWrapper } = await soliFilterService.getSolicitudes(ger)
       solicitudes.value = normalizeSolicitudes(responseWrapper)
     } catch (error) {
-      handleNetworkError(error)
+      console.error('Error fetching solicitudes:', error)
       solicitudes.value = []
     } finally {
       isLoading.value = false

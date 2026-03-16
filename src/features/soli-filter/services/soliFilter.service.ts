@@ -28,21 +28,51 @@ class SoliFilterService {
 
     return this.apiClient.post<SoliFilterResponse>('/solicitud-filtro', formData, {
       timeout: 60000,
+      meta: {
+        errorNotification: {
+          title: 'Error al enviar solicitud',
+          message: 'No se pudo procesar la solicitud de filtro. Por favor, verifica los documentos e intenta nuevamente.',
+          type: 'error'
+        }
+      }
     })
   }
 
   async getSolicitudes(gerencia: string) {
     return this.apiClient.get<SoliFilterListResponse>('/solicitud-filtro', {
       params: { gerencia },
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar solicitudes',
+          message: 'No se pudieron cargar las solicitudes de filtro. Por favor, intenta nuevamente.',
+          type: 'error'
+        }
+      }
     })
   }
 
   async getSolicitudById(id: number) {
-    return this.apiClient.get<SoliFilterResponse>(`/solicitud-filtro/${id}`)
+    return this.apiClient.get<SoliFilterResponse>(`/solicitud-filtro/${id}`, {
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar solicitud',
+          message: 'No se pudo cargar la información de la solicitud. Por favor, intenta nuevamente.',
+          type: 'error'
+        }
+      }
+    })
   }
 
   async getTablaCargos() {
-    return this.apiClient.get<TablaCargosResponse>('/tabla-cargos')
+    return this.apiClient.get<TablaCargosResponse>('/tabla-cargos', {
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar tabla de cargos',
+          message: 'No se pudo cargar la tabla de cargos. Por favor, intenta nuevamente.',
+          type: 'error'
+        }
+      }
+    })
   }
 
   async resubirDocumento(id: number, docKey: string, imagen: File) {
@@ -51,6 +81,13 @@ class SoliFilterService {
 
     return this.apiClient.patch(`/solicitud-filtro/${id}/documento/${docKey}`, formData, {
       timeout: 30000,
+      meta: {
+        errorNotification: {
+          title: 'Error al resubir documento',
+          message: 'No se pudo actualizar el documento. Por favor, verifica el archivo e intenta nuevamente.',
+          type: 'error'
+        }
+      }
     })
   }
 
@@ -62,7 +99,15 @@ class SoliFilterService {
       FROM tabla_cargos
       where id = ${id}
     `
-    return this.mcpClient.post<ITablaCargosMcp>('/run_query', { query })
+    return this.mcpClient.post<ITablaCargosMcp>('/run_query', { query }, {
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar cargos desde MCP',
+          message: 'No se pudieron obtener los cargos desde la base de datos. Por favor, intenta nuevamente.',
+          type: 'error'
+        }
+      }
+    })
   }
 }
 

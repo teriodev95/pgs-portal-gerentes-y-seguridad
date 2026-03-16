@@ -1,6 +1,5 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useToast } from 'vue-toast-notification'
 import { v4 as uuidv4 } from 'uuid'
 import { useSignStore, useCierreSemanalStore } from '../stores'
 import { useStore } from '@/shared/stores'
@@ -11,6 +10,7 @@ import { useCameraPermissions } from '@/shared/composables/useCameraPermissions'
 import { STEPS } from '../constants'
 import { WEEKLY_CLOSE_ERROR_MESSAGES } from '../constants/errorMessages'
 import { ROUTE_NAME } from '@/router'
+import { useNotification } from '@/shared/composables/useNotification'
 
 /**
  * Tipos para el flujo de firma
@@ -41,11 +41,11 @@ type UserType = 'agente' | 'gerente' | 'seguridad'
  */
 export const useSignWeeklyClose = () => {
   const router = useRouter()
-  const toast = useToast()
   const signStore = useSignStore()
   const globalStore = useStore()
   const cierreSemanalStore = useCierreSemanalStore()
   const api = useWeeklyCloseApi()
+  const { showError, showSuccess, showWarning } = useNotification()
 
   // ============================================================================
   // ESTADO - Flujo general
@@ -186,10 +186,10 @@ export const useSignWeeklyClose = () => {
 
     if (!isValid) {
       error.value = 'PIN de agente incorrecto'
-      toast.error('PIN incorrecto')
+      showError('PIN de agente incorrecto')
     } else {
       error.value = null
-      toast.success('PIN validado correctamente')
+      showSuccess('PIN validado correctamente')
     }
 
     return isValid
@@ -204,10 +204,10 @@ export const useSignWeeklyClose = () => {
 
     if (!isValid) {
       error.value = 'PIN de gerente incorrecto'
-      toast.error('PIN incorrecto')
+      showError('PIN de gerente incorrecto')
     } else {
       error.value = null
-      toast.success('PIN validado correctamente')
+      showSuccess('PIN validado correctamente')
     }
 
     return isValid
@@ -232,7 +232,7 @@ export const useSignWeeklyClose = () => {
 
       // Si el PIN es válido, marca la verificación del agente como completada
       signStore.verificacionCompletadaAgente = true
-      toast.success('PIN de seguridad verificado correctamente')
+      showSuccess('PIN de seguridad verificado correctamente')
 
       currentState.value = 'idle'
       return true
@@ -240,7 +240,8 @@ export const useSignWeeklyClose = () => {
       currentState.value = 'error'
       const errorMessage =
         error instanceof Error ? error.message : 'Error al validar PIN de seguridad'
-      toast.error(errorMessage)
+
+      showError(errorMessage)
       return false
     }
   }
@@ -272,7 +273,7 @@ export const useSignWeeklyClose = () => {
     showInformationalMessage.value = false
 
     if (!videoLive.value || !videoRecorded.value) {
-      toast.error('Referencias de video no disponibles')
+      showError('Referencias de video no disponibles')
       return
     }
 
@@ -308,8 +309,8 @@ export const useSignWeeklyClose = () => {
         cameraStream.value = stream
 
         if (!MediaRecorder.isTypeSupported('video/webm')) {
-          toast.warning('video/webm no es soportado, se usará formato por defecto')
-        }
+          showWarning('video/webm no es soportado, se usará formato por defecto')
+          }
 
         mediaRecorder.value = new MediaRecorder(cameraStream.value, {
           mimeType: 'video/webm'
@@ -332,7 +333,7 @@ export const useSignWeeklyClose = () => {
       } catch (error) {
         currentState.value = 'error'
         isCameraOpen.value = false
-        toast.error('No se pudo acceder a la cámara')
+        showError('No se pudo acceder a la cámara')
         console.error('Error accessing camera:', error)
       }
     } else {
@@ -376,7 +377,7 @@ export const useSignWeeklyClose = () => {
     fileName: string
   ): Promise<string | null> => {
     if (!videoBlobFile.value) {
-      toast.warning('No hay video para subir')
+      showWarning('No hay video para subir')
 
       // Continuar el flujo incluso sin video
       const errorUrl = 'hubo un error en la subida'
@@ -411,7 +412,7 @@ export const useSignWeeklyClose = () => {
       }
 
       currentState.value = 'idle'
-      toast.success('Video subido correctamente')
+      showSuccess('Video subido correctamente')
 
       return response.videoUrl
     } catch (error) {
@@ -430,7 +431,7 @@ export const useSignWeeklyClose = () => {
       }
 
       currentState.value = 'idle'
-      toast.warning('Video guardado localmente, continúa el proceso')
+      showWarning('Video guardado localmente, continúa el proceso')
 
       return null
     }
@@ -484,7 +485,7 @@ export const useSignWeeklyClose = () => {
       setTimeout(() => {
         showConfirmationAnimation.value = false
       }, 1000)
-      toast.warning('Debes confirmar el cierre antes de continuar')
+      showWarning('Debes confirmar el cierre antes de continuar')
       return false
     }
 
@@ -505,7 +506,7 @@ export const useSignWeeklyClose = () => {
     } catch (err) {
       currentState.value = 'error'
       error.value = err instanceof Error ? err.message : 'Error desconocido al enviar'
-      toast.error('Error al completar el cierre semanal')
+      showError('Error al completar el cierre semanal')
       return false
     } finally {
       isSubmitting.value = false
