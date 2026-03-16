@@ -12,6 +12,11 @@ class TabulationService {
         successNotification: {
           mainText: '¡Tabulación creada!',
           secondaryText: 'La tabulación de dinero se ha registrado exitosamente'
+        },
+        errorNotification: {
+          title: 'Error al crear tabulación',
+          message: 'No se pudo crear la tabulación de dinero. Por favor, verifica los datos e intenta nuevamente.',
+          type: 'error'
         }
       }
     })
@@ -28,6 +33,11 @@ class TabulationService {
           successNotification: {
             mainText: '¡Tabulación actualizada!',
             secondaryText: 'Los cambios se han guardado correctamente'
+          },
+          errorNotification: {
+            title: 'Error al actualizar tabulación',
+            message: 'No se pudieron guardar los cambios en la tabulación. Por favor, intenta nuevamente.',
+            type: 'error'
           }
         }
       }
@@ -36,7 +46,16 @@ class TabulationService {
 
   async getMoneyTabulation({ managment, year, week }: GetBaseProps) {
     return this.faxClient.get<MoneyTabulation | { result: string }>(
-      `/tabulaciones/?gerencia=${managment}&anio=${year}&semana=${week}`
+      `/tabulaciones/?gerencia=${managment}&anio=${year}&semana=${week}`,
+      {
+        meta: {
+          errorNotification: {
+            title: 'Error al cargar tabulación',
+            message: 'No se pudo cargar la tabulación de dinero. Por favor, intenta nuevamente.',
+            type: 'error'
+          }
+        }
+      }
     )
   }
 }

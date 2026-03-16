@@ -1,8 +1,8 @@
 // composables/useCierreSemanalModal.ts
 import { ref, computed } from 'vue'
 import { useCierreSemanalStore } from '@/features/weekly-close/stores'
-import { useWeeklyCloseErrorHandler } from './useWeeklyCloseErrorHandler'
 import { WEEKLY_CLOSE_VALIDATION_MESSAGES } from '../constants'
+import { useNotification } from '@/shared/composables/useNotification'
 import type {
   IWeeklyCloseWithIncome,ModalValue,
   ModalConfigKey,
@@ -16,7 +16,8 @@ import type { InputType } from '@/features/weekly-close/components/EditFieldDial
  */
 export const useCierreSemanalModal = () => {
   const store = useCierreSemanalStore()
-  const { handleModalError, handleValidationError } = useWeeklyCloseErrorHandler()
+  const { showError } = useNotification()
+
   
   // Estado local del modal (no debe estar en el store global)
   const showModal = ref(false)
@@ -81,7 +82,7 @@ export const useCierreSemanalModal = () => {
   const openModal = (contexto: ModalConfigKey, type: InputType) => {
     const config = modalConfig.value[contexto]
     if (!config) {
-      handleModalError(new Error(`Config not found for: ${contexto}`), contexto)
+      showError(`Configuración no encontrada para: ${contexto}`)
       return
     }
 
@@ -141,13 +142,13 @@ export const useCierreSemanalModal = () => {
    */
   const saveValue = (value: ModalValue) => {
     if (!modalContext.value || !store.weeklyClose) {
-      handleModalError(new Error('No modal context or weekly close available'))
+      showError('No modal context or weekly close available')
       return
     }
 
     const updateFunction = contextMapping[modalContext.value]
     if (!updateFunction) {
-      handleModalError(new Error(`Update function not found for: ${modalContext.value}`), modalContext.value)
+      showError(`No update function found for context: ${modalContext.value}`)
       return
     }
 
@@ -161,7 +162,7 @@ export const useCierreSemanalModal = () => {
 
       closeModal()
     } catch (error) {
-      handleModalError(error, modalContext.value)
+      showError(`Error al guardar el valor para el contexto: ${modalContext.value}`)
     }
   }
 
@@ -205,7 +206,7 @@ export const useCierreSemanalModal = () => {
 
     const validationError = validateModalValue(value, modalContext.value)
     if (validationError) {
-      handleValidationError(new Error(validationError), modalContext.value)
+      showError(validationError)
       return false
     }
 

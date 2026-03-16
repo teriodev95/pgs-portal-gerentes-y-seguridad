@@ -2,12 +2,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useStore } from '@/shared/stores'
 import type { MoneyTabulation, TabulationFormData } from '../types'
 import { tabulationService } from '../services/tabulator.service'
-import { useTabulationErrorHandler } from './useTabulationErrorHandler'
+import { useNotification } from '@/shared/composables/useNotification'
 
 export function useMoneyTabulation() {
   // Services, Composables and Stores initialization
   const $store = useStore()
-  const { handleError } = useTabulationErrorHandler()
+  const { showError } = useNotification()
 
   // State definitions
   const currentTabulationData = ref<MoneyTabulation>()
@@ -55,7 +55,7 @@ export function useMoneyTabulation() {
   // Methods
   async function fetchTabulationData(): Promise<void> {
     if (!gerenciaSelected.value) {
-      handleError(new Error('Gerencia no seleccionada'), 'VALIDATION_FAILED')
+      showError('Gerencia no seleccionada')
       return
     }
 
@@ -95,8 +95,7 @@ export function useMoneyTabulation() {
         currentTabulationData.value = undefined
       }
     } catch (error) {
-      //handleError(error, 'TABULATION_LOAD_FAILED')
-      //throw error
+      console.error('Error fetching tabulation data:', error)
     } finally {
       isLoadingTabulation.value = false
     }
@@ -106,7 +105,7 @@ export function useMoneyTabulation() {
     console.log('saveTabulationData called with:', formData, 'isUpdate:', isUpdate)
 
     if (!gerenciaSelected.value) {
-      handleError(new Error('Gerencia no seleccionada'), 'VALIDATION_FAILED')
+      showError('Gerencia no seleccionada')
       return Promise.reject(new Error('Gerencia no seleccionada'))
     }
 
@@ -135,8 +134,7 @@ export function useMoneyTabulation() {
       await fetchTabulationData()
       return Promise.resolve()
     } catch (error) {
-      const errorType = hasTabulationForCurrentWeek.value ? 'TABULATION_UPDATE_FAILED' : 'TABULATION_SAVE_FAILED'
-      handleError(error, errorType)
+      console.error('Error saving/updating tabulation data:', error)
       return Promise.reject(error)
     } finally {
       isSavingTabulation.value = false
@@ -150,7 +148,7 @@ export function useMoneyTabulation() {
     try {
       await fetchTabulationData()
     } catch (error) {
-      // Error already handled in fetchTabulationData
+      console.error('Error during component mount:', error)
     }
   })
 
