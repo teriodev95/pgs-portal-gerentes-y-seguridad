@@ -2,19 +2,17 @@
 import { computed, ref, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from '@/shared/stores';
-import { useToast } from 'vue-toast-notification';
 import { ROUTE_NAME } from '@/router';
 import { authService } from '../services/auth.service';
 import type { IAuthLogin } from '@/features/auth/types/auth.types';
-import { useAuthErrorHandler } from './useAuthErrorHandler';
+import { useNotification } from '@/shared/composables/useNotification';
 import { AUTH_CONSTANTS } from '../constants';
 
 export function useAuthPinForm() {
   // Services
   const $router = useRouter();
   const $store = useStore();
-  const $toast = useToast();
-  const { handleAuthError } = useAuthErrorHandler();
+  const { showError, showSuccess } = useNotification();
 
   // Constants
   const PIN_LENGTH = AUTH_CONSTANTS.PIN_LENGTH;
@@ -39,7 +37,7 @@ export function useAuthPinForm() {
     $store.isAuth = true;
     $store.authPin = pinForm.value.pin;
     $store.saveData();
-    $toast.success(AUTH_CONSTANTS.SUCCESS_MESSAGES.LOGIN_SUCCESS);
+    showSuccess(AUTH_CONSTANTS.SUCCESS_MESSAGES.LOGIN_SUCCESS);
     void $router.push({ name: ROUTE_NAME.DASHBOARD_HOME });
   };
 
@@ -52,8 +50,8 @@ export function useAuthPinForm() {
       const { user} = await authService.authLogin(pinForm.value);
       $store.user = user;
       handleSuccessfulAuth();
-    } catch (error) {
-      handleAuthError(error);
+    } catch (error: any) {
+      showError(error.response?.data.error);
     } finally {
       pinForm.value.pin = '';
       isLoading.value = false;

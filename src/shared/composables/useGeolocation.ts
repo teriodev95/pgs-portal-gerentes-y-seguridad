@@ -1,9 +1,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useToast } from 'vue-toast-notification'
 import { latLng, type LatLng } from 'leaflet'
+import { useNotification } from './useNotification'
 
 export default function useGeolocation() {
-  const $toast = useToast()
+  const { showError } = useNotification()
   const userLocation = ref<LatLng>()
   const locationError = ref<string>()
   const isLoading = ref(false)
@@ -43,10 +43,10 @@ export default function useGeolocation() {
           // Permisos realmente denegados
           locationError.value = 'Permisos de ubicación denegados'
           hasPermission.value = false
-          $toast.error('Permisos de ubicación denegados. No se podrá guardar la ubicación.')
+          showError('Permisos de ubicación denegados. No se podrá guardar la ubicación.')
         } else {
           // Otros errores (timeout, servicio no disponible, etc.)
-          handleGeolocationError(`Error al obtener la ubicación: ${error.message}`)
+          showError(`Error al obtener la ubicación: ${error.message}`)
         }
         isLoading.value = false
       },
@@ -70,22 +70,16 @@ export default function useGeolocation() {
         hasPermission.value = true
       },
       (error) => {
-        handleGeolocationError(`Error al solicitar permisos: ${error.message}`)
+        showError(`Error al solicitar permisos: ${error.message}`)
         isLoading.value = false
         hasPermission.value = false
       }
     )
   }
 
-  const handleGeolocationError = (message: string) => {
-    console.error(message)
-    locationError.value = message
-    $toast.error(message)
-  }
-
   const getUserLocation = async () => {
     if (!('geolocation' in navigator)) {
-      handleGeolocationError('Geolocalización no soportada en este navegador')
+      showError('Geolocalización no soportada en este navegador')
       return
     }
 
@@ -103,7 +97,7 @@ export default function useGeolocation() {
         // Permisos denegados - mostrar error apropiado
         hasPermission.value = false
         locationError.value = 'Permisos de ubicación denegados'
-        $toast.error('Permisos de ubicación denegados. No se podrá guardar la ubicación.')
+        showError('Permisos de ubicación denegados. No se podrá guardar la ubicación.')
       }
     } catch (error) {
       // Si no se puede verificar permisos, intentar obtener ubicación directamente

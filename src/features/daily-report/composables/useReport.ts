@@ -1,17 +1,16 @@
 import { ref, readonly, computed } from 'vue'
-import { useToast } from 'vue-toast-notification'
 import { useStore } from '@/shared/stores'
 import { reportService } from '../services/report.service'
-import { useReportErrorHandler } from './useReportErrorHandler'
 import { useReportShare } from './useReportShare'
 import { REPORT_MESSAGES } from '../constants'
 import type { ReportParams, ReportType } from '../types'
+import { useNotification } from '@/shared/composables/useNotification'
 
 export function useReport() {
   const $store = useStore()
-  const $toast = useToast()
-  const { handleError } = useReportErrorHandler()
   const { shareReport: shareReportService, isSharing } = useReportShare()
+  const { showSuccess } = useNotification()
+
 
   // Reactive state
   const isGenerating = ref(false)
@@ -51,11 +50,11 @@ export function useReport() {
       imageBlob.value = blob
       imageUrl.value = URL.createObjectURL(blob)
 
-      $toast.success(REPORT_MESSAGES.GENERATION_SUCCESS)
+      showSuccess(REPORT_MESSAGES.GENERATION_SUCCESS)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred during report generation'
       error.value = errorMessage
-      handleError(err, 'REPORT_GENERATION_FAILED')
+      console.error('Report generation error:', err)
     } finally {
       isGenerating.value = false
     }
@@ -71,7 +70,7 @@ export function useReport() {
         filename.value || undefined
       )
     } catch (err) {
-      handleError(err, 'REPORT_SHARE_FAILED')
+      console.error('Report sharing error:', err)
     }
   }
 

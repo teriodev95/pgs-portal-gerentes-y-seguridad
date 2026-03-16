@@ -1,13 +1,11 @@
-import { useToast } from 'vue-toast-notification'
-import { useShareData } from '@/shared/composables/useShareData'
 import { REPORT_CONFIG, REPORT_MESSAGES } from '../constants'
 import { reportService } from '../services/report.service'
-import { useReportErrorHandler } from './useReportErrorHandler'
+import { useNotification } from '@/shared/composables/useNotification'
+import { useShareData } from '@/shared/composables/useShareData'
 import type { ReportParams, ReportType, ShareResult } from '../types'
 
 export function useReportShare() {
-  const $toast = useToast()
-  const { handleError } = useReportErrorHandler()
+  const { showError, showSuccess } = useNotification()
   const { shareData, isSharing } = useShareData()
 
   function downloadFile(file: File, imageUrl: string): ShareResult {
@@ -23,7 +21,8 @@ export function useReportShare() {
 
       return { success: true, method: 'download' }
     } catch (err) {
-      throw new Error('Download failed')
+      showError('Download failed')
+      return { success: false, error: 'Download failed' }
     }
   }
 
@@ -36,7 +35,7 @@ export function useReportShare() {
   ): Promise<ShareResult> {
     if (!imageBlob) {
       const errorMsg = 'No image available to share. Please generate a report first.'
-      handleError(new Error(errorMsg), 'REPORT_SHARE_FAILED')
+      showError(errorMsg)
       return { success: false, error: errorMsg }
     }
 
@@ -65,13 +64,13 @@ export function useReportShare() {
       }
 
       if (result.success) {
-        $toast.success(REPORT_MESSAGES.SHARE_SUCCESS)
+        showSuccess(REPORT_MESSAGES.SHARE_SUCCESS)
       }
 
       return result
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to share report'
-      handleError(err, 'REPORT_SHARE_FAILED')
+      showError(errorMessage)
       return { success: false, error: errorMessage }
     }
   }

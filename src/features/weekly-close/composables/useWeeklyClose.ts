@@ -1,33 +1,20 @@
 import { computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCierreSemanalStore, useSignStore } from '../stores'
-import { useStore, useErrorDialogStore } from '@/shared/stores'
+import { useStore } from '@/shared/stores'
 import { useWeeklyCloseApi } from './useWeeklyCloseApi'
 import { transformToCreateCierre } from '../utils/weeklyCloseHelpers'
 import { ROUTE_NAME } from '@/router'
+import { useNotification } from '@/shared/composables/useNotification'
 
-/**
- * Composable orquestador principal del feature weekly-close
- *
- * RESPONSABILIDADES:
- * - Estado global del feature (semana activa, pasos, UI flags)
- * - Orquestar el flujo completo del cierre semanal
- * - Absorbe lógica de useStepNavigation (navegación entre pasos)
- * - Absorbe lógica de useCierreSemanalCalculations (cálculos del cierre)
- * - Exponer métodos y estado que consumen componentes hijos y vista
- *
- * ABSORBE:
- * - useCierreSemanal (anterior)
- * - useStepNavigation (navegación de pasos)
- * - useCierreSemanalCalculations (cálculos)
- */
 export const useWeeklyClose = () => {
   const router = useRouter()
   const store = useCierreSemanalStore()
   const globalStore = useStore()
   const signStore = useSignStore()
-  const errorDialogStore = useErrorDialogStore()
   const api = useWeeklyCloseApi()
+  const { showError } = useNotification()
+
 
   // ============================================================================
   // COMPUTED - Datos del contexto global
@@ -246,11 +233,7 @@ export const useWeeklyClose = () => {
    */
   const initializeWeeklyClose = async (): Promise<void> => {
     if (!agency.value?.agencia || !user.value?.usuario) {
-      errorDialogStore.showSimpleError(
-        'Datos incompletos',
-        'No se encontró información de agencia o usuario',
-        'AGENCY_USER_DATA_UNAVAILABLE'
-      )
+     showError('Datos incompletos, no se puede cargar el cierre semanal sin agencia y usuario seleccionados')
       return
     }
 
@@ -270,11 +253,7 @@ export const useWeeklyClose = () => {
         signStore.nombreGerente = store.weeklyClose.resumenSemanal.gerente
       }
     } catch (error) {
-      errorDialogStore.showSimpleError(
-        'Algo no salió como esperábamos',
-        'Ocurrió un incidente inesperado al intentar cargar tu cierre. Intenta nuevamente o borra la caché de tu navegador para resolver el problema.',
-        (error as Error).message
-      )
+      console.error('Error inicializando el cierre semanal:', error)
     } finally {
       store.setLoading(false)
     }
@@ -289,11 +268,7 @@ export const useWeeklyClose = () => {
    */
   const saveWeeklyClose = async (onSuccess?: () => void): Promise<boolean> => {
     if (!store.weeklyClose || !management.value) {
-      errorDialogStore.showSimpleError(
-        'Datos incompletos',
-        'No se puede guardar el cierre sin datos completos',
-        'INCOMPLETE_DATA_ERROR'
-      )
+      showError('Datos incompletos, no se puede guardar el cierre semanal sin información completa')
       return false
     }
 
@@ -325,13 +300,7 @@ export const useWeeklyClose = () => {
 
       return true
     } catch (error) {
-      errorDialogStore.showSimpleError(
-        '¡Ups! No pudimos guardar tu cierre semanal',
-        'Ocurrió un problema al intentar guardar tu cierre semanal. Por favor, intenta nuevamente.',
-        (error as Error).message
-      )
-
-      store.setError('Error guardando el cierre semanal')
+      console.error('Error guardando el cierre semanal:', error)
       return false
     } finally {
       store.setLoading(false)
@@ -355,11 +324,7 @@ export const useWeeklyClose = () => {
    */
   const navigateToSign = (): void => {
     if (!weeklyClose.value) {
-      errorDialogStore.showSimpleError(
-        'No hay cierre disponible',
-        'No se puede iniciar el proceso de firma sin datos de cierre',
-        'NO_WEEKLY_CLOSE_DATA'
-      )
+      showError('No hay cierre disponible, no se puede iniciar el proceso de firma sin datos de cierre')
       return
     }
 
@@ -370,7 +335,10 @@ export const useWeeklyClose = () => {
    * Navega a la vista de corrección
    */
   const navigateToCorrection = (): void => {
-    if (!weeklyClose.value) return
+    if (!weeklyClose.value) {
+      showError('No hay cierre disponible, no se puede iniciar el proceso de corrección sin datos de cierre')
+      return
+    }
 
     const bonuses = weeklyClose.value.egresosGerente.bonosPagadosEnSemana
     const collectionCommission = weeklyClose.value.egresosGerente.comisionCobranzaPagadaEnSemana

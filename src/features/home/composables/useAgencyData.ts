@@ -1,12 +1,12 @@
 // composables/useAgencyData.ts
 import { computed, ref } from 'vue'
 import { useStore } from '@/shared/stores'
-import { useToast } from 'vue-toast-notification'
+import { useNotification } from '@/shared/composables/useNotification'
 import { commonService } from '@/shared/services/modules'
 
 export function useAgencyData() {
   const $store = useStore()
-  const $toast = useToast()
+  const { showError } = useNotification()
 
   const isAgencySelectEnabled = ref(true)
 
@@ -57,11 +57,11 @@ export function useAgencyData() {
       ])
 
       if (!collectionsSuccess || !agencySuccess) {
-        $toast.error('Error al cargar los datos de la agencia seleccionada')
+        showError('Error al cargar los datos de la agencia seleccionada')
       }
     } catch (error) {
       console.error('Error handling agency selection:', error)
-      $toast.error('Error al cargar los datos')
+      showError('Error al cargar los datos')
     } finally {
       $store.loading = false
       isAgencySelectEnabled.value = true

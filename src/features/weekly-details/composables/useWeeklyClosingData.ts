@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import type {
-  GetBaseProps,
   IGeneralBalance,
   IManagementNumbers,
   IWeeklyDetails
@@ -8,7 +7,6 @@ import type {
 
 import type { MoneyTabulation } from '@/features/tabulator/types'
 import { useStore } from '@/shared/stores'
-import { tabulationService } from '@/features/tabulator/services/tabulator.service'
 import { weeklyDetailsService } from '../services/weekly-details.service'
 
 export const useWeeklyClosingData = () => {
