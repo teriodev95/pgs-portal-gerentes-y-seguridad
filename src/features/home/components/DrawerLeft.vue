@@ -2,11 +2,11 @@
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
-import { useToast } from 'vue-toast-notification'
 import { initModals } from 'flowbite'
 import { APP_VERSION, ELEMENT_ID } from '@/shared/constants'
 import { useStore } from '@/shared/stores'
 import { commonService } from '@/shared/services/modules'
+import { useNotification } from '@/shared/composables/useNotification'
 
 // Components
 import LogoutPopup from '@/shared/components/LogoutPopup.vue'
@@ -17,7 +17,7 @@ import IconBankNotes from '@/shared/components/icons/BankNotesIcon.vue'
 // Services, Composables and Stores initialization
 const $router = useRouter()
 const $store = useStore()
-const $toast = useToast()
+const { showError } = useNotification()
 
 
 // Constants
@@ -86,7 +86,7 @@ async function preloadData(sucursal: string) {
         }
       }
     } catch (error) {
-      $toast.error('Error al cargar los datos')
+      showError('Error al cargar los datos')
     }
     $store.loading = false
   }

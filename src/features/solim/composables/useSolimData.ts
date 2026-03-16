@@ -1,6 +1,6 @@
 import { computed, onBeforeMount, ref } from 'vue'
 import { solimService } from '../services/solim.service'
-import { useSolimErrorHandler } from './useSolimErrorHandler'
+import { useNotification } from '@/shared/composables/useNotification'
 import type {
   ApprovalType,
   ApprovalDialogForm,
@@ -11,7 +11,6 @@ import type {
   UpdateCheckPayload
 } from '../types'
 import { useStore } from '@/shared/stores'
-import { useToast } from 'vue-toast-notification'
 import type { IAgencyBasicInfo } from '@/interfaces'
 
 const ROLE_MAP: Record<string, SolimRole> = {
@@ -37,8 +36,7 @@ const stringFromInput = (value: string): string | undefined => {
 
 export function useSolimData() {
   const $store = useStore()
-  const { handleError } = useSolimErrorHandler()
-  const $toast = useToast()
+  const { showError, showSuccess } = useNotification()
 
   const loanRequests = ref<Solicitud[]>([])
   const selectedLoanRequest = ref<Solicitud | null>(null)
@@ -116,7 +114,7 @@ export function useSolimData() {
         loanRequests.value = response.data.data ?? []
       }
     } catch (error) {
-      handleError(error, 'LOAN_REQUESTS_LOAD_FAILED')
+      showError('Error al cargar las solicitudes de préstamo')
     } finally {
       isLoadingLoanRequests.value = false
     }
@@ -129,7 +127,7 @@ export function useSolimData() {
         tablaCargosOptions.value = response.data.data ?? []
       }
     } catch (error) {
-      handleError(error, 'LOAN_REQUESTS_LOAD_FAILED')
+      showError('Error al cargar la tabla de cargos')
     }
   }
 
@@ -141,7 +139,7 @@ export function useSolimData() {
         selectedLoanRequest.value = response.data.data
       }
     } catch (error) {
-      handleError(error, 'LOAN_REQUEST_DETAILS_LOAD_FAILED')
+      showError('Error al cargar los detalles de la solicitud de préstamo')
     } finally {
       isLoadingSelectedLoanRequest.value = false
     }
@@ -176,7 +174,7 @@ export function useSolimData() {
 
   async function processLoanRequest(loanApprovalForm: ApprovalDialogForm, id: string): Promise<void> {
     if (loanApprovalForm.decision === 'rechazado' && !loanApprovalForm.comentario.trim()) {
-      $toast.error('Agrega un comentario para justificar el rechazo.')
+      showError('Agrega un comentario para justificar el rechazo.')
       return
     }
 
@@ -184,7 +182,7 @@ export function useSolimData() {
       loanApprovalForm.decision === 'aprobado_con_ajuste' &&
       !loanApprovalForm.tablaCargosIdSugerido.trim()
     ) {
-      $toast.error('Indica la tabla de cargos sugerida para el ajuste.')
+      showError('Indica la tabla de cargos sugerida para el ajuste.')
       return
     }
 
@@ -232,11 +230,11 @@ export function useSolimData() {
     try {
       isProcessingAction.value = true
       await solimService.updateLoanApplicationCheck(id, currentApprovalType.value, payload)
-      $toast.success(`Revisión de ${currentRoleLabel.value.toLowerCase()} guardada.`)
+      showSuccess(`Revisión de ${currentRoleLabel.value.toLowerCase()} guardada.`)
       await fetchLoanRequests()
       await fetchLoanRequestDetail(id)
     } catch (error) {
-      handleError(error, 'LOAN_REQUEST_APPROVAL_FAILED')
+      showError('Error al aprobar la solicitud de préstamo')
       throw error
     } finally {
       isProcessingAction.value = false

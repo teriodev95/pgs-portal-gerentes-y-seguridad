@@ -1,19 +1,17 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useToast } from 'vue-toast-notification'
 import { useStore } from '@/shared/stores'
 import { ROUTE_NAME } from '@/router'
+import { useNotification } from '@/shared/composables/useNotification'
 import { authService } from '../services/auth.service'
 import type { IAuthLogin } from '../types/auth.types'
-import { useAuthErrorHandler } from './useAuthErrorHandler'
 import { AUTH_CONSTANTS } from '../constants'
 
 export function useAuthLogin() {
   // Services, Composables and Stores initialization
   const $router = useRouter()
   const $store = useStore()
-  const $toast = useToast()
-  const { handleError } = useAuthErrorHandler()
+  const { showError, showSuccess } = useNotification()
 
 
   // State definitions
@@ -25,7 +23,7 @@ export function useAuthLogin() {
   // Methods
   async function handleLogin(): Promise<void> {
     if (!loginForm.value.usuario || !loginForm.value.pin) {
-      handleError(new Error('Form incomplete'), 'FORM_INCOMPLETE')
+      showError('Formulario incompleto')
       return
     }
 
@@ -44,14 +42,14 @@ export function useAuthLogin() {
       $store.saveData()
 
       if (!$store.isUserRoleValid) {
-        handleError(new Error('Role not authorized'), 'ROLE_NOT_AUTHORIZED')
+        showError('Role not authorized')
         return
       }
 
-      $toast.success(AUTH_CONSTANTS.SUCCESS_MESSAGES.LOGIN_SUCCESS)
+      showSuccess(AUTH_CONSTANTS.SUCCESS_MESSAGES.LOGIN_SUCCESS)
       await $router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
     } catch (error: any) {
-      $toast.error(error.response?.data.error)
+      showError(error.response?.data.error)
     } finally {
       isLoading.value = false
     }
