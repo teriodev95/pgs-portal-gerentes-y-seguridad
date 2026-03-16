@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useToast } from 'vue-toast-notification'
 import { useStore } from '@/shared/stores'
 import type { IGerencia } from '@/interfaces'
 import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
 import IconInfo from '@/shared/components/icons/InfoIcon.vue'
 import { commonService } from '@/shared/services/modules'
+import { useNotification } from '@/shared/composables/useNotification'
 
 // Interface - Props - Emits
 interface GerencySliderProps {
@@ -18,7 +18,7 @@ defineProps<GerencySliderProps>()
 // Services, Composables and Stores initialization
 const $router = useRouter()
 const $store = useStore()
-const $toast = useToast()
+const { showError } = useNotification()
 
 // State definitions
 const selectedManagement = computed(() => $store.gerenciaSelected)
@@ -52,8 +52,7 @@ async function selectManagement(managementId: string, navigateToDashboard = fals
       })
     }
   } catch (error) {
-    console.error('Error loading agencies for management:', error)
-    $toast.error('Error al cargar los datos')
+    showError('Error al cargar los datos')
   } finally {
     $store.loading = false
   }
