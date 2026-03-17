@@ -23,6 +23,7 @@ export const useSignStore = defineStore(STORE_NAME, () => {
   const urlFirmaGerente = ref<string>()
   const verificacionCompletadaAgente = ref<boolean>(false)
   const verificacionCompletadaGerente = ref<boolean>(false)
+  const canCloseWithoutSigning = ref<boolean>(false)
 
   const verificationCompletadaTotal = () => {
     return (
@@ -44,6 +45,7 @@ export const useSignStore = defineStore(STORE_NAME, () => {
     urlFirmaGerente.value = ''
     verificacionCompletadaAgente.value = false
     verificacionCompletadaGerente.value = false
+    canCloseWithoutSigning.value = false
   }
 
   return {
@@ -58,6 +60,7 @@ export const useSignStore = defineStore(STORE_NAME, () => {
     urlFirmaGerente,
     verificacionCompletadaAgente,
     verificacionCompletadaGerente,
+    canCloseWithoutSigning,
 
     // Methods
     resetValues,

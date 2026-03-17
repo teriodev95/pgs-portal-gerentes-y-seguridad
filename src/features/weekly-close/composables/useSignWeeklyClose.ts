@@ -97,7 +97,7 @@ export const useSignWeeklyClose = () => {
   const showConfirmationAnimation = ref(false)
 
   // ============================================================================
-  // ESTADO - Mensaje de verificación (absorbe useVerificationMessage)
+  // ESTADO - Mensaje de verificación 
   // ============================================================================
   const verificationSeed = ref(uuidv4())
 
@@ -165,10 +165,15 @@ export const useSignWeeklyClose = () => {
   const isAgentVerificationCompleted = computed(() => signStore.verificacionCompletadaAgente)
   const isGerentVerificationCompleted = computed(() => signStore.verificacionCompletadaGerente)
   const isAgencyVacant = computed(() => cierreSemanalStore.isAgencyVacant)
+  const canCloseWithoutSigning = computed(() => signStore.canCloseWithoutSigning)
 
   const canSubmit = computed(() => {
     // Si la agencia está vacante, se puede enviar directamente
     if (isAgencyVacant.value) return true
+
+    // Si el usuario está autorizado para cerrar sin firmar
+    if (canCloseWithoutSigning.value) return true
+
     // De lo contrario, requiere ambas verificaciones
     return isAgentVerificationCompleted.value && isGerentVerificationCompleted.value
   })
@@ -562,6 +567,7 @@ export const useSignWeeklyClose = () => {
     // Estado de verificaciones
     isAgentVerificationCompleted,
     isGerentVerificationCompleted,
+    canCloseWithoutSigning,
     canSubmit,
 
     // Validación de PIN
