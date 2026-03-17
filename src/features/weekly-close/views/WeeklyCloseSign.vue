@@ -45,22 +45,22 @@ const {
 
   // Validación de PIN
   agentPin,
-  gerentPin,
+  managerPin,
   securityPin,
   isAgentPinValid,
-  isGerentPinValid,
+  isManagerPinValid,
   validateSecurityPin,
 
   // Verificaciones completadas
   isAgentVerificationCompleted,
-  isGerentVerificationCompleted,
+  isManagerVerificationCompleted,
   canSubmit,
   canCloseWithoutSigning,
 
   // Confirmación y envío
-  verifyWeeklyClosing,
+  isWeeklyCloseConfirmed,
   showConfirmationAnimation,
-  handleConfirmation,
+  setWeeklyCloseConfirmation,
   handleSubmit,
 
   // Navegación entre pasos
@@ -73,10 +73,7 @@ const {
   navigateBackToWeeklyClose,
 
   // Reset
-  resetSignFlow,
-
-  // Mensaje de verificación
-  verificationMessage
+  resetSignFlow
 } = useSignWeeklyClose()
 
 // ============================================================================
@@ -121,8 +118,8 @@ const handleAgentPasswordResult = (isCorrect: boolean) => {
 /**
  * Maneja el resultado de validación del PIN del gerente
  */
-const handleGerentPasswordResult = (isCorrect: boolean) => {
-  isGerentPinValid.value = isCorrect
+const handleManagerPasswordResult = (isCorrect: boolean) => {
+  isManagerPinValid.value = isCorrect
 }
 
 /**
@@ -226,7 +223,7 @@ onUnmounted(() => {
               <VerificationButton v-if="isAgencyActive" user-type="agente" :is-completed="isAgentVerificationCompleted"
                 :is-disabled="isSubmitting" @click="goToStep(STEPS.AGENT_PIN_CAMERA)" />
 
-              <VerificationButton user-type="gerente" :is-completed="isGerentVerificationCompleted"
+              <VerificationButton user-type="gerente" :is-completed="isManagerVerificationCompleted"
                 :is-disabled="isSubmitting" @click="goToStep(STEPS.GERENT_PIN_CAMERA)" />
             </div>
           </div>
@@ -236,8 +233,8 @@ onUnmounted(() => {
           <CommissionSummary v-if="weeklyClose" :commissions="weeklyClose.egresosGerente" />
 
           <div class="flex items-center gap-2 pt-8">
-            <input id="verifyWeeklyClosing" type="checkbox" :checked="verifyWeeklyClosing"
-              @change="handleConfirmation(($event.target as HTMLInputElement).checked)"
+            <input id="verifyWeeklyClosing" type="checkbox" :checked="isWeeklyCloseConfirmed"
+              @change="setWeeklyCloseConfirmation(($event.target as HTMLInputElement).checked)"
               class="h-4 w-4 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500" />
 
             <label for="verifyWeeklyClosing" class="ms-2 flex flex-col text-xs"
@@ -271,7 +268,7 @@ onUnmounted(() => {
               <InputValidation :correctPin="pinAgente" @password-validation="handleAgentPasswordResult"
                 label="PIN Agente" v-model="agentPin" />
 
-              <CameraVideoCapture v-if="isAgentPinValid" mode="agente" :verification-message="verificationMessage" />
+              <CameraVideoCapture v-if="isAgentPinValid" mode="agente" />
             </div>
 
             <BtnComponent @click="completeVerification('agente')" full-width v-show="isAgentVerificationCompleted">
@@ -301,13 +298,13 @@ onUnmounted(() => {
               </TextCT>
             </div>
 
-            <InputValidation :correctPin="pinGerente" @password-validation="handleGerentPasswordResult"
-              label="PIN Gerente" v-model="gerentPin" />
+            <InputValidation :correctPin="pinGerente" @password-validation="handleManagerPasswordResult"
+              label="PIN Gerente" v-model="managerPin" />
 
-            <CameraVideoCapture v-if="isGerentPinValid" mode="gerente" :verification-message="verificationMessage" />
+            <CameraVideoCapture v-if="isManagerPinValid" mode="gerente" />
           </div>
 
-          <BtnComponent @click="completeVerification('gerente')" full-width v-show="isGerentVerificationCompleted">
+          <BtnComponent @click="completeVerification('gerente')" full-width v-show="isManagerVerificationCompleted">
             Continuar
           </BtnComponent>
         </div>
