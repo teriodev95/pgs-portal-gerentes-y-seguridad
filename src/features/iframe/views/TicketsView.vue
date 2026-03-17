@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import '@webzlodimir/vue-bottom-sheet/dist/style.css'
 import { ROUTE_NAME } from '@/router';
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
