@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import '@webzlodimir/vue-bottom-sheet/dist/style.css'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
 import { PaymentSource, RecoverySource } from '@/features/loan/types'
+import type { ICobranza } from '@/interfaces'
+import { useDrawer } from '@/shared/composables'
 
 // Composables
 import { usePaymentFilters, usePaymentManagement, usePaymentUIState } from '@/features/loan/composables'
@@ -16,11 +17,12 @@ import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import PaymentItem from '@/features/loan/components/PaymentItem.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import PaymentFilterSection from '@/features/loan/components/PaymentFilterSection.vue'
-import PaymentFormBottomSheet from '@/features/loan/components/PaymentFormBottomSheet.vue'
+import PaymentFormDrawer from '@/features/loan/components/PaymentFormDrawer.vue'
 
 const router = useRouter()
 
 // Composables initialization
+const paymentDrawer = useDrawer<ICobranza>('payment')
 
 const {
   filterName,
@@ -46,7 +48,6 @@ const {
 
 // Computed properties
 const filteredPayments = computed(() => getFilteredPayments(payments.value))
-const paymentFormBottomSheetRef = ref()
 const paymentForm = ref({
   amount: 1,
   paymentSource: PaymentSource.CLIENT,
@@ -57,20 +58,15 @@ const paymentForm = ref({
 async function handlePayment() {
   const success = await processPayment(paymentForm.value.amount, paymentForm.value.paymentSource, paymentForm.value.paymentRecovery)
 
-  if(!success) {
-    paymentFormBottomSheetRef.value?.resetSlide()
-  }
-
   if (success && selectedPayment.value) {
-    paymentFormBottomSheetRef.value?.close()
-    paymentFormBottomSheetRef.value?.resetSlide()
+    paymentDrawer.close()
     resetSelectedPayment()
   }
 }
 
-function handleSelectPayment(payment: any) {
+function handleSelectPayment(payment: ICobranza) {
   selectPaymentForProcessing(payment)
-  paymentFormBottomSheetRef.value?.open()
+  paymentDrawer.openWith(payment)
 }
 
 function handleBack() {
@@ -86,12 +82,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <!-- Payment Form Bottom Sheet -->
-  <PaymentFormBottomSheet
-    ref="paymentFormBottomSheetRef"
+  <!-- Payment Form Drawer -->
+  <PaymentFormDrawer
+    :open="paymentDrawer.isOpen.value ?? false"
     v-model:payment-form="paymentForm"
-    :selectedPayment="selectedPayment"
+    :selectedPayment="paymentDrawer.selectedData.value"
     :isProcessing="isProcessing"
+    @update:open="(value: boolean) => value ? null : paymentDrawer.close()"
     @submit="handlePayment"
     @completed="handlePayment"
   />

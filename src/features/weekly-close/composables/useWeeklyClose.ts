@@ -6,6 +6,7 @@ import { useWeeklyCloseApi } from './useWeeklyCloseApi'
 import { transformToCreateCierre } from '../utils/weeklyCloseHelpers'
 import { ROUTE_NAME } from '@/router'
 import { useNotification } from '@/shared/composables/useNotification'
+import { unsignedVideoUsers } from '../constants'
 
 export const useWeeklyClose = () => {
   const router = useRouter()
@@ -249,8 +250,12 @@ export const useWeeklyClose = () => {
 
       // Configurar nombres para firmas
       if (store.weeklyClose) {
-        signStore.nombreAgente = store.weeklyClose.resumenSemanal.agente
-        signStore.nombreGerente = store.weeklyClose.resumenSemanal.gerente
+        signStore.agentName = store.weeklyClose.resumenSemanal.agente
+        signStore.managerName = store.weeklyClose.resumenSemanal.gerente
+      }
+
+      if(unsignedVideoUsers.includes(user.value.usuario)){
+        signStore.canCloseWithoutSigning = true
       }
     } catch (error) {
       console.error('Error inicializando el cierre semanal:', error)
@@ -279,8 +284,8 @@ export const useWeeklyClose = () => {
       const cierreData = transformToCreateCierre(
         store.weeklyClose,
         management.value || '',
-        signStore.uidVerificacionAgente || '',
-        signStore.uidVerificacionGerente || ''
+        signStore.agentVerificationVideoUrl || '',
+        signStore.managerVerificationVideoUrl || ''
       )
 
       // Guardar cierre y crear comisión
@@ -296,7 +301,7 @@ export const useWeeklyClose = () => {
       await loadWeeklyClose()
 
       store.setClosingComplete(true)
-      signStore.resetValues()
+      signStore.reset()
 
       return true
     } catch (error) {
@@ -361,7 +366,7 @@ export const useWeeklyClose = () => {
    */
   const resetWeeklyClose = (): void => {
     store.resetState()
-    signStore.resetValues()
+    signStore.reset()
   }
 
   // ============================================================================

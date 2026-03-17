@@ -1,62 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
-import type { ExpenseFormData, WeeklyExpense } from '../types'
-import { useWeeklyExpenses } from '../composables'
+import type { WeeklyExpense } from '../types'
+import { useExpenseData } from '../composables'
+import { useExpenseStore } from '../stores'
+import { useDrawer } from '@/shared/composables'
 
 // Components
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import FloatBtn from '@/shared/components/FloatBtn.vue'
-import ExpenseBottomSheet from '@/features/expense/components/ExpenseBottomSheet.vue'
+import ExpenseDrawer from '@/features/expense/components/ExpenseDrawer.vue'
 import ExpensesList from '@/features/expense/components/ExpensesList.vue'
 
 const router = useRouter()
 
-// Composables
-const {
-  weeklyExpenses,
-  selectedExpense,
-  isLoadingExpenses,
-  isSavingExpense,
-  user,
-  isUserManager,
-  gerenciaSelected,
-  hasExpenses,
-  saveExpense,
-  selectExpenseForEditing,
-  clearSelectedExpense
-} = useWeeklyExpenses()
+// Stores & Composables
+const expenseStore = useExpenseStore()
+const expenseDrawer = useDrawer<WeeklyExpense>('expense')
 
-// State definitions
-const expenseBottomSheetRef = ref<InstanceType<typeof ExpenseBottomSheet>>()
+// Inicializar lógica de negocio (fetch inicial en onBeforeMount)
+useExpenseData()
 
 // Methods
-function openExpenseForm(): void {
-  expenseBottomSheetRef.value?.open()
-}
-
-function closeExpenseForm(): void {
-  expenseBottomSheetRef.value?.close()
-}
-
-function handleExpenseFormClose(): void {
-  clearSelectedExpense()
-}
-
 function handleExpenseSelect(expense: WeeklyExpense): void {
-  selectExpenseForEditing(expense)
-  openExpenseForm()
-}
-
-async function handleExpenseSubmit(formData: ExpenseFormData): Promise<void> {
-  try {
-    await saveExpense(formData)
-    closeExpenseForm()
-  } catch (error) {
-    // Error is handled in the composable
-  }
+  expenseDrawer.openWith(expense)
 }
 
 function handleBack(): void {
@@ -65,19 +33,10 @@ function handleBack(): void {
 </script>
 
 <template>
-  <ExpenseBottomSheet
-    ref="expenseBottomSheetRef"
-    :selected-expense="selectedExpense"
-    :usuario-id="user?.usuarioId || 0"
-    :is-saving="isSavingExpense"
-    :is-user-manager="isUserManager"
-    :gerencia-selected="gerenciaSelected"
-    @submit="handleExpenseSubmit"
-    @closed="handleExpenseFormClose"
-  />
+  <ExpenseDrawer />
 
   <div data-dial-init class="group fixed bottom-[1.5rem] right-6 z-50">
-    <FloatBtn type="primary" @click="openExpenseForm" />
+    <FloatBtn type="primary" @click="expenseDrawer.open()" />
   </div>
 
   <MainCT>
@@ -89,9 +48,9 @@ function handleBack(): void {
     />
 
     <ExpensesList
-      :expenses="weeklyExpenses"
-      :is-loading="isLoadingExpenses"
-      :has-expenses="hasExpenses"
+      :expenses="expenseStore.expenses"
+      :is-loading="expenseStore.isLoadingExpenses"
+      :has-expenses="expenseStore.hasExpenses"
       @expense:select="handleExpenseSelect"
     />
   </MainCT>

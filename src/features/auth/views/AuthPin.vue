@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import '@webzlodimir/vue-bottom-sheet/dist/style.css';
 import { useAuthPinForm, useAuthLogout } from '../composables';
-import VueBottomSheet from '@webzlodimir/vue-bottom-sheet';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 
 import ArrowLeftToBracket from '@/shared/components/icons/ArrowLeftToBracket.vue';
 import BtnComponent from '@/shared/components/BtnComponent.vue';
@@ -17,9 +22,9 @@ const {
 } = useAuthPinForm();
 
 const {
-  logoutBottomSheet,
-  openLogoutBottomSheet,
-  closeLogoutBottomSheet,
+  isLogoutDrawerOpen,
+  openLogoutDrawer,
+  closeLogoutDrawer,
   handleLogout,
 } = useAuthLogout();
 
@@ -51,8 +56,8 @@ const onPinComplete = () => {
 
     <!-- Logout Button -->
     <div class="flex justify-center">
-      <button 
-        @click="openLogoutBottomSheet" 
+      <button
+        @click="openLogoutDrawer"
         class="p-2 text-gray-400 hover:text-white transition-colors"
         type="button"
       >
@@ -61,20 +66,29 @@ const onPinComplete = () => {
     </div>
   </div>
 
-  <!-- Logout Confirmation Bottom Sheet -->
-  <vue-bottom-sheet ref="logoutBottomSheet" :max-width="1000" :max-height="1000">
-    <div class="p-4 space-y-6">
-      <p class="text-xl font-semibold">¿Estás seguro de que quieres cerrar sesión?</p>
+  <!-- Logout Confirmation Drawer -->
+  <Drawer :open="isLogoutDrawerOpen" @update:open="(value: boolean) => value ? null : closeLogoutDrawer()">
+    <DrawerContent>
+      <div class="mx-auto w-full max-w-lg">
+        <DrawerHeader>
+          <DrawerTitle>¿Estás seguro de que quieres cerrar sesión?</DrawerTitle>
+          <DrawerDescription>
+            Esta acción cerrará tu sesión actual
+          </DrawerDescription>
+        </DrawerHeader>
 
-      <div class="flex gap-4">
-        <BtnComponent variant="secondary" full-width @click="handleLogout">
-          Sí, cerrar sesión
-        </BtnComponent>
+        <div class="p-4 pb-6">
+          <div class="flex gap-4">
+            <BtnComponent variant="secondary" full-width @click="handleLogout">
+              Sí, cerrar sesión
+            </BtnComponent>
 
-        <BtnComponent variant="secondary" outline full-width @click="closeLogoutBottomSheet">
-          No, mantener sesión
-        </BtnComponent>
+            <BtnComponent variant="secondary" outline full-width @click="closeLogoutDrawer">
+              No, mantener sesión
+            </BtnComponent>
+          </div>
+        </div>
       </div>
-    </div>
-  </vue-bottom-sheet>
+    </DrawerContent>
+  </Drawer>
 </template>

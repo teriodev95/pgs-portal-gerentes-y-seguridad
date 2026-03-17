@@ -4,7 +4,6 @@ import { type LatLng, type PointExpression } from 'leaflet'
 import { noPaymentService } from '../services/no-payment.service'
 import type { INoPago, IVisita } from '../types'
 import { useNoPaymentFilters } from './useNoPaymentFilters'
-import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
 
 export function useNoPayments() {
   // Services and stores
@@ -28,7 +27,7 @@ export function useNoPayments() {
   const noPaymentsList = ref<INoPago[]>()
   const selectedVisit = ref<IVisita>()
   const isLoading = ref(false)
-  const mapBottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
+  const isMapDrawerOpen = ref(false)
 
   // Map state
   const mapCenter = ref<PointExpression>([0, 0])
@@ -71,7 +70,11 @@ export function useNoPayments() {
     mapMarker.value = coordinates
     mapCenter.value = [coordinates.lat, coordinates.lng]
     mapZoom.value = 10
-    mapBottomSheet.value?.open()
+    isMapDrawerOpen.value = true
+  }
+
+  function closeMapDrawer(): void {
+    isMapDrawerOpen.value = false
   }
 
   function selectVisit(visit: IVisita): void {
@@ -100,7 +103,7 @@ export function useNoPayments() {
     noPaymentsList,
     selectedVisit,
     isLoading,
-    mapBottomSheet,
+    isMapDrawerOpen,
 
     // Map state
     mapCenter,
@@ -129,6 +132,7 @@ export function useNoPayments() {
     fetchNoPayments,
     fetchAgencies,
     showMapLocation,
+    closeMapDrawer,
     selectVisit,
     initializeData
   }
