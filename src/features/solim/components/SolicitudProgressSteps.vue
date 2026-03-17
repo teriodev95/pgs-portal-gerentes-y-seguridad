@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import '@webzlodimir/vue-bottom-sheet/dist/style.css'
 import { computed, ref } from 'vue'
-import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
 import { ChevronRight, LoaderCircle, Route } from 'lucide-vue-next'
 import type {
   ApprovalRequirements,
@@ -49,7 +54,7 @@ const props = defineProps<{
   solicitud: Solicitud
 }>()
 
-const bottomSheetRef = ref<InstanceType<typeof VueBottomSheet>>()
+const isOpen = ref(false)
 
 const rutaSolicitud = computed<RutaSolicitud | null>(() => props.solicitud.ruta_solicitud ?? null)
 
@@ -229,11 +234,11 @@ function stepClasses(status: StepItem['status']) {
 }
 
 function openSheet() {
-  bottomSheetRef.value?.open()
+  isOpen.value = true
 }
 
 function closeSheet() {
-  bottomSheetRef.value?.close()
+  isOpen.value = false
 }
 
 function isAnimatedStatus(status: StepItem['status']) {
@@ -293,24 +298,17 @@ function isAnimatedStatus(status: StepItem['status']) {
     </div>
   </button>
 
-  <vue-bottom-sheet ref="bottomSheetRef" :max-width="920" :max-height="760">
-    <div class="space-y-5 px-5 pb-8 pt-4">
-      <div class="flex items-start justify-between gap-4">
-        <div class="space-y-1">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Ruta de la solicitud</p>
-          <h2 class="text-lg font-semibold tracking-[-0.02em] text-slate-900 sm:text-xl">Seguimiento del expediente</h2>
-          <p class="max-w-xl text-sm leading-relaxed text-slate-600">
+  <Drawer :open="isOpen" @update:open="(value: boolean) => value ? null : closeSheet()">
+    <DrawerContent class="max-h-[90vh]">
+      <div class="mx-auto w-full max-w-4xl overflow-y-auto">
+        <DrawerHeader>
+          <DrawerTitle>Seguimiento del expediente</DrawerTitle>
+          <DrawerDescription>
             Aquí puedes ver qué ya revisó la app, si la solicitud se está filtrando y qué vistos buenos exige el plan.
-          </p>
-        </div>
-        <button
-          type="button"
-          class="inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-          @click="closeSheet"
-        >
-          Cerrar
-        </button>
-      </div>
+          </DrawerDescription>
+        </DrawerHeader>
+
+        <div class="space-y-5 px-4 pb-8">
 
       <div v-if="steps.length" class="space-y-3">
         <div
@@ -403,7 +401,9 @@ function isAnimatedStatus(status: StepItem['status']) {
             {{ label }}
           </span>
         </div>
+        </div>
       </div>
-    </div>
-  </vue-bottom-sheet>
+      </div>
+    </DrawerContent>
+  </Drawer>
 </template>
