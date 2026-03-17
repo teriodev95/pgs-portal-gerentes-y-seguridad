@@ -55,6 +55,7 @@ const {
   isAgentVerificationCompleted,
   isGerentVerificationCompleted,
   canSubmit,
+  canCloseWithoutSigning,
 
   // Confirmación y envío
   verifyWeeklyClosing,
@@ -88,12 +89,23 @@ const vueSlideUnlockRef = ref()
 // COMPUTED
 // ============================================================================
 const userNavbarTop = computed(() => user.value?.usuario || '')
-
 const pinAgente = computed(() => weeklyClose.value?.pinAgente.toString() ?? '')
 const pinGerente = computed(() => user.value?.pin?.toString() ?? '')
-
 const nombreAgente = computed(() => weeklyClose.value?.resumenSemanal.agente ?? '')
 const nombreGerente = computed(() => weeklyClose.value?.resumenSemanal.gerente ?? '')
+
+const title = computed(() => {
+  if (isAgencyVacant.value) {
+    return 'Agencia Vacante - Verificación no requerida'
+  }
+
+  if (canCloseWithoutSigning.value) {
+    return 'Usuario autorizado para cerrar sin firma'
+  }
+
+  return 'Verificar agencia'
+})
+
 
 // ============================================================================
 // METHODS
@@ -176,12 +188,7 @@ onUnmounted(() => {
 <template>
   <MainCT>
     <!-- Top Navigation Bar -->
-    <NavbarCT
-      title="Verificación"
-      :subtitle="userNavbarTop"
-      :show-back-button="true"
-      @back="handleOnBack"
-    />
+    <NavbarCT title="Verificación" :subtitle="userNavbarTop" :show-back-button="true" @back="handleOnBack" />
 
     <!-- Loading State -->
     <div v-if="isLoading" class="flex items-center justify-center p-8">
@@ -198,73 +205,55 @@ onUnmounted(() => {
 
     <main v-else class="space-y-4 p-2">
       <!-- HOME - Paso inicial -->
-      <CardContainer
-        v-if="currentStep === STEPS.HOME"
-        :title="isAgencyVacant ? 'Agencia Vacante' : 'Verificar agencia (opcional)'"
-      >
-        <div class="space-y-8">
-          <TextCT>
-            {{
-              isAgencyVacant
-                ? 'La agencia se encuentra vacante, no es necesario verificar'
-                : 'Solo si la agencia está vacante, omite el proceso de verificación.'
-            }}
-          </TextCT>
+      <template v-if="currentStep === STEPS.HOME">
+        <CardContainer :title="title">
+          <template v-if="canCloseWithoutSigning">
+            <TextCT>
+              Dado que tu usuario está autorizado para cerrar sin firma, puedes proceder directamente a realizar el cierre semanal sin necesidad de completar las verificaciones.
+            </TextCT> 
+          </template>
+          
+          <div v-else class="space-y-8">
+            <TextCT>
+              {{
+                isAgencyVacant
+                  ? 'La agencia se encuentra vacante, no es necesario verificar'
+                  : 'Solo si la agencia está vacante, omite el proceso de verificación.'
+              }}
+            </TextCT>
 
-          <div v-if="!isAgencyVacant" class="space-y-4">
-            <VerificationButton
-              v-if="isAgencyActive"
-              user-type="agente"
-              :is-completed="isAgentVerificationCompleted"
-              :is-disabled="isSubmitting"
-              @click="goToStep(STEPS.AGENT_PIN_CAMERA)"
-            />
+            <div v-if="!isAgencyVacant" class="space-y-4">
+              <VerificationButton v-if="isAgencyActive" user-type="agente" :is-completed="isAgentVerificationCompleted"
+                :is-disabled="isSubmitting" @click="goToStep(STEPS.AGENT_PIN_CAMERA)" />
 
-            <VerificationButton
-              user-type="gerente"
-              :is-completed="isGerentVerificationCompleted"
-              :is-disabled="isSubmitting"
-              @click="goToStep(STEPS.GERENT_PIN_CAMERA)"
-            />
+              <VerificationButton user-type="gerente" :is-completed="isGerentVerificationCompleted"
+                :is-disabled="isSubmitting" @click="goToStep(STEPS.GERENT_PIN_CAMERA)" />
+            </div>
           </div>
-        </div>
-      </CardContainer>
+        </CardContainer>
 
-      <!-- Resumen de comisiones y confirmación -->
-      <CardContainer v-if="currentStep === STEPS.HOME">
-        <CommissionSummary v-if="weeklyClose" :commissions="weeklyClose.egresosGerente" />
+        <CardContainer>
+          <CommissionSummary v-if="weeklyClose" :commissions="weeklyClose.egresosGerente" />
 
-        <div class="flex items-center gap-2 pt-8">
-          <input
-            id="verifyWeeklyClosing"
-            type="checkbox"
-            :checked="verifyWeeklyClosing"
-            @change="handleConfirmation(($event.target as HTMLInputElement).checked)"
-            class="h-4 w-4 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500"
-          />
+          <div class="flex items-center gap-2 pt-8">
+            <input id="verifyWeeklyClosing" type="checkbox" :checked="verifyWeeklyClosing"
+              @change="handleConfirmation(($event.target as HTMLInputElement).checked)"
+              class="h-4 w-4 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500" />
 
-          <label
-            for="verifyWeeklyClosing"
-            class="ms-2 flex flex-col text-xs"
-            :class="{ 'my-animation': showConfirmationAnimation }"
-          >
-            Confirmo el cierre para la agencia {{ agency?.agencia }} con las comisiones mostradas
-            en esta pantalla. Desliza de izquierda a derecha para realizar el cierre.
-          </label>
-        </div>
+            <label for="verifyWeeklyClosing" class="ms-2 flex flex-col text-xs"
+              :class="{ 'my-animation': showConfirmationAnimation }">
+              Confirmo el cierre para la agencia {{ agency?.agencia }} con las comisiones mostradas
+              en esta pantalla. Desliza de izquierda a derecha para realizar el cierre.
+            </label>
+          </div>
 
-        <div v-if="canSubmit" class="space-y-2 p-5">
-          <slide-unlock
-            ref="vueSlideUnlockRef"
-            :auto-width="true"
-            :circle="true"
-            :disabled="isSubmitting"
-            :text="isSubmitting ? 'Realizando Cierre' : 'Realizar Cierre'"
-            success-text="Completado"
-            @completed="handleSlideUnlockCompletion"
-          />
-        </div>
-      </CardContainer>
+          <div v-if="canSubmit" class="space-y-2 p-5">
+            <slide-unlock ref="vueSlideUnlockRef" :auto-width="true" :circle="true" :disabled="isSubmitting"
+              :text="isSubmitting ? 'Realizando Cierre' : 'Realizar Cierre'" success-text="Completado"
+              @completed="handleSlideUnlockCompletion" />
+          </div>
+        </CardContainer>
+      </template>
 
       <!-- AGENT_PIN_CAMERA - Verificación del agente -->
       <template v-if="currentStep === STEPS.AGENT_PIN_CAMERA">
@@ -279,35 +268,21 @@ onUnmounted(() => {
                 </TextCT>
               </div>
 
-              <InputValidation
-                :correctPin="pinAgente"
-                @password-validation="handleAgentPasswordResult"
-                label="PIN Agente"
-                v-model="agentPin"
-              />
+              <InputValidation :correctPin="pinAgente" @password-validation="handleAgentPasswordResult"
+                label="PIN Agente" v-model="agentPin" />
 
-              <CameraVideoCapture
-                v-if="isAgentPinValid"
-                mode="agente"
-                :verification-message="verificationMessage"
-              />
+              <CameraVideoCapture v-if="isAgentPinValid" mode="agente" :verification-message="verificationMessage" />
             </div>
 
-            <BtnComponent
-              @click="completeVerification('agente')"
-              full-width
-              v-show="isAgentVerificationCompleted"
-            >
+            <BtnComponent @click="completeVerification('agente')" full-width v-show="isAgentVerificationCompleted">
               Continuar
             </BtnComponent>
           </div>
         </CardContainer>
 
         <CardContainer>
-          <CardTitle
-            title="Solicita un PIN temporal"
-            subtitle="Si por algún motivo no pudiste realizar el cierre con tu agente, puedes solicitar un PIN genérico temporal para finalizar el proceso. Este PIN te lo proporcionará el encargado de seguridad de tu gerencia y solo será válido por un tiempo limitado."
-          />
+          <CardTitle title="Solicita un PIN temporal"
+            subtitle="Si por algún motivo no pudiste realizar el cierre con tu agente, puedes solicitar un PIN genérico temporal para finalizar el proceso. Este PIN te lo proporcionará el encargado de seguridad de tu gerencia y solo será válido por un tiempo limitado." />
           <BtnComponent @click="handleOpenSecurityModal" class="w-full">
             Ingresar PIN
           </BtnComponent>
@@ -326,25 +301,13 @@ onUnmounted(() => {
               </TextCT>
             </div>
 
-            <InputValidation
-              :correctPin="pinGerente"
-              @password-validation="handleGerentPasswordResult"
-              label="PIN Gerente"
-              v-model="gerentPin"
-            />
+            <InputValidation :correctPin="pinGerente" @password-validation="handleGerentPasswordResult"
+              label="PIN Gerente" v-model="gerentPin" />
 
-            <CameraVideoCapture
-              v-if="isGerentPinValid"
-              mode="gerente"
-              :verification-message="verificationMessage"
-            />
+            <CameraVideoCapture v-if="isGerentPinValid" mode="gerente" :verification-message="verificationMessage" />
           </div>
 
-          <BtnComponent
-            @click="completeVerification('gerente')"
-            full-width
-            v-show="isGerentVerificationCompleted"
-          >
+          <BtnComponent @click="completeVerification('gerente')" full-width v-show="isGerentVerificationCompleted">
             Continuar
           </BtnComponent>
         </div>
@@ -353,10 +316,7 @@ onUnmounted(() => {
   </MainCT>
 
   <!-- Drawer para PIN de seguridad -->
-  <Drawer
-    :open="isSecurityPinDrawerOpen"
-    @update:open="(value: boolean) => value ? null : closeSecurityPinDrawer()"
-  >
+  <Drawer :open="isSecurityPinDrawerOpen" @update:open="(value: boolean) => value ? null : closeSecurityPinDrawer()">
     <DrawerContent>
       <div class="mx-auto w-full max-w-lg">
         <DrawerHeader>
@@ -369,13 +329,8 @@ onUnmounted(() => {
         <div class="p-4 pb-6 space-y-4">
           <div class="space-y-2">
             <LabelForm for="security-pin"> PIN Temporal de Seguridad </LabelForm>
-            <InputGeneric
-              id="security-pin"
-              type="password"
-              v-model="securityPin"
-              placeholder="Ingresa el PIN temporal"
-              class="w-full"
-            />
+            <InputGeneric id="security-pin" type="password" v-model="securityPin" placeholder="Ingresa el PIN temporal"
+              class="w-full" />
           </div>
 
           <BtnComponent @click="signAsSecurity" class="w-full"> Confirmar PIN </BtnComponent>
@@ -391,8 +346,7 @@ onUnmounted(() => {
 }
 
 @keyframes bounce {
-  0% {
-  }
+  0% {}
 
   100% {
     transform: translateY(-20px);

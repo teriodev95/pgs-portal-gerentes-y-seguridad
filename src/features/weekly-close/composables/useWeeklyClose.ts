@@ -6,6 +6,7 @@ import { useWeeklyCloseApi } from './useWeeklyCloseApi'
 import { transformToCreateCierre } from '../utils/weeklyCloseHelpers'
 import { ROUTE_NAME } from '@/router'
 import { useNotification } from '@/shared/composables/useNotification'
+import { unsignedVideoUsers } from '../constants'
 
 export const useWeeklyClose = () => {
   const router = useRouter()
@@ -251,6 +252,10 @@ export const useWeeklyClose = () => {
       if (store.weeklyClose) {
         signStore.nombreAgente = store.weeklyClose.resumenSemanal.agente
         signStore.nombreGerente = store.weeklyClose.resumenSemanal.gerente
+      }
+
+      if(unsignedVideoUsers.includes(user.value.usuario)){
+        signStore.canCloseWithoutSigning = true
       }
     } catch (error) {
       console.error('Error inicializando el cierre semanal:', error)
