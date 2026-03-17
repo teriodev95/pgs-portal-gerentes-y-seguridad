@@ -41,7 +41,7 @@ export function useUIState() {
     }
 
     // Reset sign store values
-    $sign.resetValues()
+    $sign.reset()
   }
 
   return {

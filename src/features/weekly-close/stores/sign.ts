@@ -4,66 +4,93 @@ import { defineStore } from 'pinia'
 const STORE_NAME = 'sign'
 
 /**
- * useSignStore
+ * Sign store for weekly close verification
+ *
+ * Stores signature data, verification URLs, and completion status
+ * for both agent and manager verification flows
  */
 export const useSignStore = defineStore(STORE_NAME, () => {
   /**
    * ------------------------------------------
-   *	Data
+   *	Signature Data
    * ------------------------------------------
    */
 
-  const firmaAgente = ref<string>('')
-  const firmaGerente = ref<string>('')
-  const nombreAgente = ref<string>()
-  const nombreGerente = ref<string>()
-  const uidVerificacionAgente = ref<string>('')
-  const uidVerificacionGerente = ref<string>('')
-  const urlFirmaAgente = ref<string>()
-  const urlFirmaGerente = ref<string>()
-  const verificacionCompletadaAgente = ref<boolean>(false)
-  const verificacionCompletadaGerente = ref<boolean>(false)
+  // Agent signature data
+  const agentSignature = ref<string>('')
+  const agentName = ref<string>()
+  const agentVerificationVideoUrl = ref<string>('')
+  const agentSignatureUrl = ref<string>()
+  const isAgentVerificationCompleted = ref<boolean>(false)
+
+  // Manager signature data
+  const managerSignature = ref<string>('')
+  const managerName = ref<string>()
+  const managerVerificationVideoUrl = ref<string>('')
+  const managerSignatureUrl = ref<string>()
+  const isManagerVerificationCompleted = ref<boolean>(false)
+
+  // Special flags
   const canCloseWithoutSigning = ref<boolean>(false)
 
-  const verificationCompletadaTotal = () => {
+  /**
+   * ------------------------------------------
+   *	Methods
+   * ------------------------------------------
+   */
+
+  /**
+   * Checks if full verification is completed
+   * Requires both agent and manager to have completed verification
+   */
+  const isFullVerificationCompleted = () => {
     return (
-      verificacionCompletadaAgente.value &&
-      verificacionCompletadaGerente.value &&
-      firmaAgente.value &&
-      firmaGerente.value
+      isAgentVerificationCompleted.value &&
+      isManagerVerificationCompleted.value &&
+      agentSignature.value &&
+      managerSignature.value
     )
   }
 
-  const resetValues = () => {
-    firmaAgente.value = ''
-    firmaGerente.value = ''
-    nombreAgente.value = ''
-    nombreGerente.value = ''
-    uidVerificacionAgente.value = ''
-    uidVerificacionGerente.value = ''
-    urlFirmaAgente.value = ''
-    urlFirmaGerente.value = ''
-    verificacionCompletadaAgente.value = false
-    verificacionCompletadaGerente.value = false
+  /**
+   * Resets all signature and verification data
+   */
+  const reset = () => {
+    agentSignature.value = ''
+    agentName.value = ''
+    agentVerificationVideoUrl.value = ''
+    agentSignatureUrl.value = ''
+    isAgentVerificationCompleted.value = false
+
+    managerSignature.value = ''
+    managerName.value = ''
+    managerVerificationVideoUrl.value = ''
+    managerSignatureUrl.value = ''
+    isManagerVerificationCompleted.value = false
+
     canCloseWithoutSigning.value = false
   }
 
   return {
-    // Data
-    firmaAgente,
-    firmaGerente,
-    nombreAgente,
-    nombreGerente,
-    uidVerificacionAgente,
-    uidVerificacionGerente,
-    urlFirmaAgente,
-    urlFirmaGerente,
-    verificacionCompletadaAgente,
-    verificacionCompletadaGerente,
+    // Agent data
+    agentSignature,
+    agentName,
+    agentVerificationVideoUrl,
+    agentSignatureUrl,
+    isAgentVerificationCompleted,
+
+    // Manager data
+    managerSignature,
+    managerName,
+    managerVerificationVideoUrl,
+    managerSignatureUrl,
+    isManagerVerificationCompleted,
+
+    // Flags
     canCloseWithoutSigning,
 
     // Methods
-    resetValues,
-    verificationCompletadaTotal
+    reset,
+    isFullVerificationCompleted
   }
 })
