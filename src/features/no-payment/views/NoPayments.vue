@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import { formatToHumanDate } from '@/shared/utils'
 import { ROUTE_NAME } from '@/router'
-import VueBottomSheet from '@webzlodimir/vue-bottom-sheet'
+import {
+  Drawer,
+  DrawerContent,
+} from '@/components/ui/drawer'
 
 // Components
 import MapWidget from '@/shared/components/MapWidget.vue'
@@ -25,7 +28,8 @@ const {
   noPaymentsList,
   selectedVisit,
   isLoading,
-  mapBottomSheet,
+  isMapDrawerOpen,
+  closeMapDrawer,
 
   // Map state
   mapCenter,
@@ -104,34 +108,41 @@ function handleBack() {
        </template>
     </SectionContainer>
 
-    <!-- Map Bottom Sheet -->
-    <vue-bottom-sheet ref="mapBottomSheet" :max-width="1000" :max-height="600">
-      <main class="relative min-h-screen">
-        <div class="fixed top-0 z-10 h-screen w-screen">
-          <MapWidget v-model:center="mapCenter" :marker="mapMarker" v-model:zoom="mapZoom" readonly
-            class="z-20 h-full w-full" />
-        </div>
-
-        <!-- Visit Details -->
-        <Transition name="slide-fade">
-          <div class="fixed bottom-1 z-30 w-full p-2" v-if="selectedVisit">
-            <div class="rounded-md bg-white p-4">
-              <ul class="spacey-2 list-none">
-                <li class="flex justify-between gap-2">
-                  <p>Prestamo</p>
-                  <p class="font-bold text-blue-900">{{ selectedVisit.prestamoId }}</p>
-                </li>
-                <li class="flex justify-between gap-2">
-                  <p>Fecha</p>
-                  <p class="font-bold text-blue-900">
-                    {{ formatToHumanDate(selectedVisit.fecha, true) }}
-                  </p>
-                </li>
-              </ul>
-            </div>
+    <!-- Map Drawer -->
+    <Drawer :open="isMapDrawerOpen" @update:open="(value: boolean) => value ? null : closeMapDrawer()">
+      <DrawerContent>
+        <div class="mx-auto w-full h-[600px] max-w-4xl relative">
+          <div class="absolute inset-0 z-10">
+            <MapWidget
+              v-model:center="mapCenter"
+              :marker="mapMarker"
+              v-model:zoom="mapZoom"
+              readonly
+              class="z-20 h-full w-full rounded-t-lg"
+            />
           </div>
-        </Transition>
-      </main>
-    </vue-bottom-sheet>
+
+          <!-- Visit Details -->
+          <Transition name="slide-fade">
+            <div class="absolute bottom-2 left-2 right-2 z-30" v-if="selectedVisit">
+              <div class="rounded-md bg-white p-4 shadow-lg">
+                <ul class="space-y-2 list-none">
+                  <li class="flex justify-between gap-2">
+                    <p>Prestamo</p>
+                    <p class="font-bold text-blue-900">{{ selectedVisit.prestamoId }}</p>
+                  </li>
+                  <li class="flex justify-between gap-2">
+                    <p>Fecha</p>
+                    <p class="font-bold text-blue-900">
+                      {{ formatToHumanDate(selectedVisit.fecha, true) }}
+                    </p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </DrawerContent>
+    </Drawer>
   </MainCT>
 </template>
