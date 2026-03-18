@@ -8,15 +8,7 @@ class SettlementsService {
   private apiFax = createApiClientFromPreset('fastApi')
 
   async getLiquidacion(id: string) {
-    const { data } = await this.apiJavalin.get<settlementDetails>(`/liquidaciones/prestamo/${id}`, {
-      meta: {
-        errorNotification: {
-          title: 'Error al cargar liquidación',
-          message: 'No se pudo cargar la información de la liquidación. Por favor, intenta nuevamente.',
-          type: 'error'
-        }
-      }
-    })
+    const { data } = await this.apiJavalin.get<settlementDetails>(`/liquidaciones/prestamo/${id}`)
     const dataMapped: Liquidacion = {
       cargo: data.cargo,
       cliente: data.cliente,
