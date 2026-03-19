@@ -55,17 +55,7 @@ export function useSolimData() {
     currentApprovalType.value === 'seguridad' ? 'Seguridad' : 'Gerente'
   )
 
-  const filteredLoanRequests = computed(() =>
-    loanRequests.value.filter((request) => {
-      const requirements = request.approval_requirements ?? request.revision?.approval_requirements
-      const approvals = request.revision_aprobaciones ?? request.revision?.aprobaciones ?? []
-      const currentApproval = approvals.find(
-        (approval) => approval.tipo === currentApprovalType.value
-      )
-
-      return Boolean(requirements?.[currentApprovalType.value]) || currentApproval?.requerido === 1
-    })
-  )
+  const filteredLoanRequests = computed(() => loanRequests.value)
 
   const hasLoanRequests = computed(() => filteredLoanRequests.value.length > 0)
   const loanRequestsCount = computed(() => filteredLoanRequests.value.length)
