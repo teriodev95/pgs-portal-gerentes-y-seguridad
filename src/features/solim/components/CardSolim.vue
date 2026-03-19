@@ -178,14 +178,14 @@ const statusConfig = computed(() => {
               Ver detalles
             </button>
             <button
-              v-if="!isDecided"
+              v-if="!isDecided && (approvalRequirement || currentApproval?.requerido === 1)"
               class="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-slate-900 text-sm font-semibold text-white transition hover:bg-slate-800"
               @click="$emit('action:review', solicitud.id)"
             >
               Registrar check
             </button>
             <button
-              v-else
+              v-else-if="isDecided"
               class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-500 transition hover:bg-slate-50"
               @click="$emit('action:review', solicitud.id)"
             >
