@@ -138,7 +138,7 @@ const handleShowWeekDetails = () => {
   <!-- / Egresos del Agente -->
 
   <!--* Egresos del Gerente -->
-  <CardContainer title="Egresos del Gerenete">
+  <CardContainer title="Egresos del Gerente">
     <TextCT>
       Este resumen refleja el total de egresos generados por el gerente en la semana actual
     </TextCT>
