@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router'
 import { useCierreSemanalStore, useSignStore } from '../stores'
 import { useStore } from '@/shared/stores'
 import { useWeeklyCloseApi } from './useWeeklyCloseApi'
-import { transformToCreateCierre } from '../utils/weeklyCloseHelpers'
+import { transformToNewCreateCierre } from '../utils/weeklyCloseHelpers'
 import { ROUTE_NAME } from '@/router'
 import { useNotification } from '@/shared/composables/useNotification'
 import { unsignedVideoUsers } from '../constants'
@@ -43,7 +43,6 @@ export const useWeeklyClose = () => {
 
   /**
    * Calcula el total de montos de asignaciones
-   */
   const totalAssignmentsAmount = computed(() => {
     return (
       store.weeklyClose?.egresosAgente.asignaciones?.reduce(
@@ -52,6 +51,7 @@ export const useWeeklyClose = () => {
       ) || 0
     )
   })
+   */
 
   /**
    * Calcula el total de ingresos del agente
@@ -77,7 +77,7 @@ export const useWeeklyClose = () => {
     if (!store.weeklyClose) return 0
 
     return (
-      totalAssignmentsAmount.value +
+      store.weeklyClose.egresosAgente.asignaciones || 0 +
       (store.weeklyClose.egresosAgente.otrosEgresos || 0) +
       (store.weeklyClose.egresosAgente.efectivoEntregadoCierre || 0)
     )
@@ -107,7 +107,7 @@ export const useWeeklyClose = () => {
     return (
       totalAgentIncome.value -
       (store.weeklyClose.egresosAgente.otrosEgresos || 0) -
-      totalAssignmentsAmount.value
+      (store.weeklyClose.egresosAgente.asignaciones || 0)
     )
   })
 
@@ -135,16 +135,6 @@ export const useWeeklyClose = () => {
   // ============================================================================
   // WATCHERS - Sincronización automática con el store
   // ============================================================================
-  watch(
-    totalAssignmentsAmount,
-    (newValue) => {
-      if (newValue && store.weeklyClose) {
-        store.updateNestedField('egresosAgente', 'asignacionesNumero', newValue)
-      }
-    },
-    { immediate: true }
-  )
-
   watch(
     totalAgentExpenses,
     (newValue) => {
@@ -191,43 +181,6 @@ export const useWeeklyClose = () => {
     store.setWeeklyClose(data)
   }
 
-  /**
-   * Carga los ingresos de agentes desde la API
-   */
-  const loadAgentsIncome = async (): Promise<void> => {
-    const data = await api.getAgentsIncome()
-    store.setAgentsIncome(data)
-  }
-
-  /**
-   * Carga información de bonos si es semana de bonos
-   */
-  const loadBonusInfo = async (): Promise<void> => {
-    if (!agency.value?.agencia || !store.weeklyClose?.isSemanaBonos.pagoBono) {
-      return
-    }
-
-    const data = await api.getBonusInfo(
-      'Febrero',
-      currentDate.value.year,
-      agency.value.agencia
-    )
-
-    if (data?.data?.bono?.montoBono) {
-      //store.setBonusInfo(data.data.bono.montoBono)
-    }
-  }
-
-  /**
-   * Carga información de comisiones desde la API
-   */
-  const loadCommission = async (): Promise<void> => {
-    const data = await api.getCommission()
-
-    if (data?.reporte?.[0]) {
-      //store.setCommissionInfo(data.reporte[0])
-    }
-  }
 
   /**
    * Inicializa todos los datos del cierre semanal
@@ -244,9 +197,6 @@ export const useWeeklyClose = () => {
 
       // Cargar datos secuencialmente para evitar problemas de dependencia
       await loadWeeklyClose()
-      await loadAgentsIncome()
-      await loadBonusInfo()
-      await loadCommission()
 
       // Configurar nombres para firmas
       if (store.weeklyClose) {
@@ -269,7 +219,7 @@ export const useWeeklyClose = () => {
   // ============================================================================
 
   /**
-   * Guarda el cierre semanal en la API
+   * Guarda el cierre semanal en la API usando la nueva API de Elysia
    */
   const saveWeeklyClose = async (onSuccess?: () => void): Promise<boolean> => {
     if (!store.weeklyClose || !management.value) {
@@ -280,16 +230,16 @@ export const useWeeklyClose = () => {
     try {
       store.setLoading(true)
 
-      // Preparar datos para envío
-      const cierreData = transformToCreateCierre(
+      // Preparar datos para envío usando la nueva transformación
+      const cierreData = transformToNewCreateCierre(
         store.weeklyClose,
-        management.value || '',
         signStore.agentVerificationVideoUrl || '',
-        signStore.managerVerificationVideoUrl || ''
+        signStore.managerVerificationVideoUrl || '',
+        '' // observaciones - vacío por defecto
       )
 
-      // Guardar cierre y crear comisión
-      await api.createWeeklyClose(
+      // Guardar cierre usando la nueva API de Elysia y crear comisión
+      await api.createNewWeeklyClose(
         cierreData,
         agency.value?.agencia || '',
         management.value || '',
@@ -392,7 +342,6 @@ export const useWeeklyClose = () => {
     // Cálculos del cierre
     totalAgentIncome,
     totalAgentExpenses,
-    totalAssignmentsAmount,
     remainingCash,
     cashDelivered,
     totalCommissionsToPay,
@@ -401,9 +350,6 @@ export const useWeeklyClose = () => {
     // Métodos de carga
     initializeWeeklyClose,
     loadWeeklyClose,
-    loadAgentsIncome,
-    loadBonusInfo,
-    loadCommission,
 
     // Métodos de guardado
     saveWeeklyClose,

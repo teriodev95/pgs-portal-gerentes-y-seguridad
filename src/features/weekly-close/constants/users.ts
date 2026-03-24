@@ -1,4 +1,5 @@
 export const unsignedVideoUsers: string[] = [
   "JAMP20EX",
-  "BRUNODIAZ"
+  "BRUNODIAZ",
+  "JHHS11DX",
 ]

@@ -17,7 +17,6 @@ const VIDEO_UPLOAD_ERROR_MESSAGE = 'upload_error'
  * Types
  */
 type UserType = 'agente' | 'gerente' | 'seguridad'
-
 type CameraState = 'idle' | 'initializing' | 'recording' | 'uploading' | 'completed' | 'error'
 
 /**

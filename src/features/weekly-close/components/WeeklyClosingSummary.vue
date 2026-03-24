@@ -35,7 +35,6 @@ const {
   // Cálculos
   totalAgentIncome,
   totalAgentExpenses,
-  totalAssignmentsAmount,
   remainingCash,
 } = useWeeklyClose()
 
@@ -110,7 +109,7 @@ const handleShowWeekDetails = () => {
       Este resumen refleja el total de egresos generados por el agente en la semana actual
     </TextCT>
 
-    <DataField label="Asignaciones previas" :value="toCurrency(totalAssignmentsAmount)" />
+    <DataField label="Asignaciones previas" :value="toCurrency(weeklyClose?.egresosAgente.asignaciones)" />
 
     <EditableField
       label="Otros"
