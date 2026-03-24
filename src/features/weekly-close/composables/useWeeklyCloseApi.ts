@@ -6,7 +6,7 @@ import type {
   IUploadVideoResponse,
   IWeeklyCloseWithIncome
 } from '../types'
-import type { CreateNewWeeklyClose } from '../types/new-weekly'
+import type { CreateNewWeeklyClose } from '../types/new-weekly.types'
 
 /**
  * Composable centralizado para TODAS las llamadas a la API del feature weekly-close

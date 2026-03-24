@@ -1,5 +1,5 @@
 import type { IWeeklyCloseWithIncome } from '../types'
-import type { CreateNewWeeklyClose } from '../types/new-weekly'
+import type { CreateNewWeeklyClose } from '../types/new-weekly.types'
 
 /**
  * Transforma IWeeklyCloseWithIncome a CreateNewWeeklyClose para la nueva API de Elysia

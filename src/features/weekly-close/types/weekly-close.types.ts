@@ -1,3 +1,5 @@
+import type { Comisiones } from "./new-weekly.types"
+
 export interface IRendimientoFun {
   debitoAplicable: number
   debitoGeneral: number
@@ -63,7 +65,7 @@ export interface IWeeklyCloseWithIncome {
   isSemanaBonos: IIsSemanaBonos;
   agenciaCerrada: boolean;
   pinAgente: number;
-  comisiones: number;
+  comisiones: Comisiones;
   statusAgencia: 'ACTIVA' | 'VACANTE';
   id: number;
   ingresosAgente: IIngresosAgente;

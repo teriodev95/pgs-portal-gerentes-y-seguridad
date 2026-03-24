@@ -4,7 +4,7 @@ import type {
   IUploadVideoResponse,
   IWeeklyCloseWithIncome
 } from '@/features/weekly-close/types'
-import type { AgenciaDashboard, CreateNewWeeklyClose } from '@/features/weekly-close/types/new-weekly'
+import type { AgenciaDashboard, CreateNewWeeklyClose } from '@/features/weekly-close/types/new-weekly.types'
 import type { GetBaseProps } from '@/interfaces'
 import { toCurrency } from '@/shared/utils'
 
@@ -93,7 +93,7 @@ class WeeklyClosingService {
         otrosIngresos: cierre.otrosIngresos,
         motivoOtrosIngresos: cierre.motivoOtrosIngresos || ''
       },
-      comisiones: 9,
+      comisiones: comisiones,
       agenciaCerrada: referencia.agenciaCerrada === 1,
       pinAgente: 0, // No disponible en AgenciaDashboard
       statusAgencia: referencia.statusAgencia as 'ACTIVA' | 'VACANTE',
