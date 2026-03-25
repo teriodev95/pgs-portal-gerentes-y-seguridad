@@ -56,7 +56,7 @@ class WeeklyClosingService {
         rendimiento: dashboardAgencia.rendimiento
       },
       egresosAgente: {
-        asignaciones: cierre.asignacionesPreviasEfectivo, // No disponible en AgenciaDashboard
+        asignaciones: cierre.cierreExiste ? cierre.asignacionesPreviasEfectivo : dashboardAgencia.asignaciones, // No disponible en AgenciaDashboard
         asignacionesNumero: dashboardAgencia.numeroAsignaciones,
         otrosEgresos: cierre.otrosEgresos,
         motivoOtrosEgresos: cierre.motivoOtrosEgresos || '',
