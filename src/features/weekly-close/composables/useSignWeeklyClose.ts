@@ -38,6 +38,7 @@ export const useSignWeeklyClose = () => {
   const signStore = useSignStore()
   const globalStore = useStore()
   const weeklyCloseStore = useCierreSemanalStore()
+  const ENVIRONMENT = import.meta.env.VITE_ENVIRONMENT
   const { showError, showSuccess, showWarning } = useNotification()
 
   // ============================================================================
@@ -76,7 +77,7 @@ export const useSignWeeklyClose = () => {
   const isAgentVerificationCompleted = computed(() => signStore.isAgentVerificationCompleted)
   const isManagerVerificationCompleted = computed(() => signStore.isManagerVerificationCompleted)
   const isAgencyVacant = computed(() => weeklyCloseStore.isAgencyVacant)
-  const canCloseWithoutSigning = computed(() => signStore.canCloseWithoutSigning)
+  const canCloseWithoutSigning = computed(() => ENVIRONMENT === 'dev')
 
   const canSubmit = computed(() => {
     // If agency is vacant, can submit directly

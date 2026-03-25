@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import DataField from '@/shared/components/DataField.vue';
 import { toCurrency } from '@/shared/utils';
+import type { CorrectionType } from '../types';
 
 interface CurrentData {
   amount?: number;
@@ -11,7 +12,7 @@ interface CurrentData {
 
 interface Props {
   recordId: string;
-  correctionType: string;
+  correctionType: CorrectionType;
   currentData: CurrentData;
 }
 
@@ -22,7 +23,7 @@ defineProps<Props>();
   <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded text-sm">
     <DataField label="Identificador" :value="recordId" />
 
-    <template v-if="correctionType !== 'cierre'">
+    <template v-if="correctionType !== 'cierre_v2'">
       <DataField label="Monto (Actual)" :value="toCurrency(currentData.amount || 0)" />
     </template>
 

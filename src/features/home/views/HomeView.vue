@@ -4,11 +4,9 @@ import { onMounted } from 'vue'
 import { useAgencyData } from '@/features/home/composables/useAgencyData'
 import { useCollections } from '@/features/home/composables/useCollections'
 import { useUIState } from '@/features/home/composables/useUIState'
-import { usePwaUpdate } from '@/shared/composables/usePwaUpdate'
 
 // Components import
 import AgencySlider from '@/features/home/components/AgencySlider.vue'
-import CursorArrowIcon from '@/shared/components/icons/CursorArrowOutline.vue'
 import DrawerLeft from '@/features/home/components/DrawerLeft.vue'
 import FilterButton from '@/shared/components/FilterButton.vue'
 import GerencySlider from '@/features/home/components/GerencySlider.vue'
