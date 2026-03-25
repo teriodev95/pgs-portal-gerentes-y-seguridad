@@ -2,9 +2,10 @@
 import TextCT from '@/shared/components/ui/TextCT.vue';
 import BtnComponent from '@/shared/components/BtnComponent.vue';
 import { computed } from 'vue';
+import type { CorrectionType } from '../types';
 
 interface Props {
-  correctionType: string;
+  correctionType: CorrectionType;
   selectedAction: string;
   showSelection: boolean;
 }

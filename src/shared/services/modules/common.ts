@@ -10,7 +10,6 @@ import type {
 class CommonService {
   private javalinClient = createApiClientFromPreset('javalin')
   private expenseImageClient = createApiClientFromPreset('workerUploadExpenseImage')
-  private comisionClient = createApiClientFromPreset('n8nCreateComision')
   private faxClient = createApiClientFromPreset('fastApi')
   private elysiaClient = createApiClientFromPreset('elysia')
 
@@ -46,12 +45,6 @@ class CommonService {
       tipoGasto,
       usuarioID,
       imageBase64
-    })
-  }
-
-  async createComisionWithWorker(agency: string) {
-    return this.comisionClient.post('', {
-      agencia: agency
     })
   }
 }

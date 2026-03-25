@@ -31,7 +31,7 @@ export const useSignStore = defineStore(STORE_NAME, () => {
   const isManagerVerificationCompleted = ref<boolean>(false)
 
   // Special flags
-  const canCloseWithoutSigning = ref<boolean>(false)
+  const canCloseWithoutSigning = ref<boolean>(import.meta.env.DEV)
 
   /**
    * ------------------------------------------

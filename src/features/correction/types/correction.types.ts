@@ -8,9 +8,9 @@ export interface CorrectionRequest {
   datosAactualizar: {
     id: number | string
     monto?: number // Required for 'editar' operation
-    comisionCobranzaPagadaEnSemana?: number // Optional for 'eliminar' operation
-    bonosPagadosEnSemana?: number // Optional for 'eliminar' operation
-    comisionVentasPagadaEnSemana?: number // Optional for 'eliminar' operation
+    pagoComisionCobranza?: number // Optional for 'eliminar' operation
+    bonos?: number // Optional for 'eliminar' operation
+    pagoComisionVentas?: number // Optional for 'eliminar' operation
   }
   creadoPor: string
 }
@@ -25,4 +25,4 @@ export interface CorrectionFormData {
   action: 'correct' | 'delete' | ''
 }
 
-export type CorrectionType = 'pago' | 'asignacion' | 'venta' | 'gasto' | 'cierre' | ''
+export type CorrectionType = 'pago' | 'asignacion' | 'venta' | 'gasto' | 'cierre_v2' | '';

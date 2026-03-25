@@ -1,16 +1,13 @@
 // stores/cierreSemanal.ts
-import { ref, computed, readonly } from 'vue'
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { IFastWeeklyClose, IWeeklyCloseWithIncome, IBonusSummary, ICommissionReportItem } from '@/features/weekly-close/types'
-import type { IAgencyDashboard } from '@/features/weekly-close/types'
+import type { IWeeklyCloseWithIncome } from '@/features/weekly-close/types'
 
 
 export const useCierreSemanalStore = defineStore('cierre-semanal', () => {
   // Estado principal del cierre semanal
   const weeklyClose = ref<IWeeklyCloseWithIncome>()
   const securityPin = ref<string>('')
-  const bonusInfo = ref<IBonusSummary>()
-  const agentsIncome = ref<IAgencyDashboard>()
 
   // Estados de control
   const isClosingComplete = ref(false)
@@ -26,63 +23,17 @@ export const useCierreSemanalStore = defineStore('cierre-semanal', () => {
     () => weeklyClose.value
   )
 
-  // Métodos básicos para actualizar estado
-  const setBonusInfo = (bono: number) => {
-    if (!weeklyClose.value) return
-    weeklyClose.value.egresosGerente.bonosPagadosEnSemana = bono
-  }
-
-  const setCommissionInfo = (commission: ICommissionReportItem) => {
-    if (!weeklyClose.value) return
-    weeklyClose.value.egresosGerente.comisionCobranzaPagadaEnSemana = commission.comisionSemanal
-    weeklyClose.value.egresosGerente.comisionVentasPagadaEnSemana = commission.comisionPorVentas
-  }
-
   const setClosingComplete = (status: boolean) => (isClosingComplete.value = status)
   const setError = (errorMessage: string | null) => (error.value = errorMessage)
   const setLoading = (status: boolean) => (isLoading.value = status)
   const setSecurityPin = (pin: string) => securityPin.value = pin
-  const setWeeklyClose = (data: IFastWeeklyClose | IWeeklyCloseWithIncome) => {
+  const setWeeklyClose = (data:  IWeeklyCloseWithIncome) => {
     // Si ya tiene ingresosAgente, usar tal como está
-    if ('ingresosAgente' in data) {
       weeklyClose.value = data as IWeeklyCloseWithIncome
-    } else {
-      // Convertir IFastWeeklyClose a IWeeklyCloseWithIncome agregando ingresosAgente vacío
-      weeklyClose.value = {
-        ...data,
-        ingresosAgente: {
-          cobranzaPura: 0,
-          montoExcedente: 0,
-          liquidaciones: 0,
-          multas: 0,
-          otrosIngresos: 0,
-          motivoOtrosIngresos: ''
-        }
-      }
-    }
   }
-  const setWeeklyClosingBonus = (bonus: number) => {
-    if (!weeklyClose.value) return
-    weeklyClose.value.egresosGerente.bonosPagadosEnSemana = bonus
-  }
-
-
-  const setAgentsIncome = (data: IAgencyDashboard) => {
-    if (!weeklyClose.value) return
-
-    weeklyClose.value.ingresosAgente.cobranzaPura = data.totalCobranzaPura
-    weeklyClose.value.ingresosAgente.montoExcedente = data.montoExcedente
-    weeklyClose.value.ingresosAgente.liquidaciones = data.liquidaciones
-    weeklyClose.value.ingresosAgente.multas = data.multas
-    weeklyClose.value.ingresosAgente.otrosIngresos = 0
-
-    agentsIncome.value = data
-  }
-
 
   // Método para limpiar el estado
   const resetState = () => {
-    bonusInfo.value = undefined
     error.value = null
     isClosingComplete.value = false
     isLoading.value = false
@@ -118,7 +69,6 @@ export const useCierreSemanalStore = defineStore('cierre-semanal', () => {
     isLoading,
     weeklyClose,
     securityPin,
-    bonusInfo: readonly(bonusInfo),
 
     // Getters
     hasRequiredData,
@@ -129,15 +79,11 @@ export const useCierreSemanalStore = defineStore('cierre-semanal', () => {
 
     // Actions
     resetState,
-    setAgentsIncome,
-    setBonusInfo,
     setClosingComplete,
-    setCommissionInfo,
     setError,
     setLoading,
     setSecurityPin,
     setWeeklyClose,
-    setWeeklyClosingBonus,
     updateNestedField,
     updateWeeklyCloseField,
   }
