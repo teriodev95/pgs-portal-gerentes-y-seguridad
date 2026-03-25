@@ -18,6 +18,7 @@ export interface PagoBono {
 }
 
 export interface Referencia {
+  pinAgente: number;
   agencia: string;
   gerencia: string;
   agente: string;
