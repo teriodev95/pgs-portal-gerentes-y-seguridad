@@ -1,4 +1,4 @@
-import type { CorrectionRequest } from '../types';
+import type { CorrectionRequest, CorrectionType } from '../types';
 
 interface FormData {
   newAmount?: number;
@@ -9,7 +9,7 @@ interface FormData {
 
 export function useCorrectionData() {
   const buildCorrectionData = (
-    correctionType: string,
+    correctionType: CorrectionType,
     recordId: string,
     actionType: string,
     formData: FormData
@@ -25,7 +25,7 @@ export function useCorrectionData() {
     };
 
     if (actionType === 'correct') {
-      if (correctionType === 'cierre') {
+      if (correctionType === 'cierre_v2') {
         Object.assign(baseData, {
           newBonusesPaidInWeek: formData.newBonusesPaidInWeek || 0,
           newCollectionCommissionPaidInWeek: formData.newCollectionCommissionPaidInWeek || 0,
@@ -53,17 +53,17 @@ export function useCorrectionData() {
       gerencia: storeData.gerenciaSelected,
       anio: storeData.currentDate.year,
       semana: storeData.currentDate.week,
-      tipo: correctionData.type as any,
+      tipo: correctionData.type,
       operacion: correctionData.action === 'correct' ? 'editar' : 'eliminar',
       datosAactualizar: {
         id: correctionData.recordId,
         ...(['pago', 'venta', 'asignacion', 'gasto'].includes(correctionData.type) && {
           monto: correctionData.newAmount
         }),
-        ...(correctionData.type === 'cierre' && {
-          comisionCobranzaPagadaEnSemana: correctionData.newCollectionCommissionPaidInWeek,
-          comisionVentasPagadaEnSemana: correctionData.newSalesCommissionPaidInWeek,
-          bonosPagadosEnSemana: correctionData.newBonusesPaidInWeek
+        ...(correctionData.type === 'cierre_v2' && {
+          pagoComisionCobranza: correctionData.newCollectionCommissionPaidInWeek,
+          pagoComisionVentas: correctionData.newSalesCommissionPaidInWeek,
+          bonos: correctionData.newBonusesPaidInWeek
         })
       },
       creadoPor: storeData.user.usuario

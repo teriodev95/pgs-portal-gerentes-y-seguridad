@@ -304,7 +304,7 @@ export const useWeeklyClose = () => {
     router.push({
       name: ROUTE_NAME.RECORD_CORRECTION,
       params: {
-        type: 'cierre',
+        type: 'cierre_v2',
         id: weeklyClose.value.id.toString(),
         amount: amountsString
       }
