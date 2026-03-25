@@ -95,7 +95,7 @@ class WeeklyClosingService {
       },
       comisiones: comisiones,
       agenciaCerrada: referencia.agenciaCerrada === 1,
-      pinAgente: 0, // No disponible en AgenciaDashboard
+      pinAgente: referencia.pinAgente, // No disponible en AgenciaDashboard
       statusAgencia: referencia.statusAgencia as 'ACTIVA' | 'VACANTE',
       snapshot_regla_comision_id: cierre.snapshotReglaComisionId,
       id: cierre.cierreId ? parseInt(cierre.cierreId) : 0,
