@@ -37,10 +37,6 @@ export const API_CONFIGURATIONS: ApiConfigurations = {
     baseURL: 'https://xpress-recibos-gastos-upload-imagen.clvrt.workers.dev/upload',
     timeout: 10000
   },
-  n8nCreateComision: {
-    baseURL: 'https://middleware-universal-n8n.clvrt.workers.dev/n8n/agencia',
-    timeout: 10000
-  },
   mcp: {
     baseURL: 'https://mcp.xpress1.cc/',
     timeout: 10000,

@@ -70,7 +70,7 @@ export function useRecordCorrection() {
   const isFormValid = computed(() => {
     if (state.value.actionType === 'delete') return true;
 
-    if (state.value.correctionType === 'cierre') {
+    if (state.value.correctionType === 'cierre_v2') {
       return formData.value.newBonusesPaidInWeek >= 0 &&
         formData.value.newCollectionCommissionPaidInWeek >= 0 &&
         formData.value.newSalesCommissionPaidInWeek >= 0;
@@ -80,15 +80,15 @@ export function useRecordCorrection() {
   });
 
   const shouldShowActionSelection = computed(() =>
-    state.value.correctionType !== 'cierre' && state.value.correctionType !== 'venta'
+    state.value.correctionType !== 'cierre_v2' && state.value.correctionType !== 'venta'
   );
 
   const shouldShowAmountField = computed(() =>
-    state.value.actionType === 'correct' && state.value.correctionType !== 'cierre'
+    state.value.actionType === 'correct' && state.value.correctionType !== 'cierre_v2'
   );
 
   const shouldShowClosureFields = computed(() =>
-    state.value.actionType === 'correct' && state.value.correctionType === 'cierre'
+    state.value.actionType === 'correct' && state.value.correctionType === 'cierre_v2'
   );
 
   // Methods
@@ -206,7 +206,7 @@ export function useRecordCorrection() {
   onMounted(() => {
     if (state.value.correctionType === 'venta') {
       state.value.actionType = 'delete';
-    } else if (state.value.correctionType === 'cierre') {
+    } else if (state.value.correctionType === 'cierre_v2') {
       state.value.actionType = 'correct';
     }
   });

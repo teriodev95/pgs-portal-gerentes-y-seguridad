@@ -5,7 +5,7 @@ export const TYPE_LABELS: Record<CorrectionType, string> = {
   'pago': 'Pago',
   'venta': 'Venta',
   'gasto': 'Gasto',
-  'cierre': 'Cierre',
+  'cierre_v2': 'Cierre',
   '': ''
 } as const;
 

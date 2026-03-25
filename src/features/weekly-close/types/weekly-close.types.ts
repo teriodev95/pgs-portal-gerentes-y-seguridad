@@ -1,4 +1,4 @@
-import type { INewAssignment } from "@/features/assignment/types"
+import type { Comisiones } from "./new-weekly.types"
 
 export interface IRendimientoFun {
   debitoAplicable: number
@@ -32,7 +32,7 @@ export interface IIngresosAgente {
 }
 
 export interface IEgresosAgente {
-  asignaciones: INewAssignment[];
+  asignaciones: number;
   asignacionesNumero: number;
   otrosEgresos: number;
   motivoOtrosEgresos: string;
@@ -57,126 +57,23 @@ interface IIsSemanaBonos {
   anioActual: number
 }
 
-export interface IFastWeeklyClose {
+export interface IWeeklyCloseWithIncome {
   resumenSemanal: IResumenSemanal;
   egresosAgente: IEgresosAgente;
   egresosGerente: IEgresosGerente;
   rendimientoFun: IRendimientoFun;
   isSemanaBonos: IIsSemanaBonos;
   agenciaCerrada: boolean;
-  pinAgente: number
-  statusAgencia: 'ACTIVA' | 'VACANTE'
+  pinAgente: number;
+  comisiones: Comisiones;
+  statusAgencia: 'ACTIVA' | 'VACANTE';
   id: number;
-}
-
-// Interfaz extendida para el store local que incluye ingresosAgente
-export interface IWeeklyCloseWithIncome extends IFastWeeklyClose {
   ingresosAgente: IIngresosAgente;
+  snapshot_regla_comision_id: number;
 }
 
-export interface ICreateCierreSemana {
-  semana: number
-  anio: number
-  agencia: string
-  agente: string
-  gerencia: string
-  gerente: string
-  clientes: number
-  pagosReducidos: number
-  noPagos: number
-  clientesLiquidados: number
-  liquidaciones: number
-  multas: number
-  otrosIngresos: number
-  motivoOtrosIngresos: string
-  asignaciones: number
-  otrosEgresos: number
-  motivoOtrosEgresos: string
-  totalEgresosAgente: number
-  comisionCobranzaPagadaEnSemana: number
-  porcentajePorCobranzaPagadoEnSemana: number
-  bonosPagadosEnSemana: number
-  porcentajePorBonoMensualPagadoEnSemana: number
-  comisionVentasPagadaEnSemana: number
-  efectivoRestanteCierre: number
-  efectivoEntregadoCierre: number
-  uidVerificacionAgente: string
-  uidVerificacionGerente: string
-}
-
-export interface IUploadVideoResponse { 
+export interface IUploadVideoResponse {
   videoUrl: string
   success: boolean
   error?: string
-}
-
-export interface IAgencyDashboard {
-  gerencia: string;
-  agencia: string;
-  anio: number;
-  semana: number;
-  clientes: number;
-  clientesCobrados: number;
-  noPagos: number;
-  numeroLiquidaciones: number;
-  pagosReducidos: number;
-  debitoMiercoles: number;
-  debitoJueves: number;
-  debitoViernes: number;
-  debitoTotal: number;
-  rendimientoGeneral: number;
-  totalDescuento: number;
-  totalCobranzaPura: number;
-  montoExcedente: number;
-  multas: number;
-  liquidaciones: number;
-  cobranzaTotal: number;
-  debitoFaltante: number;
-  efectivoEnCampo: number;
-  statusAgencia: string;
-  numeroVentas: number;
-  ventas: number;
-  numeroAsignaciones: number;
-  asignaciones: number;
-  agenciaCerrada: number; // 0 o 1 (booleano como número)
-  debitoGeneral: number;
-  debitoNoImpacta: number;
-  debitoAplicable: number;
-  totalPagado: number;
-  rendimiento: number;
-}
-
-export interface ICommissionReportItem {
-  agencia: string
-  agente: string
-  mesesTrabajados: number
-  clientesPagoCompleto: number
-  recuperacionAlJueves: number
-  totalCobranzaPura: number
-  montoExcedente: number
-  primerosPagos: number
-  numeroVentas: number
-  baseComision: number
-  comisionPorVentas: number
-  nivelComision: string
-  numeroNivelComision: number
-  comisionSemanal: number
-  comisionTotal: number
-}
-
-export interface ICommissionReportParams {
-  semana: number
-  anio: number
-  agencia: string
-}
-
-export interface ICommissionReportSummary {
-  totalAgentes: number
-  totalComisionAgencia: number
-}
-
-export interface ICommissionReport {
-  reporte: ICommissionReportItem[]
-  parametros: ICommissionReportParams
-  resumen: ICommissionReportSummary
 }

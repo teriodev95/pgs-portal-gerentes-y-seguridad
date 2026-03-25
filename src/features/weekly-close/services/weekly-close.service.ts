@@ -1,56 +1,120 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
+import type { AxiosResponse } from 'axios'
 import type {
-  IBonusDetails,
-  ICommissionReport,
-  ICreateCierreSemana,
-  IFastWeeklyClose,
   IUploadVideoResponse,
-  IAgencyDashboard
+  IWeeklyCloseWithIncome
 } from '@/features/weekly-close/types'
+import type { AgenciaDashboard, CreateNewWeeklyClose } from '@/features/weekly-close/types/new-weekly.types'
 import type { GetBaseProps } from '@/interfaces'
 import { toCurrency } from '@/shared/utils'
 
 
 class WeeklyClosingService {
-  private fastApiClient = createApiClientFromPreset('fastApi')
   private uploadVideoClient = createApiClientFromPreset('workerUploadVideo')
   private apiJavalin = createApiClientFromPreset('javalin')
-
-  async getAgentsIncome({ agency, year, week } : GetBaseProps) {
-    return this.apiJavalin.get<IAgencyDashboard>(`/dashboards/agencia?agencia=${agency}&anio=${year}&semana=${week}`, {
+  private apiElysia = createApiClientFromPreset('elysia')
+  
+  async uploadVideo(video: File) {
+    const formData = new FormData()
+    formData.append('video', video)
+    return this.uploadVideoClient.post<IUploadVideoResponse>('/upload', formData, {
       meta: {
         errorNotification: {
-          title: 'Error al cargar ingresos de agentes',
-          message: 'No se pudieron cargar los ingresos de los agentes. Por favor, intenta nuevamente.',
+          title: 'Error al subir video',
+          message: 'No se pudo subir el video. Por favor, verifica el archivo e intenta nuevamente.',
           type: 'error'
         }
       }
     })
-  } 
-
-  async getWeeklyClose(week: number, anio: number, gerencia: string, agencia: string) {
-    return this.fastApiClient.get<IFastWeeklyClose[]>(
-      `/cierres-agencias/?semana=${week}&anio=${anio}&gerencia=${gerencia}&agencia=${agencia}`,
-      {
-        meta: {
-          errorNotification: {
-            title: 'Error al cargar cierre semanal',
-            message: 'No se pudo cargar la información del cierre semanal. Por favor, intenta nuevamente.',
-            type: 'error'
-          }
-        }
-      }
-    )
   }
 
-  async createWeeklyClose(data: ICreateCierreSemana, agencyName: string, managementName: string, onClose?: () => void) {
+  async getWeeklyClose({ agency, year, week }: GetBaseProps): Promise<AxiosResponse<IWeeklyCloseWithIncome>> {
+    const response = await this.apiJavalin.get<AgenciaDashboard>(`/cierres-agencias/prefill?agencia=${agency}&anio=${year}&semana=${week}`, {
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar cierre semanal',
+          message: 'No se pudo cargar la información del cierre semanal. Por favor, intenta nuevamente.',
+          type: 'error'
+        }
+      }
+    })
+
+    const { referencia, dashboardAgencia, comisiones, cierre } = response.data
+
+    const mappedData: IWeeklyCloseWithIncome = {
+      resumenSemanal: {
+        semana: referencia.semana,
+        anio: referencia.anio,
+        agencia: referencia.agencia,
+        agente: referencia.agente,
+        gerencia: referencia.gerencia,
+        gerente: '', // No disponible en AgenciaDashboard
+        clientes: dashboardAgencia.clientes,
+        pagosReducidos: dashboardAgencia.pagosReducidos,
+        noPagos: dashboardAgencia.noPagos,
+        clientesLiquidados: dashboardAgencia.clientesLiquidados,
+        rendimiento: dashboardAgencia.rendimiento
+      },
+      egresosAgente: {
+        asignaciones: cierre.asignacionesPreviasEfectivo, // No disponible en AgenciaDashboard
+        asignacionesNumero: dashboardAgencia.numeroAsignaciones,
+        otrosEgresos: cierre.otrosEgresos,
+        motivoOtrosEgresos: cierre.motivoOtrosEgresos || '',
+        totalEgresosAgente: cierre.otrosEgresos + dashboardAgencia.asignaciones,
+        efectivoEntregadoCierre: cierre.efectivoEntregadoCierre
+      },
+      egresosGerente: {
+        comisionCobranzaPagadaEnSemana: comisiones.pagoComisionCobranza,
+        comisionVentasPagadaEnSemana: comisiones.pagoComisionVentas,
+        bonosPagadosEnSemana: comisiones.pagoBono.bonos,
+        efectivoRestanteCierre: cierre.efectivoRestanteCierre,
+        porcentajePorCobranzaPagadoEnSemana: comisiones.porcentajeComisionCobranza,
+        porcentajePorBonoMensualPagadoEnSemana: comisiones.pagoBono.porcentajeBonoMensual
+      },
+      rendimientoFun: {
+        debitoAplicable: dashboardAgencia.debitoAplicable,
+        debitoGeneral: dashboardAgencia.debitoGeneral,
+        debitoNoImpacta: dashboardAgencia.debitoNoImpacta,
+        rendimientoGeneral: dashboardAgencia.rendimientoGeneral,
+        totalPagado: dashboardAgencia.totalPagado
+      },
+      isSemanaBonos: {
+        pagoBono: comisiones.pagoBono.aplicaPagoBono,
+        mesAnterior: comisiones.pagoBono.mesBono || '',
+        anioAnterior: referencia.anio,
+        mesActual: referencia.mes,
+        anioActual: referencia.anio
+      },
+      ingresosAgente: {
+        cobranzaPura: dashboardAgencia.cobranzaPura,
+        montoExcedente: dashboardAgencia.excedente,
+        liquidaciones: dashboardAgencia.liquidaciones,
+        multas: dashboardAgencia.multas,
+        otrosIngresos: cierre.otrosIngresos,
+        motivoOtrosIngresos: cierre.motivoOtrosIngresos || ''
+      },
+      comisiones: comisiones,
+      agenciaCerrada: referencia.agenciaCerrada === 1,
+      pinAgente: 0, // No disponible en AgenciaDashboard
+      statusAgencia: referencia.statusAgencia as 'ACTIVA' | 'VACANTE',
+      snapshot_regla_comision_id: cierre.snapshotReglaComisionId,
+      id: cierre.cierreId ? parseInt(cierre.cierreId) : 0,
+    }
+
+    return {
+      ...response,
+      data: mappedData
+    } as AxiosResponse<IWeeklyCloseWithIncome>
+  }
+
+  async createWeeklyClose(data: CreateNewWeeklyClose, agencyName: string, managementName: string, onClose?: () => void) {
     const summaryList = [
-      `Comisión por cobranza: ${toCurrency(data.comisionCobranzaPagadaEnSemana)}`,
-      `Comisión por ventas: ${toCurrency(data.comisionVentasPagadaEnSemana)}`,
-      `Bonos: ${toCurrency(data.bonosPagadosEnSemana)}`
+      `Comisión por cobranza: ${toCurrency(data.pago_comision_cobranza)}`,
+      `Comisión por ventas: ${toCurrency(data.pago_comision_ventas)}`,
+      `Bonos: ${toCurrency(data.bonos)}`
     ]
 
-    return this.fastApiClient.post(`/cierres-agencias/`, data, {
+    return this.apiElysia.post('/cierres-semanales/', data, {
       meta: {
         successNotification: {
           mainText: 'Cierre semanal completado con éxito',
@@ -68,44 +132,6 @@ class WeeklyClosingService {
     })
   }
 
-  async uploadVideo(video: File) {
-    const formData = new FormData()
-    formData.append('video', video)
-    return this.uploadVideoClient.post<IUploadVideoResponse>('/upload', formData, {
-      meta: {
-        errorNotification: {
-          title: 'Error al subir video',
-          message: 'No se pudo subir el video. Por favor, verifica el archivo e intenta nuevamente.',
-          type: 'error'
-        }
-      }
-    })
-  }
-
-  async getBonusInfo(mes: string, anio: number, agencia: string) {
-    return this.apiJavalin.get<IBonusDetails>(`/bonos/reporte?agencia=${agencia}&anio=${anio}&mes=${mes}`, {
-      meta: {
-        errorNotification: {
-          title: 'Error al cargar información de bonos',
-          message: 'No se pudo cargar la información de bonos. Por favor, intenta nuevamente.',
-          type: 'error'
-        }
-      }
-    })
-  }
-
-
-  async getCommission({ agency, year, week }: GetBaseProps) {
-    return this.apiJavalin.get<ICommissionReport>(`https://javalin.xpress1.cc/api/comisiones/agencia/reporte?agencia=${agency}&anio=${year}&semana=${week}`, {
-      meta: {
-        errorNotification: {
-          title: 'Error al cargar comisiones',
-          message: 'No se pudo cargar el reporte de comisiones. Por favor, intenta nuevamente.',
-          type: 'error'
-        }
-      }
-    })
-  }
 }
 
 export const weeklyClosingService = new WeeklyClosingService()
