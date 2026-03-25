@@ -245,7 +245,6 @@ export const useWeeklyClose = () => {
         management.value || '',
         onSuccess
       )
-      await api.createCommission(globalStore.agencySelected as string)
 
       // Recargar datos actualizados
       await loadWeeklyClose()

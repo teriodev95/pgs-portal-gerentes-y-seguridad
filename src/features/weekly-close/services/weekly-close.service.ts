@@ -114,7 +114,7 @@ class WeeklyClosingService {
       `Bonos: ${toCurrency(data.bonos)}`
     ]
 
-    return this.apiElysia.post('/cierres-agencias/', data, {
+    return this.apiElysia.post('/cierres-semanales/', data, {
       meta: {
         successNotification: {
           mainText: 'Cierre semanal completado con éxito',

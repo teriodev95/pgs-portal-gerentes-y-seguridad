@@ -86,26 +86,6 @@ export const useWeeklyCloseApi = () => {
   }
 
   /**
-   * Crea una comisión usando el worker
-   */
-  const createCommission = async (agencia: string): Promise<void> => {
-    isCreatingCommission.value = true
-    createCommissionError.value = null
-
-    try {
-      await commonService.createComisionWithWorker(agencia)
-    } catch (error) {
-      const errorMessage = error instanceof Error
-        ? error
-        : new Error('Error desconocido al crear comisión')
-      createCommissionError.value = errorMessage
-      throw errorMessage
-    } finally {
-      isCreatingCommission.value = false
-    }
-  }
-
-  /**
    * Sube un video de verificación
    */
   const uploadVideo = async (video: File): Promise<IUploadVideoResponse> => {
@@ -160,7 +140,6 @@ export const useWeeklyCloseApi = () => {
     // Métodos de API
     getWeeklyClose,
     createNewWeeklyClose,
-    createCommission,
     uploadVideo,
 
     // Estados de loading (readonly para evitar mutaciones externas)

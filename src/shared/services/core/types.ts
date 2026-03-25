@@ -26,7 +26,6 @@ export interface ApiConfigurations {
   fastApi: ApiConfig
   hono: ApiConfig
   javalin: ApiConfig
-  n8nCreateComision: ApiConfig
   workerUploadExpenseImage: ApiConfig
   workerUploadVideo: ApiConfig,
   mcp: ApiConfig
