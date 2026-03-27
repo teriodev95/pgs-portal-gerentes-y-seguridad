@@ -5,3 +5,4 @@ export enum ELEMENT_ID {
 }
 
 export const APP_VERSION = '5.3.7'
+
