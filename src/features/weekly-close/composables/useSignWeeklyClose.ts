@@ -77,8 +77,7 @@ export const useSignWeeklyClose = () => {
   const isAgentVerificationCompleted = computed(() => signStore.isAgentVerificationCompleted)
   const isManagerVerificationCompleted = computed(() => signStore.isManagerVerificationCompleted)
   const isAgencyVacant = computed(() => weeklyCloseStore.isAgencyVacant)
-  //const canCloseWithoutSigning = computed(() => ENVIRONMENT === 'dev')
-  const canCloseWithoutSigning = computed(() => ENVIRONMENT === 'dev')
+  const canCloseWithoutSigning = computed(() => signStore.canCloseWithoutSigning)
 
   const canSubmit = computed(() => {
     // If agency is vacant, can submit directly
