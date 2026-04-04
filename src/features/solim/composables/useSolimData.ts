@@ -42,6 +42,7 @@ export function useSolimData() {
   const selectedLoanRequest = ref<Solicitud | null>(null)
   const tablaCargosOptions = ref<TablaCargosOption[]>([])
   const selectedAgency = ref<string>('all')
+  const selectedWeek = ref<number>($store.currentDate.week)
   const isLoadingLoanRequests = ref(false)
   const isLoadingSelectedLoanRequest = ref(false)
   const isProcessingAction = ref(false)
@@ -96,7 +97,7 @@ export function useSolimData() {
       const response = await solimService.getLoanApplications({
         year: $store.currentDate.year,
         managment: $store.gerenciaSelected,
-        week: $store.currentDate.week,
+        week: selectedWeek.value,
         agency: selectedAgency.value !== 'all' ? selectedAgency.value : undefined
       })
       
@@ -162,7 +163,7 @@ export function useSolimData() {
     }
   }
 
-  async function processLoanRequest(loanApprovalForm: ApprovalDialogForm, id: string): Promise<void> {
+  async function processLoanRequest(loanApprovalForm: ApprovalDialogForm, id: string, approvalType?: ApprovalType): Promise<void> {
     if (loanApprovalForm.decision === 'rechazado' && !loanApprovalForm.comentario.trim()) {
       showError('Agrega un comentario para justificar el rechazo.')
       return
@@ -219,8 +220,10 @@ export function useSolimData() {
 
     try {
       isProcessingAction.value = true
-      await solimService.updateLoanApplicationCheck(id, currentApprovalType.value, payload)
-      showSuccess(`Revisión de ${currentRoleLabel.value.toLowerCase()} guardada.`)
+      const tipo = approvalType ?? currentApprovalType.value
+      const LABELS: Record<string, string> = { gerente: 'gerente', oficina: 'oficina', garantias: 'garantías', seguridad: 'seguridad', direccion: 'dirección' }
+      await solimService.updateLoanApplicationCheck(id, tipo, payload)
+      showSuccess(`Revisión de ${LABELS[tipo] ?? tipo} guardada.`)
       await fetchLoanRequests()
       await fetchLoanRequestDetail(id)
     } catch (error) {
@@ -231,8 +234,29 @@ export function useSolimData() {
     }
   }
 
-  async function saveApproval(loanApprovalForm: ApprovalDialogForm, id: string): Promise<void> {
-    return processLoanRequest(loanApprovalForm, id)
+  async function saveApproval(loanApprovalForm: ApprovalDialogForm, id: string, approvalType?: ApprovalType): Promise<void> {
+    return processLoanRequest(loanApprovalForm, id, approvalType)
+  }
+
+  async function saveGarantiasCheck(id: string, payload: { decision: 'aprobado' | 'rechazado'; comentario: string }): Promise<void> {
+    try {
+      isProcessingAction.value = true
+      await solimService.updateLoanApplicationCheck(id, 'garantias', {
+        decision: payload.decision,
+        userId: String($store.user?.usuarioId ?? $store.user?.usuario ?? ''),
+        userName: [$store.user?.nombre, $store.user?.apellidoPaterno, $store.user?.apellidoMaterno].filter(Boolean).join(' ').trim(),
+        notas: payload.comentario.trim() || undefined,
+        pinValidado: true
+      })
+      showSuccess('Validación de garantías guardada.')
+      await fetchLoanRequests()
+      await fetchLoanRequestDetail(id)
+    } catch (error) {
+      showError('Error al guardar la validación de garantías')
+      throw error
+    } finally {
+      isProcessingAction.value = false
+    }
   }
 
   async function selectLoanRequest(id: string): Promise<void> {
@@ -256,11 +280,18 @@ export function useSolimData() {
     await fetchLoanRequests()
   }
 
+  async function setSelectedWeek(week: number): Promise<void> {
+    selectedWeek.value = week
+    clearSelectedLoanRequest()
+    await fetchLoanRequests()
+  }
+
   return {
     loanRequests: filteredLoanRequests,
     selectedLoanRequest,
     tablaCargosOptions,
     selectedAgency,
+    selectedWeek,
     isLoadingLoanRequests,
     isLoadingSelectedLoanRequest,
     isProcessingAction,
@@ -274,7 +305,9 @@ export function useSolimData() {
     fetchLoanRequests,
     fetchTablaCargosOptions,
     setSelectedAgency,
+    setSelectedWeek,
     saveApproval,
+    saveGarantiasCheck,
     selectLoanRequest,
     clearSelectedLoanRequest
   }

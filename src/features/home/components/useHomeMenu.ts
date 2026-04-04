@@ -28,7 +28,6 @@ import {
   Share,
   Book,
   Calendar,
-  ScanSearch,
 } from 'lucide-vue-next'
 
 /**
@@ -211,13 +210,6 @@ export function useHomeMenu() {
       icon: Calendar,
       route: ROUTE_NAME.CALENDAR,
       description: 'Ver calendario',
-    },
-    {
-      id: 'soli-filter',
-      title: 'Soli Filtro',
-      icon: ScanSearch,
-      route: ROUTE_NAME.SOLI_FILTER,
-      description: 'Solicitud con filtro',
     },
     {
       id: 'pagare',

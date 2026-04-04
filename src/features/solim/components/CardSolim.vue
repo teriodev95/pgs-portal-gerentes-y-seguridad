@@ -61,6 +61,29 @@ const isDecided = computed(() => {
   return d === 'aprobado' || d === 'aprobado_con_ajuste' || d === 'rechazado'
 })
 
+const solicitudStatusConfig = computed(() => {
+  switch (props.solicitud.status) {
+    case 'capturada':
+      return { label: 'Capturada', classes: 'bg-slate-100 text-slate-700' }
+    case 'en_filtrado':
+      return { label: 'En filtrado', classes: 'bg-slate-100 text-slate-700' }
+    case 'en_correccion':
+      return { label: 'En corrección', classes: 'bg-amber-100 text-amber-800' }
+    case 'en_vistos_buenos':
+      return { label: 'En vistos buenos', classes: 'bg-blue-100 text-blue-800' }
+    case 'lista_desembolso':
+      return { label: 'Lista p/ desembolso', classes: 'bg-emerald-100 text-emerald-800' }
+    case 'desembolsada':
+      return { label: 'Desembolsada', classes: 'bg-emerald-500 text-white' }
+    case 'rechazada':
+      return { label: 'Rechazada', classes: 'bg-red-100 text-red-800' }
+    case 'cancelada':
+      return { label: 'Cancelada', classes: 'bg-red-100 text-red-800' }
+    default:
+      return { label: props.solicitud.status ?? 'Sin status', classes: 'bg-slate-100 text-slate-500' }
+  }
+})
+
 const statusConfig = computed(() => {
   const d = currentApproval.value?.decision
   if (d === 'aprobado' || d === 'aprobado_con_ajuste')
@@ -79,27 +102,33 @@ const statusConfig = computed(() => {
     <!-- Header compacto — siempre visible -->
     <button
       type="button"
-      class="flex w-full items-center gap-3 px-5 py-3.5 text-left transition hover:bg-slate-50/60"
+      class="flex w-full items-center gap-3.5 px-5 py-4 text-left transition hover:bg-slate-50/60"
       @click="isExpanded = !isExpanded"
     >
       <component :is="statusConfig.icon" class="size-5 shrink-0" :class="statusConfig.iconColor" />
 
-      <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-2">
-          <p class="truncate text-[15px] font-semibold text-slate-900">{{ clientName }}</p>
-          <span
-            class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-            :class="[statusConfig.badgeBg, statusConfig.badgeText]"
-          >
-            {{ statusLabel }}
-          </span>
-        </div>
-        <div class="mt-0.5 flex items-center gap-2 text-[13px] text-slate-500">
+      <div class="min-w-0 flex-1 space-y-1.5">
+        <p class="truncate text-[15px] font-semibold leading-tight text-slate-900">{{ clientName }}</p>
+        <div class="flex items-center gap-1.5 text-[12px] text-slate-500">
           <span>{{ solicitud.agencia }}</span>
           <span class="text-slate-300">·</span>
           <span class="font-medium text-slate-700">{{ toCurrency(solicitud.monto_solicitado ?? 0) }}</span>
           <span class="text-slate-300">·</span>
           <span>{{ solicitud.plazo_semanas ?? '-' }} sem</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span
+            class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+            :class="solicitudStatusConfig.classes"
+          >
+            {{ solicitudStatusConfig.label }}
+          </span>
+          <span
+            class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+            :class="[statusConfig.badgeBg, statusConfig.badgeText]"
+          >
+            {{ statusLabel }}
+          </span>
         </div>
       </div>
 
