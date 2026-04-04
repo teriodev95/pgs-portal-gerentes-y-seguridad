@@ -193,18 +193,7 @@ const router = createRouter({
           path: 'promissory-notes',
           name: ROUTE_NAME.PROMISSORY_NOTES,
           component: () => import('@/features/promissory-note/views/PromissoryNoteView.vue')
-        },
-        {
-          path: 'soli-filter',
-          name: ROUTE_NAME.SOLI_FILTER,
-          component: () => import('@/features/soli-filter/views/SoliFilterView.vue')
-        },
-        {
-          path: 'soli-filter/nueva',
-          name: ROUTE_NAME.SOLI_FILTER_FORM,
-          component: () => import('@/features/soli-filter/views/SoliFilterFormView.vue')
         }
-
       ]
     },
     {

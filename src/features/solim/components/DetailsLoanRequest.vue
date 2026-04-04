@@ -59,7 +59,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'open:review'): void
+  (e: 'open:review', approvalType?: ApprovalType): void
 }
 
 const props = defineProps<Props>()
@@ -75,6 +75,10 @@ const approvals = computed<RevisionApproval[]>(
 
 const currentApproval = computed(
   () => approvals.value.find((approval) => approval.tipo === props.approvalType) ?? null
+)
+
+const garantiasApproval = computed(
+  () => approvals.value.find((a) => a.tipo === 'garantias') ?? null
 )
 
 const planSnapshot = computed(() => props.request.tabla_cargos_snapshot ?? props.request.revision?.tabla_cargos_snapshot ?? null)
@@ -303,6 +307,33 @@ const approvalCtaConfig = computed(() => {
   return { borderColor: 'border-slate-200', bgGradient: 'bg-white', iconColor: 'text-[#0f4a67]' }
 })
 
+function getCtaConfig(approval: RevisionApproval | null) {
+  const decision = approval?.decision
+  if (decision === 'aprobado' || decision === 'aprobado_con_ajuste') {
+    return { borderColor: 'border-emerald-200', bgGradient: 'bg-[linear-gradient(180deg,#f0fdf4_0%,#dcfce7_100%)]', iconColor: 'text-emerald-600' }
+  }
+  if (decision === 'rechazado') {
+    return { borderColor: 'border-red-200', bgGradient: 'bg-[linear-gradient(180deg,#fef2f2_0%,#fee2e2_100%)]', iconColor: 'text-red-600' }
+  }
+  return { borderColor: 'border-slate-200', bgGradient: 'bg-white', iconColor: 'text-[#0f4a67]' }
+}
+
+function isDecidedApproval(approval: RevisionApproval | null) {
+  const d = approval?.decision
+  return d === 'aprobado' || d === 'aprobado_con_ajuste' || d === 'rechazado'
+}
+
+const ctaItems = computed(() => {
+  const items = [
+    { approval: currentApproval.value, label: 'Seguridad', hint: 'Revisión de identidad y domicilio', type: undefined as ApprovalType | undefined, actionLabel: 'Registrar decisión' }
+  ]
+  if (props.approvalType === 'seguridad') {
+    items[0].type = 'seguridad'
+    items.push({ approval: garantiasApproval.value, label: 'Garantías', hint: 'Validar fotos de activos', type: 'garantias' as ApprovalType, actionLabel: 'Validar garantías' })
+  }
+  return items
+})
+
 const APPROVAL_TYPE_LABELS: Record<string, string> = {
   gerente: 'Gerente',
   oficina: 'Oficina',
@@ -413,7 +444,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 </script>
 
 <template>
-  <div class="relative pb-52">
+  <div class="relative pb-72">
   <Tabs default-value="revision" class="space-y-4">
     <TabsList class="grid h-auto w-full grid-cols-4 rounded-[24px] bg-white p-2 shadow-sm">
       <TabsTrigger value="revision" class="rounded-[18px] py-3 text-sm font-semibold">Revisión</TabsTrigger>
@@ -720,50 +751,64 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 
   <!-- CTA fijo de aprobación -->
   <div class="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur-md">
-    <div class="mx-auto max-w-2xl px-4 py-4">
+    <div class="mx-auto max-w-2xl space-y-2.5 px-4 py-3">
       <div
-        class="rounded-[24px] border px-5 py-4 shadow-sm"
-        :class="[approvalCtaConfig.borderColor, approvalCtaConfig.bgGradient]"
+        v-for="item in ctaItems"
+        :key="item.label"
+        class="overflow-hidden rounded-[18px] border shadow-sm"
+        :class="[getCtaConfig(item.approval).borderColor, getCtaConfig(item.approval).bgGradient]"
       >
-        <div class="flex items-center justify-between gap-4">
-          <div class="min-w-0">
-            <p class="flex items-center gap-2 text-base font-semibold text-slate-800">
-              <component
-                :is="isApprovalAlreadyDecided ? CircleCheck : UserRoundCheck"
-                class="size-5 shrink-0"
-                :class="approvalCtaConfig.iconColor"
-              />
-              {{ formatApprovalDecision(currentApproval?.decision) }}
-            </p>
-            <p class="mt-0.5 text-sm text-slate-500">
-              {{ currentApproval?.usuario_nombre || 'Sin responsable' }}
-              <template v-if="currentApproval?.comentario"> · {{ currentApproval.comentario }}</template>
+        <div class="flex items-center gap-3.5 px-4 py-3.5">
+          <!-- Icono de estado -->
+          <div
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+            :class="isDecidedApproval(item.approval)
+              ? (item.approval?.decision === 'rechazado' ? 'bg-red-100' : 'bg-emerald-100')
+              : 'bg-slate-100'"
+          >
+            <component
+              :is="isDecidedApproval(item.approval) ? CircleCheck : CircleDashed"
+              class="size-5"
+              :class="getCtaConfig(item.approval).iconColor"
+            />
+          </div>
+
+          <!-- Info -->
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-semibold text-slate-900">{{ item.label }}</p>
+              <span
+                class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                :class="isDecidedApproval(item.approval)
+                  ? (item.approval?.decision === 'rechazado' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700')
+                  : 'bg-amber-100 text-amber-700'"
+              >
+                {{ formatApprovalDecision(item.approval?.decision) }}
+              </span>
+            </div>
+            <p class="mt-0.5 text-xs text-slate-500">
+              {{ item.approval?.usuario_nombre ?? item.hint }}
             </p>
           </div>
-          <span
-            class="shrink-0 rounded-full px-3 py-1 text-xs font-semibold"
-            :class="currentApproval?.requerido ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'"
-          >
-            {{ currentApproval?.requerido ? 'Requerido' : 'No requerido' }}
-          </span>
-        </div>
 
-        <button
-          v-if="!isApprovalAlreadyDecided"
-          class="mt-4 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-          :disabled="!canRegisterDecision || isLoadingAction"
-          @click="$emit('open:review')"
-        >
-          {{ isLoadingAction ? 'Guardando...' : 'Registrar decisión' }}
-        </button>
-        <button
-          v-else
-          class="mt-3 inline-flex h-10 w-full items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-          :disabled="isLoadingAction"
-          @click="$emit('open:review')"
-        >
-          Modificar decisión
-        </button>
+          <!-- Acción -->
+          <button
+            v-if="!isDecidedApproval(item.approval)"
+            class="shrink-0 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+            :disabled="isLoadingAction"
+            @click="$emit('open:review', item.type)"
+          >
+            {{ item.actionLabel }}
+          </button>
+          <button
+            v-else
+            class="shrink-0 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-medium text-slate-500 transition hover:bg-slate-50"
+            :disabled="isLoadingAction"
+            @click="$emit('open:review', item.type)"
+          >
+            Modificar
+          </button>
+        </div>
       </div>
     </div>
   </div>

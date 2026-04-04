@@ -113,6 +113,11 @@ export interface Referencia {
   parentesco?: string | null
 }
 
+export interface ActivosElectrodomestico {
+  marca?: string | null
+  valor?: number | null
+}
+
 export interface ActivosData {
   vivienda_tipo?: string | null
   vivienda_pisos?: string | null
@@ -125,7 +130,16 @@ export interface ActivosData {
     color?: string | null
     placas?: string | null
   } | null
+  refrigerador?: ActivosElectrodomestico | null
+  horno_microondas?: ActivosElectrodomestico | null
+  lavadora_ropa?: ActivosElectrodomestico | null
+  secadora_ropa?: ActivosElectrodomestico | null
+  pantalla_tv?: ActivosElectrodomestico | null
+  mini_componente?: ActivosElectrodomestico | null
+  computadora?: ActivosElectrodomestico | null
+  consola_videojuegos?: ActivosElectrodomestico | null
   otros?: string | null
+  [key: string]: unknown
 }
 
 export interface Solicitud {
