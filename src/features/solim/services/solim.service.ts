@@ -24,7 +24,6 @@ class SolimService {
     const params = new URLSearchParams()
     params.set('semana', String(week))
     params.set('anio', String(year))
-    params.set('status_revision', 'pendiente')
 
     if (managment) {
       params.set('gerencia', managment)

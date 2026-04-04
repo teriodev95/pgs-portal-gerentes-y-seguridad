@@ -1,11 +1,12 @@
 import { computed, ref } from 'vue'
-import type { ApprovalDecision, ApprovalDialogForm, RevisionApproval } from '../types'
+import type { ApprovalDecision, ApprovalDialogForm, ApprovalType, RevisionApproval } from '../types'
 
 interface OpenDialogOptions {
   requestId: string
   currentApproval?: RevisionApproval | null
   currentPlanId?: number | null
   defaultDecision?: ApprovalDecision
+  approvalType?: ApprovalType
 }
 
 const createDefaultForm = (): ApprovalDialogForm => ({
@@ -20,6 +21,7 @@ const createDefaultForm = (): ApprovalDialogForm => ({
 
 export function useApprovalDialog() {
   const selectedRequestId = ref<string>()
+  const selectedApprovalType = ref<ApprovalType>()
   const loanApprovalForm = ref<ApprovalDialogForm>(createDefaultForm())
   const isDialogOpen = ref(false)
 
@@ -35,9 +37,11 @@ export function useApprovalDialog() {
     requestId,
     currentApproval,
     currentPlanId,
-    defaultDecision = 'aprobado'
+    defaultDecision = 'aprobado',
+    approvalType
   }: OpenDialogOptions) => {
     selectedRequestId.value = requestId
+    selectedApprovalType.value = approvalType
     loanApprovalForm.value = {
       decision:
         currentApproval?.decision && currentApproval.decision !== 'pendiente' && currentApproval.decision !== 'no_aplica'
@@ -61,6 +65,7 @@ export function useApprovalDialog() {
   const closeDialog = () => {
     isDialogOpen.value = false
     selectedRequestId.value = undefined
+    selectedApprovalType.value = undefined
     resetForm()
   }
 
@@ -69,6 +74,7 @@ export function useApprovalDialog() {
     isDialogOpen,
     isAdjustmentDecision,
     selectedRequestId,
+    selectedApprovalType,
     openDialog,
     closeDialog
   }
