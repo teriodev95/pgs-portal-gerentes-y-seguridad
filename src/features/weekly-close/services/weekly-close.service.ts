@@ -64,9 +64,9 @@ class WeeklyClosingService {
         efectivoEntregadoCierre: cierre.efectivoEntregadoCierre
       },
       egresosGerente: {
-        comisionCobranzaPagadaEnSemana: comisiones.pagoComisionCobranza,
-        comisionVentasPagadaEnSemana: comisiones.pagoComisionVentas,
-        bonosPagadosEnSemana: comisiones.pagoBono.bonos,
+        comisionCobranzaPagadaEnSemana: cierre.cierreExiste ? cierre.pagoComisionCobranza : comisiones.pagoComisionCobranza,
+        comisionVentasPagadaEnSemana: cierre.cierreExiste ? cierre.pagoComisionVentas : comisiones.pagoComisionVentas,
+        bonosPagadosEnSemana: cierre.cierreExiste ? cierre.bonos : comisiones.pagoBono.bonos,
         efectivoRestanteCierre: cierre.efectivoRestanteCierre,
         porcentajePorCobranzaPagadoEnSemana: comisiones.porcentajeComisionCobranza,
         porcentajePorBonoMensualPagadoEnSemana: comisiones.pagoBono.porcentajeBonoMensual
