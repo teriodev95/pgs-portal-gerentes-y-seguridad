@@ -91,6 +91,9 @@ export interface Cierre {
   motivoOtrosEgresos: string | null;
   efectivoEntregadoCierre: number;
   efectivoRestanteCierre: number;
+  pagoComisionCobranza: number;
+  pagoComisionVentas: number;
+  bonos: number;
   uidVerificacionAgente: string | null;
   uidVerificacionGerente: string | null;
   observaciones: string | null;
