@@ -32,6 +32,7 @@ export function useAssignmentForm() {
   const inputSenderPin = ref('');
   const inputRecipientPin = ref('');
   const isCreatingAssignment = ref(false);
+  const impactOnClosure = ref<boolean | null>(null);
 
   // Refs para componentes
   const vueSlideUnlockRef = ref();
@@ -67,6 +68,10 @@ export function useAssignmentForm() {
     }`;
   });
 
+  const shouldShowImpactSelector = computed<boolean>(
+    () => senderUser.value?.tipo === 'Seguridad' && recipientUser.value?.tipo === 'Gerente'
+  );
+
   const isSlideUnlockDisabled = computed(() => {
     const basicValidation = senderStatus.value !== 'success' ||
       recipientStatus.value !== 'success' ||
@@ -78,7 +83,10 @@ export function useAssignmentForm() {
     const recipientManagementValidation = hasRecipientMultipleManagements.value &&
       !selectedManagementRecipient.value;
 
-    return basicValidation || senderManagementValidation || recipientManagementValidation;
+    const impactSelectorValidation = shouldShowImpactSelector.value &&
+      impactOnClosure.value === null;
+
+    return basicValidation || senderManagementValidation || recipientManagementValidation || impactSelectorValidation;
   });
 
   // PIN Validation Methods
@@ -167,6 +175,7 @@ export function useAssignmentForm() {
     isCreatingAssignment.value = false;
     selectedManagementRecipient.value = '';
     selectedManagementSender.value = '';
+    impactOnClosure.value = null;
     resetSenderValidation();
     resetRecipientValidation();
   };
@@ -184,6 +193,7 @@ export function useAssignmentForm() {
       semana: $store.currentDate.week,
       log: undefined,
       id: assignmentId,
+      impactaDetalleCierre: shouldShowImpactSelector.value ? impactOnClosure.value ?? undefined : undefined,
     };
   };
 
@@ -225,6 +235,7 @@ export function useAssignmentForm() {
     inputSenderPin,
     inputRecipientPin,
     isCreatingAssignment,
+    impactOnClosure,
 
     // Refs
     vueSlideUnlockRef,
@@ -235,6 +246,7 @@ export function useAssignmentForm() {
     senderSelectorText,
     recipientSelectorText,
     isSlideUnlockDisabled,
+    shouldShowImpactSelector,
 
     // Methods - Validation
     validateSenderPin,

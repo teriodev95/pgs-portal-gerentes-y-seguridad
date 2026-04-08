@@ -12,6 +12,7 @@ import SectionContainer from '@/shared/components/SectionContainer.vue';
 import { useRouter } from 'vue-router';
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue';
 import TextCT from '@/shared/components/ui/TextCT.vue';
+import ImpactSelector from '../components/ImpactSelector.vue';
 
 // Composables
 const {
@@ -33,6 +34,7 @@ const {
   selectedManagementRecipient,
   inputSenderPin,
   inputRecipientPin,
+  impactOnClosure,
 
   // Refs
   vueSlideUnlockRef,
@@ -41,6 +43,7 @@ const {
   senderSelectorText,
   recipientSelectorText,
   isSlideUnlockDisabled,
+  shouldShowImpactSelector,
 
   // Methods
   validateSenderPin,
@@ -112,6 +115,12 @@ function handleBack() {
         <OptionSelector v-if="recipientUser && recipientUser.gerenciasACargo.length" type="recipient"
           :options="recipientUser!.gerenciasACargo.map(gerencia => gerencia.gerenciaid)" :text="recipientSelectorText"
           v-model:model-value="selectedManagementRecipient" />
+
+        <!-- Selector de impacto en cierre (solo para Seguridad -> Gerente) -->
+        <ImpactSelector
+          v-if="shouldShowImpactSelector"
+          v-model="impactOnClosure"
+        />
 
         <!-- Control de desbloqueo deslizante -->
         <div class="space-y-2 p-5">
