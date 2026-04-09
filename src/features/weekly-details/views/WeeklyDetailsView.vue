@@ -109,7 +109,7 @@ onBeforeMount(async () => {
 
     <!-- Embedded Details View -->
     <iframe
-      :src="`https://v0-ui-flujo-efectivo.vercel.app/detalles-cierre?gerencia=${$store.gerenciaSelected}&semana=${$store.currentDate.week}&anio=${$store.currentDate.year}`"
+      :src="`https://mox-ii.xpress1.cc/detalles-cierre/embed?gerencia=${$store.gerenciaSelected}&semana=${$store.currentDate.week}&anio=${$store.currentDate.year}`"
       class="w-full min-h-screen" frameborder="0"></iframe>
 
 
