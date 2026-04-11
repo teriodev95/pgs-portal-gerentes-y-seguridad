@@ -46,7 +46,7 @@ const getImageSrc = (base64: string) => {
 <template>
   <div
     v-if="!documents.length"
-    class="rounded-[24px] border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-400"
+    class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-400"
   >
     No hay documentos para mostrar.
   </div>
@@ -55,7 +55,7 @@ const getImageSrc = (base64: string) => {
     <div
       v-for="doc in documents"
       :key="doc.label"
-      class="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4"
+      class="rounded-3xl border border-slate-200 bg-slate-50/80 p-4"
     >
       <p class="mb-3 text-sm font-semibold text-slate-800">{{ doc.label }}</p>
 
@@ -89,7 +89,7 @@ const getImageSrc = (base64: string) => {
 
   <!-- Image Modal -->
   <Dialog :open="isImageDialogOpen" @update:open="(value) => value ? null : closeImageModal()">
-    <DialogContent class="max-h-[90vh] max-w-3xl overflow-hidden rounded-[28px]">
+    <DialogContent class="max-h-[90vh] max-w-3xl overflow-hidden rounded-3xl">
       <DialogHeader>
         <DialogTitle>{{ selectedImageLabel }}</DialogTitle>
         <DialogDescription>

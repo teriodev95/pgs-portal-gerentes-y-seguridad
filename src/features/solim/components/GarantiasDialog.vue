@@ -119,7 +119,7 @@ function formatActivosInfo(activos: ActivosData | null) {
         class="fixed inset-x-0 bottom-0 z-50"
       >
         <div
-          class="relative w-full rounded-t-[24px] border border-b-0 border-slate-200 bg-white shadow-[0_-8px_40px_-12px_rgba(15,23,42,0.25)]"
+          class="relative w-full rounded-t-3xl border border-b-0 border-slate-200 bg-white shadow-[0_-8px_40px_-12px_rgba(15,23,42,0.25)]"
         >
           <!-- Scroll container -->
           <div class="max-h-[85vh] overflow-y-auto overscroll-contain px-5 pb-6 pt-6">
@@ -146,7 +146,7 @@ function formatActivosInfo(activos: ActivosData | null) {
             <section class="mb-4">
               <button
                 type="button"
-                class="flex w-full items-center justify-between rounded-[14px] border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-left transition hover:bg-slate-100"
+                class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-left transition hover:bg-slate-100"
                 @click="showClienteInfo = !showClienteInfo"
               >
                 <div class="flex items-center gap-2">
@@ -159,7 +159,7 @@ function formatActivosInfo(activos: ActivosData | null) {
 
               <div v-if="showClienteInfo" class="mt-2 space-y-2">
                 <!-- Info activos cliente -->
-                <div v-if="formatActivosInfo(clienteActivos).length" class="space-y-1 rounded-[12px] border border-slate-100 bg-slate-50/50 px-3 py-2">
+                <div v-if="formatActivosInfo(clienteActivos).length" class="space-y-1 rounded-xl border border-slate-100 bg-slate-50/50 px-3 py-2">
                   <div v-for="item in formatActivosInfo(clienteActivos)" :key="item.label" class="flex items-center justify-between text-xs">
                     <span class="text-slate-500">{{ item.label }}</span>
                     <span class="font-medium text-slate-700">{{ item.value }}</span>
@@ -186,7 +186,7 @@ function formatActivosInfo(activos: ActivosData | null) {
             <section class="mb-5">
               <button
                 type="button"
-                class="flex w-full items-center justify-between rounded-[14px] border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-left transition hover:bg-slate-100"
+                class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-left transition hover:bg-slate-100"
                 @click="showAvalInfo = !showAvalInfo"
               >
                 <div class="flex items-center gap-2">
@@ -199,7 +199,7 @@ function formatActivosInfo(activos: ActivosData | null) {
 
               <div v-if="showAvalInfo" class="mt-2 space-y-2">
                 <!-- Info activos aval -->
-                <div v-if="formatActivosInfo(avalActivos).length" class="space-y-1 rounded-[12px] border border-slate-100 bg-slate-50/50 px-3 py-2">
+                <div v-if="formatActivosInfo(avalActivos).length" class="space-y-1 rounded-xl border border-slate-100 bg-slate-50/50 px-3 py-2">
                   <div v-for="item in formatActivosInfo(avalActivos)" :key="item.label" class="flex items-center justify-between text-xs">
                     <span class="text-slate-500">{{ item.label }}</span>
                     <span class="font-medium text-slate-700">{{ item.value }}</span>
@@ -227,7 +227,7 @@ function formatActivosInfo(activos: ActivosData | null) {
               <div class="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  class="flex items-center justify-center gap-2 rounded-[16px] border px-4 py-3.5 text-sm font-semibold transition"
+                  class="flex items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-semibold transition"
                   :class="
                     decision === 'aprobar'
                       ? 'border-2 border-emerald-500 bg-emerald-100 text-emerald-800'
@@ -242,7 +242,7 @@ function formatActivosInfo(activos: ActivosData | null) {
 
                 <button
                   type="button"
-                  class="flex items-center justify-center gap-2 rounded-[16px] border px-4 py-3.5 text-sm font-semibold transition"
+                  class="flex items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-semibold transition"
                   :class="
                     decision === 'rechazar'
                       ? 'border-2 border-red-500 bg-red-100 text-red-800'
@@ -262,7 +262,7 @@ function formatActivosInfo(activos: ActivosData | null) {
               <textarea
                 v-model="comentario"
                 rows="2"
-                class="w-full rounded-[16px] border border-slate-200 p-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400"
+                class="w-full rounded-xl border border-slate-200 p-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400"
                 :disabled="isLoading"
                 placeholder="Agrega un comentario (obligatorio si rechazas)."
               />
@@ -271,7 +271,7 @@ function formatActivosInfo(activos: ActivosData | null) {
             <!-- Confirm button -->
             <button
               type="button"
-              class="h-12 w-full rounded-[16px] text-sm font-semibold text-white transition disabled:opacity-50"
+              class="h-12 w-full rounded-xl text-sm font-semibold text-white transition disabled:opacity-50"
               :class="
                 decision === 'aprobar'
                   ? 'bg-emerald-600 hover:bg-emerald-700'

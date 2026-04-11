@@ -2,12 +2,13 @@
 import { computed, ref } from 'vue'
 import type { ApprovalDecision, ApprovalDialogForm, TablaCargosOption } from '../types'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle
+} from '@/components/ui/drawer'
 import SlideUnlock from 'vue-slide-unlock'
 
 interface Props {
@@ -29,7 +30,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const slideUnlockRef = ref()
-const slideButtonColor = ref('rgb(15 75 103 / 1)')
+const slideButtonColor = ref('rgb(29 78 216 / 1)')
 
 const decisionOptions: Array<{ label: string; value: ApprovalDecision }> = [
   { label: 'Aprobar', value: 'aprobado' },
@@ -37,7 +38,6 @@ const decisionOptions: Array<{ label: string; value: ApprovalDecision }> = [
   { label: 'Rechazar', value: 'rechazado' }
 ]
 
-const isAdjustmentDecision = computed(() => props.form.decision === 'aprobado_con_ajuste')
 const showsPlanRoute = computed(() => props.form.decision === 'aprobado_con_ajuste')
 
 const selectedPlan = computed(() => {
@@ -152,7 +152,7 @@ function formatMoney(value: number) {
 
 function resetSlide() {
   slideUnlockRef.value?.reset()
-  slideButtonColor.value = 'rgb(15 75 103 / 1)'
+  slideButtonColor.value = 'rgb(29 78 216 / 1)'
 }
 
 function selectDecision(value: ApprovalDecision) {
@@ -175,37 +175,33 @@ function selectMonto(value: number) {
 </script>
 
 <template>
-  <Dialog :open="isOpen" @update:open="(value) => value ? null : (!isLoading && $emit('cancel'))">
-    <DialogContent
-      class="max-w-2xl overflow-hidden rounded-[34px] border border-slate-200 bg-[linear-gradient(180deg,#fcfdff_0%,#f7f9fc_100%)] p-0 shadow-[0_28px_100px_-52px_rgba(15,23,42,0.5)]"
-      :disable-outside-pointer-events="isLoading"
+  <Drawer :open="isOpen" @update:open="(value: boolean) => value ? null : (!isLoading && $emit('cancel'))">
+    <DrawerContent
+      class="max-h-[92vh] border-slate-200 bg-white"
     >
-      <DialogHeader>
-        <div class="relative overflow-hidden border-b border-slate-200 bg-[linear-gradient(135deg,#0f4a67_0%,#0d3c55_100%)] px-7 pb-7 pt-8 text-white">
-          <div class="absolute inset-x-0 bottom-0 h-16 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_62%)]" />
-          <DialogTitle class="relative text-[2rem] font-semibold tracking-[-0.03em]">
-            Aprobación de {{ roleLabel.toLowerCase() }}
-          </DialogTitle>
-          <DialogDescription class="relative mt-3 max-w-xl text-[15px] leading-relaxed text-slate-100/78">
-            Registra la decisión y desliza para confirmar. Si hace falta, sugiere un plan alternativo.
-          </DialogDescription>
-        </div>
-      </DialogHeader>
+      <DrawerHeader class="px-6 pb-4 pt-2 text-left">
+        <DrawerTitle class="text-xl font-semibold tracking-tight text-slate-900">
+          Aprobación de {{ roleLabel.toLowerCase() }}
+        </DrawerTitle>
+        <DrawerDescription class="mt-1 text-sm leading-relaxed text-slate-500">
+          Registra la decisión y desliza para confirmar. Si hace falta, sugiere un plan alternativo.
+        </DrawerDescription>
+      </DrawerHeader>
 
-      <div class="max-h-[78vh] space-y-7 overflow-y-auto px-7 py-7 overscroll-contain">
+      <div class="flex-1 space-y-6 overflow-y-auto px-6 pb-4 overscroll-contain">
         <section class="grid gap-5 md:grid-cols-2">
           <div class="space-y-2">
-            <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <label class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
               Decisión
             </label>
-            <div class="grid gap-2 rounded-[24px] border border-slate-200 bg-white/80 p-2">
+            <div class="grid gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-1.5">
               <button
                 v-for="option in decisionOptions"
                 :key="option.value"
                 type="button"
-                class="inline-flex min-h-[50px] items-center justify-center rounded-[18px] px-4 text-sm font-semibold transition"
+                class="inline-flex min-h-[48px] items-center justify-center rounded-xl px-4 text-sm font-semibold transition"
                 :class="form.decision === option.value
-                  ? 'bg-slate-900 text-white shadow-[0_14px_30px_-20px_rgba(15,23,42,0.7)]'
+                  ? 'bg-blue-700 text-white shadow-sm'
                   : 'bg-white text-slate-700 hover:bg-slate-100'"
                 :disabled="isLoading"
                 @click="selectDecision(option.value)"
@@ -219,7 +215,7 @@ function selectMonto(value: number) {
             <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
               Ruta del plan sugerido
             </label>
-            <div class="grid gap-3 rounded-[24px] border border-slate-200 bg-white/80 p-4">
+            <div class="grid gap-3 rounded-3xl border border-slate-200 bg-white/80 p-4">
               <div class="space-y-3">
                 <div class="space-y-2">
                   <span class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Nivel</span>
@@ -230,7 +226,7 @@ function selectMonto(value: number) {
                       type="button"
                       class="inline-flex min-h-10 items-center rounded-full border px-4 py-2 text-sm font-medium transition"
                       :class="selectedLevel === option
-                        ? 'border-slate-900 bg-slate-900 text-white'
+                        ? 'border-blue-700 bg-blue-700 text-white'
                         : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'"
                       :disabled="isLoading"
                       @click="selectLevel(option)"
@@ -249,7 +245,7 @@ function selectMonto(value: number) {
                       type="button"
                       class="inline-flex min-h-10 items-center rounded-full border px-4 py-2 text-sm font-medium transition"
                       :class="selectedPlazo === String(option)
-                        ? 'border-slate-900 bg-slate-900 text-white'
+                        ? 'border-blue-700 bg-blue-700 text-white'
                         : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'"
                       :disabled="isLoading || !selectedLevel"
                       @click="selectPlazo(option)"
@@ -268,7 +264,7 @@ function selectMonto(value: number) {
                       type="button"
                       class="inline-flex min-h-10 items-center rounded-full border px-4 py-2 text-sm font-medium transition"
                       :class="selectedMonto === String(option.monto)
-                        ? 'border-slate-900 bg-slate-900 text-white'
+                        ? 'border-blue-700 bg-blue-700 text-white'
                         : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'"
                       :disabled="isLoading || !selectedPlazo"
                       @click="selectMonto(option.monto)"
@@ -281,7 +277,7 @@ function selectMonto(value: number) {
 
               <div
                 v-if="selectedPlanSummary"
-                class="grid gap-3 rounded-[20px] bg-slate-50 px-4 py-4 text-sm text-slate-700 md:grid-cols-4"
+                class="grid gap-3 rounded-2xl bg-slate-50 px-4 py-4 text-sm text-slate-700 md:grid-cols-4"
               >
                 <div class="md:col-span-4">
                   <p class="font-semibold text-slate-900">{{ selectedPlanSummary.etiqueta }}</p>
@@ -296,89 +292,23 @@ function selectMonto(value: number) {
         </section>
 
         <section class="space-y-2">
-          <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <label class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
             Comentario
           </label>
           <textarea
             :value="form.comentario"
             rows="4"
-            class="w-full rounded-[24px] border border-slate-300 bg-white px-5 py-4 text-[15px] leading-relaxed text-slate-900 outline-none transition focus:border-slate-900"
+            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-[15px] leading-relaxed text-slate-900 outline-none transition focus:border-blue-700"
             :disabled="isLoading"
             placeholder="Resume la razón de tu decisión."
             @input="updateField('comentario', ($event.target as HTMLTextAreaElement).value)"
           />
         </section>
 
-        <section
-          v-if="isAdjustmentDecision"
-          class="space-y-4 rounded-[28px] border border-amber-200 bg-[linear-gradient(180deg,#fff7ed_0%,#fff3e0_100%)] px-6 py-6"
-        >
-          <div>
-            <p class="text-sm font-semibold text-amber-950">Ajuste del plan</p>
-            <p class="mt-1 text-sm text-amber-900/80">
-              Usa estos campos solo cuando la aprobación no siga exactamente el plan solicitado.
-            </p>
-          </div>
+      </div>
 
-          <div class="grid gap-4 md:grid-cols-2">
-            <div class="space-y-2">
-              <label class="text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
-                Monto autorizado
-              </label>
-              <input
-                :value="form.montoAutorizado"
-                type="number"
-                inputmode="decimal"
-                class="h-[52px] w-full rounded-[20px] border border-amber-300 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-amber-500"
-                :disabled="isLoading"
-                @input="updateField('montoAutorizado', ($event.target as HTMLInputElement).value)"
-              />
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
-                Incremento autorizado
-              </label>
-              <input
-                :value="form.incrementoAutorizado"
-                type="number"
-                inputmode="decimal"
-                class="h-[52px] w-full rounded-[20px] border border-amber-300 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-amber-500"
-                :disabled="isLoading"
-                @input="updateField('incrementoAutorizado', ($event.target as HTMLInputElement).value)"
-              />
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
-                Nivel autorizado
-              </label>
-              <input
-                :value="form.nivelAutorizado"
-                type="text"
-                class="h-[52px] w-full rounded-[20px] border border-amber-300 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-amber-500"
-                :disabled="isLoading"
-                @input="updateField('nivelAutorizado', ($event.target as HTMLInputElement).value)"
-              />
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
-                Plazo autorizado
-              </label>
-              <input
-                :value="form.plazoAutorizado"
-                type="number"
-                inputmode="numeric"
-                class="h-[52px] w-full rounded-[20px] border border-amber-300 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-amber-500"
-                :disabled="isLoading"
-                @input="updateField('plazoAutorizado', ($event.target as HTMLInputElement).value)"
-              />
-            </div>
-          </div>
-        </section>
-
-        <div class="space-y-3 border-t border-slate-200 pt-6">
+      <DrawerFooter class="gap-2 border-t border-slate-200 bg-white px-6 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4">
+        <div class="rounded-full border border-slate-200 bg-slate-50 p-1">
           <slide-unlock
             ref="slideUnlockRef"
             :auto-width="true"
@@ -397,15 +327,15 @@ function selectMonto(value: number) {
             }"
             @completed="() => { slideButtonColor = 'rgb(14 159 110 / 1)'; $emit('confirm') }"
           />
-          <button
-            class="inline-flex h-10 w-full items-center justify-center rounded-[18px] text-sm font-medium text-slate-500 transition hover:text-slate-700"
-            :disabled="isLoading"
-            @click="$emit('cancel')"
-          >
-            Cancelar
-          </button>
         </div>
-      </div>
-    </DialogContent>
-  </Dialog>
+        <button
+          class="inline-flex h-11 w-full items-center justify-center rounded-xl text-sm font-medium text-slate-500 transition hover:text-slate-700"
+          :disabled="isLoading"
+          @click="$emit('cancel')"
+        >
+          Cancelar
+        </button>
+      </DrawerFooter>
+    </DrawerContent>
+  </Drawer>
 </template>
