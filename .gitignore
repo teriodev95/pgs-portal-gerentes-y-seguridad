@@ -30,6 +30,7 @@ coverage
 *.sw?
 
 .env
+.env.*
 
 # Wrangler (local preview only)
 wrangler.toml
