@@ -57,7 +57,7 @@ defineExpose({
                 type="button"
                 class="inline-flex min-h-11 items-center rounded-full border px-4 py-2 text-sm font-medium transition"
                 :class="selectedAgency === 'all'
-                  ? 'border-slate-900 bg-slate-900 text-white'
+                  ? 'border-blue-700 bg-blue-700 text-white'
                   : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'"
                 @click="handleSelect('all')"
               >
@@ -69,7 +69,7 @@ defineExpose({
                 type="button"
                 class="inline-flex min-h-11 items-center rounded-full border px-4 py-2 text-sm font-medium transition"
                 :class="selectedAgency === agency.agencia
-                  ? 'border-slate-900 bg-slate-900 text-white'
+                  ? 'border-blue-700 bg-blue-700 text-white'
                   : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'"
                 @click="handleSelect(agency.agencia)"
               >

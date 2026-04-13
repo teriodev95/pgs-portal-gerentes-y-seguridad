@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { ApprovalType, Solicitud } from '@/features/solim/types'
-import { BadgeDollarSign, ChevronDown, CircleCheck, CircleDashed, XCircle } from 'lucide-vue-next'
+import { ChevronDown } from 'lucide-vue-next'
 import { toCurrency } from '@/shared/utils'
 import SolicitudProgressSteps from './SolicitudProgressSteps.vue'
+import { isNarrativeEmpty } from '@/features/solim/constants/filtradoCopy'
 
 interface Props {
   solicitud: Solicitud
@@ -52,7 +53,7 @@ const statusLabel = computed(() => {
     case 'no_aplica':
       return 'No aplica'
     default:
-      return 'Pendiente'
+      return null
   }
 })
 
@@ -61,43 +62,49 @@ const isDecided = computed(() => {
   return d === 'aprobado' || d === 'aprobado_con_ajuste' || d === 'rechazado'
 })
 
-const solicitudStatusConfig = computed(() => {
+const solicitudStatusLabel = computed(() => {
   switch (props.solicitud.status) {
     case 'capturada':
-      return { label: 'Capturada', classes: 'bg-slate-100 text-slate-700' }
+      return 'Capturada'
     case 'en_filtrado':
-      return { label: 'En filtrado', classes: 'bg-slate-100 text-slate-700' }
+      return 'En evaluación'
     case 'en_correccion':
-      return { label: 'En corrección', classes: 'bg-amber-100 text-amber-800' }
+      return 'En corrección'
     case 'en_vistos_buenos':
-      return { label: 'En vistos buenos', classes: 'bg-blue-100 text-blue-800' }
+      return 'En vistos buenos'
     case 'lista_desembolso':
-      return { label: 'Lista p/ desembolso', classes: 'bg-emerald-100 text-emerald-800' }
+      return 'Lista p/ desembolso'
     case 'desembolsada':
-      return { label: 'Desembolsada', classes: 'bg-emerald-500 text-white' }
+      return 'Desembolsada'
     case 'rechazada':
-      return { label: 'Rechazada', classes: 'bg-red-100 text-red-800' }
+      return 'Rechazada'
     case 'cancelada':
-      return { label: 'Cancelada', classes: 'bg-red-100 text-red-800' }
+      return 'Cancelada'
     default:
-      return { label: props.solicitud.status ?? 'Sin status', classes: 'bg-slate-100 text-slate-500' }
+      return props.solicitud.status ?? 'Sin status'
   }
 })
 
-const statusConfig = computed(() => {
+// Color del estado solo en el strip lateral izquierdo y el dot del badge.
+const stripClass = computed(() => {
   const d = currentApproval.value?.decision
-  if (d === 'aprobado' || d === 'aprobado_con_ajuste')
-    return { icon: CircleCheck, iconColor: 'text-emerald-500', badgeBg: 'bg-emerald-500', badgeText: 'text-white', strip: 'bg-emerald-500' }
-  if (d === 'rechazado')
-    return { icon: XCircle, iconColor: 'text-red-500', badgeBg: 'bg-red-500', badgeText: 'text-white', strip: 'bg-red-500' }
-  return { icon: CircleDashed, iconColor: 'text-amber-500', badgeBg: 'bg-amber-100', badgeText: 'text-amber-800', strip: 'bg-amber-400' }
+  if (d === 'aprobado' || d === 'aprobado_con_ajuste') return 'bg-emerald-500'
+  if (d === 'rechazado') return 'bg-rose-500'
+  if (d === 'no_aplica') return 'bg-slate-300'
+  return 'bg-amber-400'
+})
+
+const diagnosticoText = computed(() => {
+  const raw = props.solicitud.diagnostico ?? props.solicitud.revision?.diagnostico ?? null
+  if (isNarrativeEmpty(raw)) return null
+  return raw as string
 })
 </script>
 
 <template>
-  <article class="relative overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
-    <!-- Strip lateral -->
-    <div class="absolute inset-y-0 left-0 w-1" :class="statusConfig.strip" />
+  <article class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <!-- Strip lateral — único punto con color de estado -->
+    <div class="absolute inset-y-0 left-0 w-1" :class="stripClass" aria-hidden="true" />
 
     <!-- Header compacto — siempre visible -->
     <button
@@ -105,8 +112,6 @@ const statusConfig = computed(() => {
       class="flex w-full items-center gap-3.5 px-5 py-4 text-left transition hover:bg-slate-50/60"
       @click="isExpanded = !isExpanded"
     >
-      <component :is="statusConfig.icon" class="size-5 shrink-0" :class="statusConfig.iconColor" />
-
       <div class="min-w-0 flex-1 space-y-1.5">
         <p class="truncate text-[15px] font-semibold leading-tight text-slate-900">{{ clientName }}</p>
         <div class="flex items-center gap-1.5 text-[12px] text-slate-500">
@@ -118,15 +123,15 @@ const statusConfig = computed(() => {
         </div>
         <div class="flex items-center gap-2">
           <span
-            class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
-            :class="solicitudStatusConfig.classes"
+            class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600"
           >
-            {{ solicitudStatusConfig.label }}
+            {{ solicitudStatusLabel }}
           </span>
           <span
-            class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
-            :class="[statusConfig.badgeBg, statusConfig.badgeText]"
+            v-if="statusLabel"
+            class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700"
           >
+            <span class="inline-block size-1.5 rounded-full" :class="stripClass" aria-hidden="true" />
             {{ statusLabel }}
           </span>
         </div>
@@ -145,58 +150,24 @@ const statusConfig = computed(() => {
     >
       <div class="overflow-hidden">
         <div class="space-y-3 border-t border-slate-100 px-5 pb-4 pt-3">
-          <!-- Info cards inline -->
-          <div class="grid gap-2 grid-cols-2">
-            <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-              <div class="flex items-center gap-1.5 text-slate-500">
-                <BadgeDollarSign class="size-3.5" />
-                <span class="text-[11px] font-semibold uppercase tracking-wider">Plan</span>
-              </div>
-              <p class="mt-1 text-lg font-semibold text-slate-900">{{ toCurrency(solicitud.monto_solicitado ?? 0) }}</p>
-              <p class="text-[13px] text-slate-500">{{ solicitud.plazo_semanas ?? '-' }} sem · cargo {{ solicitud.tabla_cargos_snapshot?.id ?? solicitud.tabla_cargos_id ?? '-' }}</p>
-            </div>
-
-            <div
-              class="rounded-xl border px-3 py-2.5"
-              :class="isDecided
-                ? (currentApproval?.decision === 'rechazado' ? 'border-red-200 bg-red-50' : 'border-emerald-200 bg-emerald-50')
-                : 'border-amber-200 bg-amber-50'"
-            >
-              <div class="flex items-center gap-1.5" :class="statusConfig.iconColor">
-                <component :is="statusConfig.icon" class="size-3.5" />
-                <span class="text-[11px] font-semibold uppercase tracking-wider">Revisión</span>
-              </div>
-              <p class="mt-1 text-base font-semibold text-slate-900">{{ statusLabel }}</p>
-              <p class="text-[13px] text-slate-500">{{ currentApproval?.usuario_nombre || 'Sin responsable' }}</p>
-            </div>
-          </div>
-
-          <!-- Progress steps -->
+          <!-- Progress steps de la ruta -->
           <SolicitudProgressSteps :solicitud="solicitud" />
 
-          <!-- Comentario si existe -->
+          <!-- Diagnóstico narrativo neutro, si existe -->
+          <p
+            v-if="diagnosticoText"
+            class="line-clamp-3 text-[13px] leading-relaxed text-slate-600"
+          >
+            {{ diagnosticoText }}
+          </p>
+
+          <!-- Comentario del revisor (neutral) -->
           <div
             v-if="currentApproval?.comentario"
-            class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[13px] text-amber-900"
+            class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-[13px] leading-relaxed text-slate-600"
           >
-            <span class="font-semibold">Comentario:</span> {{ currentApproval.comentario }}
+            <span class="font-semibold text-slate-700">Nota del revisor:</span> {{ currentApproval.comentario }}
           </div>
-
-          <!-- Plan sugerido si existe -->
-          <p
-            v-if="currentApproval?.tabla_cargos_id_sugerido"
-            class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-[13px] text-emerald-900"
-          >
-            Plan sugerido: {{ currentApproval.tabla_cargos_id_sugerido }}
-          </p>
-
-          <!-- Diagnóstico compacto -->
-          <p
-            v-if="solicitud.revision?.diagnostico"
-            class="line-clamp-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-[13px] leading-relaxed text-slate-600"
-          >
-            {{ solicitud.revision.diagnostico }}
-          </p>
 
           <!-- Acciones -->
           <div class="flex gap-2 pt-1">
@@ -208,10 +179,10 @@ const statusConfig = computed(() => {
             </button>
             <button
               v-if="!isDecided && (approvalRequirement || currentApproval?.requerido === 1)"
-              class="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-slate-900 text-sm font-semibold text-white transition hover:bg-slate-800"
+              class="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-blue-700 text-sm font-semibold text-white transition hover:bg-blue-800"
               @click="$emit('action:review', solicitud.id)"
             >
-              Registrar check
+              Registrar decisión
             </button>
             <button
               v-else-if="isDecided"
