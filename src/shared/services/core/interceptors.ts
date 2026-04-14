@@ -1,5 +1,6 @@
 import type { InternalAxiosRequestConfig, AxiosRequestHeaders } from 'axios'
 import type { InterceptorConfig } from './types'
+import { useStore } from '@/shared/stores'
 
 // Default content-type interceptor (same as current implementation)
 export const contentTypeInterceptor: InterceptorConfig = {
@@ -40,16 +41,19 @@ export const authInterceptor = (token: string): InterceptorConfig => ({
 // Dynamic authorization interceptor for Elysia API
 export const elysiaAuthInterceptor = (): InterceptorConfig => ({
   request: {
-    onFulfilled: async (config: InternalAxiosRequestConfig) => {
+    onFulfilled: (config: InternalAxiosRequestConfig) => {
       // Solo aplica si es una petición al API de Elysia
       const isElysiaApi = config.baseURL?.includes('elysia.xpress1.cc') ||
                           config.url?.includes('elysia.xpress1.cc')
 
+      console.log('[Elysia Auth Debug] isElysiaApi:', isElysiaApi, 'baseURL:', config.baseURL, 'url:', config.url)
+
       if (isElysiaApi && !(config.headers as AxiosRequestHeaders)['Authorization']) {
         try {
-          // Accede al store de manera dinámica
-          const { useStore } = await import('@/shared/stores')
+          // Accede al store de manera síncrona
           const store = useStore()
+
+          console.log('[Elysia Auth Debug] Store loaded - user:', store.user?.usuario, 'hasPin:', !!store.authPin)
 
           // Crear token Bearer con usuario:pin en base64
           if (store.user?.usuario && store.authPin) {
@@ -57,16 +61,17 @@ export const elysiaAuthInterceptor = (): InterceptorConfig => ({
             const base64Credentials = btoa(credentials)
             ;(config.headers as AxiosRequestHeaders)['Authorization'] = `Bearer ${base64Credentials}`
 
-            if (import.meta.env.DEV) {
-              console.log('[Elysia Auth] Authorization header added for:', config.url)
-            }
+            console.log('[Elysia Auth] Authorization header added successfully for:', config.url)
+            console.log('[Elysia Auth] Headers:', config.headers)
           } else {
-            console.warn('[Elysia Auth] Missing credentials - usuario:', !!store.user?.usuario, 'pin:', !!store.authPin)
+            console.warn('[Elysia Auth] Missing credentials - usuario:', store.user?.usuario, 'pin:', store.authPin)
           }
         } catch (error) {
           // Si no se puede acceder al store, continúa sin el token
-          console.warn('Could not access Pinia store for Elysia auth:', error)
+          console.error('[Elysia Auth] Error accessing Pinia store:', error)
         }
+      } else if (isElysiaApi) {
+        console.log('[Elysia Auth] Authorization header already exists:', (config.headers as AxiosRequestHeaders)['Authorization'])
       }
       return config
     }
