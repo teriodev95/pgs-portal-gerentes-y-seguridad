@@ -41,10 +41,11 @@ export const authInterceptor = (token: string): InterceptorConfig => ({
 export const elysiaAuthInterceptor = (): InterceptorConfig => ({
   request: {
     onFulfilled: async (config: InternalAxiosRequestConfig) => {
-      // Solo aplica si es una petición al API de Elysia y no tiene Authorization header ya establecido
-      if (config.baseURL?.includes('elysia.xpress1.cc') &&
-          !(config.headers as AxiosRequestHeaders)['Authorization']) {
+      // Solo aplica si es una petición al API de Elysia
+      const isElysiaApi = config.baseURL?.includes('elysia.xpress1.cc') ||
+                          config.url?.includes('elysia.xpress1.cc')
 
+      if (isElysiaApi && !(config.headers as AxiosRequestHeaders)['Authorization']) {
         try {
           // Accede al store de manera dinámica
           const { useStore } = await import('@/shared/stores')
@@ -55,6 +56,12 @@ export const elysiaAuthInterceptor = (): InterceptorConfig => ({
             const credentials = `${store.user.usuario}:${store.authPin}`
             const base64Credentials = btoa(credentials)
             ;(config.headers as AxiosRequestHeaders)['Authorization'] = `Bearer ${base64Credentials}`
+
+            if (import.meta.env.DEV) {
+              console.log('[Elysia Auth] Authorization header added for:', config.url)
+            }
+          } else {
+            console.warn('[Elysia Auth] Missing credentials - usuario:', !!store.user?.usuario, 'pin:', !!store.authPin)
           }
         } catch (error) {
           // Si no se puede acceder al store, continúa sin el token
