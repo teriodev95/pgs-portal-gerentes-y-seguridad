@@ -119,8 +119,6 @@ function handleBack() {
         <!-- Selector de impacto en cierre (solo para Seguridad -> Gerente) -->
         <ImpactSelector
           v-if="shouldShowImpactSelector"
-          :management="selectedManagementRecipient"
-          :name="`${senderUser?.nombre}`"
           v-model="impactOnClosure"
         />
 

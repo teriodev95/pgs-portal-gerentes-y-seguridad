@@ -12,7 +12,7 @@ withDefaults(defineProps<Props>(), {
   showLabel: true
 })
 
-const baseClasses = 'font-semibold text-xs p-1 rounded-full'
+const baseClasses = 'font-semibold px-2 py-1 rounded-full'
 
 const variantClasses = {
   red: 'text-red-700 bg-red-100',
@@ -26,7 +26,7 @@ const variantClasses = {
 
 <template>
   <div class="flex items-center gap-2">
-    <p v-if="showLabel && label" class="text-xs text-gray-500">{{ label }}:</p>
+    <p v-if="showLabel && label" class="text-sm text-gray-500">{{ label }}:</p>
     <span :class="[baseClasses, variantClasses[variant]]">
       {{ value }}
     </span>

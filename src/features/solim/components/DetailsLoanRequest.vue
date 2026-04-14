@@ -2,15 +2,7 @@
 import { computed } from 'vue'
 import {
   AlertCircle,
-  CircleCheck,
-  CircleDashed,
-  CircleMinus,
-  ClipboardList,
-  CreditCard,
-  FileCheck2,
-  ShieldCheck,
-  UserRoundCheck,
-  XCircle
+  ShieldCheck
 } from 'lucide-vue-next'
 import CardContainer from '@/shared/components/CardContainer.vue'
 import DocumentViewer from './DocumentViewer.vue'
@@ -19,36 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type {
   ActivosData,
   ApprovalDecision,
-  ApprovalRequirements,
   ApprovalType,
   RevisionApproval,
   Solicitud
 } from '../types'
-
-const PREVALIDATION_LABELS: Record<string, string> = {
-  c01_docs_legibles: 'Los documentos se leyeron bien',
-  c02_ine_cliente_vigente: 'La INE del cliente está vigente',
-  c03_ine_aval_vigente: 'La INE del aval está vigente',
-  c04_comprobante_cliente_reciente: 'El comprobante del cliente es reciente',
-  c05_comprobante_aval_reciente: 'El comprobante del aval es reciente',
-  c06_comprobante_agua_al_corriente_cliente: 'El agua del cliente está al corriente',
-  c07_comprobante_agua_al_corriente_aval: 'El agua del aval está al corriente',
-  c08_nombre_cliente_coincide: 'El nombre del cliente coincide con el documento',
-  c09_nombre_aval_coincide: 'El nombre del aval coincide con el documento',
-  c10_curp_cliente_valido: 'La CURP del cliente es válida',
-  c11_curp_aval_valido: 'La CURP del aval es válida',
-  c12_persona_id_cliente_asignado: 'El cliente fue identificado en sistema',
-  c13_persona_id_aval_asignado: 'El aval fue identificado en sistema',
-  c21_aumento_max_2000: 'El aumento respeta el límite permitido',
-  c22_nivel_valido_por_scores: 'El nivel solicitado coincide con el historial',
-  c24_ultima_semana_respetada: 'Se respetó la regla de última semana',
-  c28_tabla_cargos_valida: 'El plan solicitado existe en tabla de cargos',
-  c29_requiere_gerente: 'El plan requiere revisión de gerente',
-  c30_requiere_oficina: 'El plan requiere revisión de oficina',
-  c31_requiere_garantias: 'El plan requiere garantías',
-  c32_requiere_seguridad: 'El plan requiere revisión de seguridad',
-  c33_requiere_direccion: 'El plan requiere revisión de dirección'
-}
+import { getFiltradoHeading, isNarrativeEmpty, NEUTRAL_CLOSE } from '../constants/filtradoCopy'
 
 interface Props {
   request: Solicitud
@@ -64,10 +31,6 @@ interface Emits {
 
 const props = defineProps<Props>()
 defineEmits<Emits>()
-
-const requirements = computed<ApprovalRequirements | null>(
-  () => props.request.approval_requirements ?? props.request.revision?.approval_requirements ?? null
-)
 
 const approvals = computed<RevisionApproval[]>(
   () => props.request.revision_aprobaciones ?? props.request.revision?.aprobaciones ?? []
@@ -129,7 +92,6 @@ const guarantorDocuments = computed(() => {
 
 const clientInfo = computed(() => [
   { label: 'Nombre completo', value: clientFullName.value || 'Sin capturar' },
-  { label: 'Persona ID', value: props.request.cliente_persona_id || 'Sin identificar' },
   { label: 'CURP', value: props.request.cliente_curp || 'Sin capturar' },
   { label: 'RFC', value: props.request.cliente_rfc || 'Sin capturar' },
   { label: 'Fecha de nacimiento', value: props.request.cliente_fecha_nacimiento || 'Sin capturar' },
@@ -166,7 +128,6 @@ const clientFinance = computed(() => [
 
 const guarantorInfo = computed(() => [
   { label: 'Nombre completo', value: guarantorFullName.value || 'Sin capturar' },
-  { label: 'Persona ID', value: props.request.aval_persona_id || 'Sin identificar' },
   { label: 'CURP', value: props.request.aval_curp || 'Sin capturar' },
   { label: 'RFC', value: props.request.aval_rfc || 'Sin capturar' },
   { label: 'Fecha de nacimiento', value: props.request.aval_fecha_nacimiento || 'Sin capturar' },
@@ -220,39 +181,42 @@ const guarantorAssetItems = computed(() => mapAssets(props.request.aval_activos)
 const clientAssetPhotos = computed(() => mapAssetPhotos('Activo cliente', props.request.cliente_activos))
 const guarantorAssetPhotos = computed(() => mapAssetPhotos('Activo aval', props.request.aval_activos))
 
-const requirementChips = computed(() =>
-  [
-    { key: 'gerente', label: 'Gerente' },
-    { key: 'oficina', label: 'Oficina' },
-    { key: 'garantias', label: 'Garantías' },
-    { key: 'seguridad', label: 'Seguridad' },
-    { key: 'direccion', label: 'Dirección' }
-  ].map((item) => ({
-    ...item,
-    required: Boolean(requirements.value?.[item.key as ApprovalType])
-  }))
-)
+const filtradoHeading = computed(() => getFiltradoHeading(props.request.status_revision))
 
-const prevalidationChecks = computed(() => {
-  const checks = props.request.revision?.prevalidacion_app?.checks ?? props.request.prevalidacion_app?.checks
-  if (!checks || typeof checks !== 'object') {
-    return []
-  }
+const headingToneClasses: Record<ReturnType<typeof getFiltradoHeading>['tone'], string> = {
+  emerald: 'bg-emerald-500',
+  amber: 'bg-amber-500',
+  rose: 'bg-rose-500',
+  slate: 'bg-slate-400'
+}
 
-  return Object.entries(checks)
-    .filter(([, value]) => value !== null && value !== 'no_aplica')
-    .map(([key, value]) => ({
-      key,
-      label: PREVALIDATION_LABELS[key] || key,
-      ok: value === true
-    }))
+const diagnosticoText = computed(() => {
+  const raw = props.request.diagnostico
+  if (isNarrativeEmpty(raw)) return null
+  return raw as string
 })
 
-const prevalidationSummary = computed(() => ({
-  total: prevalidationChecks.value.length,
-  ok: prevalidationChecks.value.filter((check) => check.ok).length,
-  pending: prevalidationChecks.value.filter((check) => !check.ok).length
-}))
+const motivoText = computed(() => {
+  const raw = props.request.motivo_rechazo
+  if (isNarrativeEmpty(raw)) return null
+  return raw as string
+})
+
+const docDetalleText = computed(() => {
+  const raw = props.request.doc_invalido_detalle
+  if (isNarrativeEmpty(raw)) return null
+  return raw as string
+})
+
+const showNeutralClose = computed(() => {
+  const d = diagnosticoText.value
+  if (!d) return true
+  const normalized = d
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+  return !normalized.includes('quedan registrados para revision')
+})
 
 const hasLocation = computed(
   () =>
@@ -275,65 +239,6 @@ const openStreetMapUrl = computed(() => {
   return `https://www.openstreetmap.org/?mlat=${props.request.gps_lat}&mlon=${props.request.gps_lng}#map=16/${props.request.gps_lat}/${props.request.gps_lng}`
 })
 
-const revisionStatusConfig = computed(() => {
-  const status = props.request.status_revision
-  const configs: Record<string, { label: string; bg: string; text: string }> = {
-    sin_hallazgos: { label: 'Sin hallazgos', bg: 'bg-emerald-100', text: 'text-emerald-800' },
-    con_hallazgos: { label: 'Con hallazgos', bg: 'bg-amber-100', text: 'text-amber-800' },
-    pendiente: { label: 'Pendiente', bg: 'bg-slate-100', text: 'text-slate-700' },
-    aprobada: { label: 'Aprobada', bg: 'bg-emerald-100', text: 'text-emerald-800' },
-    aprobada_con_ajuste: { label: 'Aprobada con ajuste', bg: 'bg-blue-100', text: 'text-blue-800' },
-    aprobada_condicionada: { label: 'Aprobada condicionada', bg: 'bg-blue-100', text: 'text-blue-800' },
-    rechazada: { label: 'Rechazada', bg: 'bg-red-100', text: 'text-red-800' },
-    corregir: { label: 'Corregir', bg: 'bg-amber-100', text: 'text-amber-800' },
-    requiere_correccion: { label: 'Requiere corrección', bg: 'bg-amber-100', text: 'text-amber-800' }
-  }
-  return configs[status] ?? { label: status, bg: 'bg-slate-100', text: 'text-slate-700' }
-})
-
-const isApprovalAlreadyDecided = computed(() => {
-  const decision = currentApproval.value?.decision
-  return decision === 'aprobado' || decision === 'aprobado_con_ajuste' || decision === 'rechazado'
-})
-
-const approvalCtaConfig = computed(() => {
-  const decision = currentApproval.value?.decision
-  if (decision === 'aprobado' || decision === 'aprobado_con_ajuste') {
-    return { borderColor: 'border-emerald-200', bgGradient: 'bg-[linear-gradient(180deg,#f0fdf4_0%,#dcfce7_100%)]', iconColor: 'text-emerald-600' }
-  }
-  if (decision === 'rechazado') {
-    return { borderColor: 'border-red-200', bgGradient: 'bg-[linear-gradient(180deg,#fef2f2_0%,#fee2e2_100%)]', iconColor: 'text-red-600' }
-  }
-  return { borderColor: 'border-slate-200', bgGradient: 'bg-white', iconColor: 'text-[#0f4a67]' }
-})
-
-function getCtaConfig(approval: RevisionApproval | null) {
-  const decision = approval?.decision
-  if (decision === 'aprobado' || decision === 'aprobado_con_ajuste') {
-    return { borderColor: 'border-emerald-200', bgGradient: 'bg-[linear-gradient(180deg,#f0fdf4_0%,#dcfce7_100%)]', iconColor: 'text-emerald-600' }
-  }
-  if (decision === 'rechazado') {
-    return { borderColor: 'border-red-200', bgGradient: 'bg-[linear-gradient(180deg,#fef2f2_0%,#fee2e2_100%)]', iconColor: 'text-red-600' }
-  }
-  return { borderColor: 'border-slate-200', bgGradient: 'bg-white', iconColor: 'text-[#0f4a67]' }
-}
-
-function isDecidedApproval(approval: RevisionApproval | null) {
-  const d = approval?.decision
-  return d === 'aprobado' || d === 'aprobado_con_ajuste' || d === 'rechazado'
-}
-
-const ctaItems = computed(() => {
-  const items = [
-    { approval: currentApproval.value, label: 'Seguridad', hint: 'Revisión de identidad y domicilio', type: undefined as ApprovalType | undefined, actionLabel: 'Registrar decisión' }
-  ]
-  if (props.approvalType === 'seguridad') {
-    items[0].type = 'seguridad'
-    items.push({ approval: garantiasApproval.value, label: 'Garantías', hint: 'Validar fotos de activos', type: 'garantias' as ApprovalType, actionLabel: 'Validar garantías' })
-  }
-  return items
-})
-
 const APPROVAL_TYPE_LABELS: Record<string, string> = {
   gerente: 'Gerente',
   oficina: 'Oficina',
@@ -342,43 +247,33 @@ const APPROVAL_TYPE_LABELS: Record<string, string> = {
   direccion: 'Dirección'
 }
 
-function getApprovalCardConfig(decision?: ApprovalDecision) {
+function approvalDotClass(decision?: ApprovalDecision): string {
   switch (decision) {
     case 'aprobado':
     case 'aprobado_con_ajuste':
-      return {
-        border: 'border-emerald-200',
-        bg: 'bg-[linear-gradient(180deg,#f0fdf4_0%,#ecfdf5_100%)]',
-        icon: CircleCheck,
-        iconColor: 'text-emerald-500',
-        strip: 'bg-emerald-500'
-      }
+      return 'bg-emerald-500'
     case 'rechazado':
-      return {
-        border: 'border-red-200',
-        bg: 'bg-[linear-gradient(180deg,#fef2f2_0%,#fef2f2_100%)]',
-        icon: XCircle,
-        iconColor: 'text-red-500',
-        strip: 'bg-red-500'
-      }
+      return 'bg-rose-500'
     case 'no_aplica':
-      return {
-        border: 'border-slate-200',
-        bg: 'bg-slate-50',
-        icon: CircleMinus,
-        iconColor: 'text-slate-400',
-        strip: 'bg-slate-300'
-      }
+      return 'bg-slate-300'
     default:
-      return {
-        border: 'border-amber-200',
-        bg: 'bg-[linear-gradient(180deg,#fffbeb_0%,#fef9c3_100%)]',
-        icon: CircleDashed,
-        iconColor: 'text-amber-500',
-        strip: 'bg-amber-400'
-      }
+      return 'bg-amber-400'
   }
 }
+
+const isApprovalAlreadyDecided = computed(() => {
+  const decision = currentApproval.value?.decision
+  return decision === 'aprobado' || decision === 'aprobado_con_ajuste' || decision === 'rechazado'
+})
+
+const extraReviewType = computed<ApprovalType | null>(() => {
+  if (props.approvalType !== 'seguridad') return null
+  const g = garantiasApproval.value
+  if (!g || g.requerido !== 1) return null
+  const d = g.decision
+  if (d === 'aprobado' || d === 'aprobado_con_ajuste' || d === 'rechazado') return null
+  return 'garantias'
+})
 
 function formatMoney(value?: number | null) {
   return value != null
@@ -444,172 +339,125 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 </script>
 
 <template>
-  <div class="relative pb-72">
+  <div class="relative" :class="canRegisterDecision ? 'pb-28' : 'pb-4'">
   <Tabs default-value="revision" class="space-y-4">
-    <TabsList class="grid h-auto w-full grid-cols-4 rounded-[24px] bg-white p-2 shadow-sm">
-      <TabsTrigger value="revision" class="rounded-[18px] py-3 text-sm font-semibold">Revisión</TabsTrigger>
-      <TabsTrigger value="cliente" class="rounded-[18px] py-3 text-sm font-semibold">Cliente</TabsTrigger>
-      <TabsTrigger value="aval" class="rounded-[18px] py-3 text-sm font-semibold">Aval</TabsTrigger>
-      <TabsTrigger value="credito" class="rounded-[18px] py-3 text-sm font-semibold">Crédito</TabsTrigger>
+    <TabsList class="grid h-auto w-full grid-cols-4 rounded-3xl bg-white p-2 shadow-sm">
+      <TabsTrigger value="revision" class="rounded-2xl py-3 text-sm font-semibold">Revisión</TabsTrigger>
+      <TabsTrigger value="cliente" class="rounded-2xl py-3 text-sm font-semibold">Cliente</TabsTrigger>
+      <TabsTrigger value="aval" class="rounded-2xl py-3 text-sm font-semibold">Aval</TabsTrigger>
+      <TabsTrigger value="credito" class="rounded-2xl py-3 text-sm font-semibold">Crédito</TabsTrigger>
     </TabsList>
 
     <TabsContent value="revision" class="space-y-4">
-      <CardContainer>
+      <!-- Diagnóstico narrativo neutral -->
+      <CardContainer class-name="rounded-3xl">
         <div class="space-y-5">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="flex items-center gap-2 text-lg font-semibold text-slate-800">
-                <ShieldCheck class="size-5 text-[#0f4a67]" />
-                Diagnóstico de revisión
-              </p>
-              <p class="mt-1 text-sm text-slate-500">
-                Estado global del expediente y resumen de lo ya revisado.
-              </p>
-            </div>
+          <div class="flex items-start gap-3">
             <span
-              class="rounded-full px-3 py-1 text-xs font-semibold"
-              :class="[revisionStatusConfig.bg, revisionStatusConfig.text]"
-            >
-              {{ revisionStatusConfig.label }}
-            </span>
+              class="mt-2 inline-block size-2.5 shrink-0 rounded-full"
+              :class="headingToneClasses[filtradoHeading.tone]"
+              aria-hidden="true"
+            />
+            <div class="min-w-0 flex-1">
+              <p class="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                <ShieldCheck class="size-5 text-slate-500" />
+                {{ filtradoHeading.title }}
+              </p>
+              <p class="mt-1 text-sm text-slate-500">{{ filtradoHeading.subtitle }}</p>
+            </div>
           </div>
 
-          <div class="grid gap-y-4 border-t border-slate-200 pt-4 text-sm">
-            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-              <span class="text-slate-500">Motivo rechazo</span>
-              <span class="text-right font-medium text-slate-800">{{ request.motivo_rechazo || '-' }}</span>
+          <div class="space-y-4 border-t border-slate-200 pt-4">
+            <p
+              v-if="diagnosticoText"
+              class="text-base leading-relaxed text-slate-700"
+            >
+              {{ diagnosticoText }}
+            </p>
+            <p
+              v-else
+              class="text-sm italic leading-relaxed text-slate-500"
+            >
+              Todavía no hay diagnóstico registrado para este expediente.
+            </p>
+
+            <div
+              v-if="motivoText"
+              class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
+            >
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Motivo</p>
+              <p class="mt-1.5 text-sm leading-relaxed text-slate-700">{{ motivoText }}</p>
             </div>
-            <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-              <span class="text-slate-500">Documento inválido</span>
-              <span class="text-right font-medium text-slate-800">{{ request.doc_invalido_detalle || '-' }}</span>
+
+            <div
+              v-if="docDetalleText"
+              class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
+            >
+              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Detalle documental</p>
+              <p class="mt-1.5 text-sm leading-relaxed text-slate-700">{{ docDetalleText }}</p>
             </div>
-            <div class="space-y-2">
-              <span class="text-slate-500">Diagnóstico</span>
-              <p class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 text-base leading-relaxed text-slate-800">
-                {{ request.diagnostico || 'Sin diagnóstico registrado.' }}
-              </p>
-            </div>
+
+            <p
+              v-if="showNeutralClose"
+              class="text-xs leading-relaxed text-slate-500"
+            >
+              {{ NEUTRAL_CLOSE }}
+            </p>
           </div>
         </div>
       </CardContainer>
 
-      <div class="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
-        <CardContainer>
-          <div class="space-y-4">
-            <p class="flex items-center gap-2 text-lg font-semibold text-slate-800">
-              <ClipboardList class="size-5 text-[#0f4a67]" />
-              Requerimientos del plan
-            </p>
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="item in requirementChips"
-                :key="item.key"
-                v-show="item.required"
-                class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-900"
-              >
-                {{ item.label }}
-              </span>
-            </div>
-            <p v-if="!requirementChips.some((item) => item.required)" class="text-sm text-slate-500">
-              Este plan no requiere validaciones adicionales por área.
-            </p>
-          </div>
-        </CardContainer>
-
-        <CardContainer>
-          <div class="space-y-4">
-            <p class="flex items-center gap-2 text-lg font-semibold text-slate-800">
-              <FileCheck2 class="size-5 text-[#0f4a67]" />
-              Prevalidación de la app
-            </p>
-            <div v-if="prevalidationChecks.length" class="space-y-4">
-              <div class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-                La app ya revisó una parte del expediente antes de llegar a esta pantalla. Esto sirve como referencia inicial para agilizar el filtrado.
-              </div>
-              <div class="grid gap-3 md:grid-cols-3">
-                <div class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
-                  <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Revisiones útiles</p>
-                  <p class="mt-2 text-lg font-semibold text-slate-900">{{ prevalidationSummary.total }}</p>
-                </div>
-                <div class="rounded-[20px] border border-emerald-200 bg-emerald-50 px-4 py-4">
-                  <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Correctas</p>
-                  <p class="mt-2 text-lg font-semibold text-emerald-900">{{ prevalidationSummary.ok }}</p>
-                </div>
-                <div class="rounded-[20px] border border-amber-200 bg-amber-50 px-4 py-4">
-                  <p class="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">Por revisar</p>
-                  <p class="mt-2 text-lg font-semibold text-amber-900">{{ prevalidationSummary.pending }}</p>
-                </div>
-              </div>
-              <div
-                v-for="check in prevalidationChecks"
-                :key="check.key"
-                class="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
-              >
-                <span class="pr-4 font-medium leading-6 text-slate-700">{{ check.label }}</span>
-                <span
-                  class="shrink-0 rounded-full px-3 py-1 text-xs font-semibold"
-                  :class="check.ok ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'"
-                >
-                  {{ check.ok ? 'Correcto' : 'Revisar' }}
-                </span>
-              </div>
-            </div>
-            <div
-              v-else
-              class="rounded-[20px] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500"
-            >
-              Esta solicitud aún no trae prevalidación desde la app.
-            </div>
-          </div>
-        </CardContainer>
-      </div>
-
-      <CardContainer>
+      <!-- Aprobaciones — único lugar donde viven los roles requeridos + su estado -->
+      <CardContainer v-if="approvals.length" class-name="rounded-3xl">
         <div class="space-y-4">
-          <p class="flex items-center gap-2 text-lg font-semibold text-slate-800">
-            <AlertCircle class="size-5 text-[#0f4a67]" />
-            Aprobaciones del flujo
+          <p class="flex items-center gap-2 text-lg font-semibold text-slate-900">
+            <AlertCircle class="size-5 text-slate-500" />
+            Estado de las aprobaciones
           </p>
           <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             <div
               v-for="approval in approvals"
               :key="approval.tipo"
-              class="relative overflow-hidden rounded-[20px] border p-4"
-              :class="[getApprovalCardConfig(approval.decision).border, getApprovalCardConfig(approval.decision).bg]"
+              class="flex min-h-[140px] flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4"
             >
-              <!-- Strip lateral de estado -->
-              <div
-                class="absolute inset-y-0 left-0 w-1 rounded-l-[20px]"
-                :class="getApprovalCardConfig(approval.decision).strip"
-              />
-
-              <div class="flex items-center gap-3">
-                <component
-                  :is="getApprovalCardConfig(approval.decision).icon"
-                  class="size-6 shrink-0"
-                  :class="getApprovalCardConfig(approval.decision).iconColor"
-                />
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center justify-between gap-2">
-                    <p class="text-sm font-semibold text-slate-900">
-                      {{ APPROVAL_TYPE_LABELS[approval.tipo] || approval.tipo }}
-                    </p>
-                    <span
-                      class="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-                      :class="approval.requerido ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-500'"
-                    >
-                      {{ approval.requerido ? 'Requerido' : 'No aplica' }}
-                    </span>
-                  </div>
-                  <p class="mt-0.5 text-sm font-medium" :class="getApprovalCardConfig(approval.decision).iconColor">
-                    {{ formatApprovalDecision(approval.decision) }}
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span
+                    class="inline-block size-2.5 shrink-0 rounded-full"
+                    :class="approvalDotClass(approval.decision)"
+                    aria-hidden="true"
+                  />
+                  <p class="truncate text-sm font-semibold text-slate-900">
+                    {{ APPROVAL_TYPE_LABELS[approval.tipo] || approval.tipo }}
                   </p>
                 </div>
+                <span
+                  v-if="approval.requerido"
+                  class="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600"
+                >
+                  Requerido
+                </span>
+                <span
+                  v-else
+                  class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+                >
+                  No aplica
+                </span>
               </div>
 
-              <div class="mt-3 space-y-1 border-t border-black/5 pt-3 text-[13px] text-slate-600">
-                <p>{{ approval.usuario_nombre || 'Sin responsable asignado' }}</p>
-                <p v-if="approval.comentario" class="italic text-slate-500">« {{ approval.comentario }} »</p>
+              <div class="mt-3 space-y-1 text-[13px]">
+                <p class="font-medium text-slate-700">
+                  {{ formatApprovalDecision(approval.decision) }}
+                </p>
+                <p class="text-slate-500">
+                  {{ approval.usuario_nombre || 'Sin responsable asignado' }}
+                </p>
+                <p
+                  v-if="approval.comentario"
+                  class="mt-2 rounded-xl bg-slate-50 px-2.5 py-1.5 italic leading-relaxed text-slate-600"
+                >
+                  « {{ approval.comentario }} »
+                </p>
               </div>
             </div>
           </div>
@@ -619,22 +467,22 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 
     <TabsContent value="cliente" class="space-y-4">
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <CardContainer><DetailSection title="Datos del cliente" :items="clientInfo" /></CardContainer>
-        <CardContainer><DetailSection title="Domicilio" :items="clientAddress" /></CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Datos del cliente" :items="clientInfo" /></CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Domicilio" :items="clientAddress" /></CardContainer>
       </div>
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <CardContainer><DetailSection title="Finanzas" :items="clientFinance" /></CardContainer>
-        <CardContainer><DetailSection title="Referencias" :items="referenceClientItems" /></CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Finanzas" :items="clientFinance" /></CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Referencias" :items="referenceClientItems" /></CardContainer>
       </div>
-      <CardContainer>
+      <CardContainer class-name="rounded-3xl">
         <div>
           <h3 class="mb-4 text-lg font-semibold text-slate-800">Documentos del cliente</h3>
           <DocumentViewer :documents="clientDocuments" />
         </div>
       </CardContainer>
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <CardContainer><DetailSection title="Activos del cliente" :items="clientAssetItems" /></CardContainer>
-        <CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Activos del cliente" :items="clientAssetItems" /></CardContainer>
+        <CardContainer class-name="rounded-3xl">
           <div>
             <h3 class="mb-4 text-lg font-semibold text-slate-800">Fotos de activos</h3>
             <DocumentViewer :documents="clientAssetPhotos" />
@@ -645,22 +493,22 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 
     <TabsContent value="aval" class="space-y-4">
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <CardContainer><DetailSection title="Datos del aval" :items="guarantorInfo" /></CardContainer>
-        <CardContainer><DetailSection title="Domicilio" :items="guarantorAddress" /></CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Datos del aval" :items="guarantorInfo" /></CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Domicilio" :items="guarantorAddress" /></CardContainer>
       </div>
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <CardContainer><DetailSection title="Finanzas" :items="guarantorFinance" /></CardContainer>
-        <CardContainer><DetailSection title="Referencias" :items="referenceGuarantorItems" /></CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Finanzas" :items="guarantorFinance" /></CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Referencias" :items="referenceGuarantorItems" /></CardContainer>
       </div>
-      <CardContainer>
+      <CardContainer class-name="rounded-3xl">
         <div>
           <h3 class="mb-4 text-lg font-semibold text-slate-800">Documentos del aval</h3>
           <DocumentViewer :documents="guarantorDocuments" />
         </div>
       </CardContainer>
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <CardContainer><DetailSection title="Activos del aval" :items="guarantorAssetItems" /></CardContainer>
-        <CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Activos del aval" :items="guarantorAssetItems" /></CardContainer>
+        <CardContainer class-name="rounded-3xl">
           <div>
             <h3 class="mb-4 text-lg font-semibold text-slate-800">Fotos de activos</h3>
             <DocumentViewer :documents="guarantorAssetPhotos" />
@@ -671,18 +519,18 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 
     <TabsContent value="credito" class="space-y-4">
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <CardContainer><DetailSection title="Plan solicitado" :items="creditInfo" /></CardContainer>
-        <CardContainer>
+        <CardContainer class-name="rounded-3xl"><DetailSection title="Plan solicitado" :items="creditInfo" /></CardContainer>
+        <CardContainer class-name="rounded-3xl">
           <div class="space-y-4">
             <h3 class="text-lg font-semibold text-slate-800">Snapshot de tabla de cargos</h3>
             <div class="space-y-3 text-sm text-slate-700">
-              <div class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Identificador</p>
                 <p class="mt-2 text-base font-semibold text-slate-900">
                   {{ planSnapshot?.identificador || 'Sin identificador' }}
                 </p>
               </div>
-              <div class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Plan sugerido en revisión</p>
                 <p class="mt-2 text-base font-semibold text-slate-900">
                   {{ request.revision?.tabla_cargos_id_sugerido || 'Sin ajuste' }}
@@ -693,7 +541,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
         </CardContainer>
       </div>
 
-      <CardContainer>
+      <CardContainer class-name="rounded-3xl">
         <div class="space-y-4">
           <div class="flex items-start justify-between gap-4">
             <div>
@@ -705,7 +553,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
           </div>
 
           <div v-if="hasLocation" class="space-y-4">
-            <div class="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-50">
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">
               <iframe
                 :src="openStreetMapEmbedUrl"
                 class="h-[320px] w-full border-0"
@@ -716,11 +564,11 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
             </div>
 
             <div class="grid gap-4 md:grid-cols-2">
-              <div class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Latitud</p>
                 <p class="mt-2 text-base font-semibold text-slate-900">{{ request.gps_lat }}</p>
               </div>
-              <div class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Longitud</p>
                 <p class="mt-2 text-base font-semibold text-slate-900">{{ request.gps_lng }}</p>
               </div>
@@ -731,7 +579,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
                 :href="openStreetMapUrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+                class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
               >
                 Abrir en OpenStreetMap
               </a>
@@ -740,7 +588,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 
           <div
             v-else
-            class="rounded-[20px] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500"
+            class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500"
           >
             Esta solicitud no trae coordenadas registradas.
           </div>
@@ -749,67 +597,48 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
     </TabsContent>
   </Tabs>
 
-  <!-- CTA fijo de aprobación -->
-  <div class="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur-md">
-    <div class="mx-auto max-w-2xl space-y-2.5 px-4 py-3">
-      <div
-        v-for="item in ctaItems"
-        :key="item.label"
-        class="overflow-hidden rounded-[18px] border shadow-sm"
-        :class="[getCtaConfig(item.approval).borderColor, getCtaConfig(item.approval).bgGradient]"
-      >
-        <div class="flex items-center gap-3.5 px-4 py-3.5">
-          <!-- Icono de estado -->
-          <div
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-            :class="isDecidedApproval(item.approval)
-              ? (item.approval?.decision === 'rechazado' ? 'bg-red-100' : 'bg-emerald-100')
-              : 'bg-slate-100'"
-          >
-            <component
-              :is="isDecidedApproval(item.approval) ? CircleCheck : CircleDashed"
-              class="size-5"
-              :class="getCtaConfig(item.approval).iconColor"
-            />
-          </div>
-
-          <!-- Info -->
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <p class="text-sm font-semibold text-slate-900">{{ item.label }}</p>
-              <span
-                class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                :class="isDecidedApproval(item.approval)
-                  ? (item.approval?.decision === 'rechazado' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700')
-                  : 'bg-amber-100 text-amber-700'"
-              >
-                {{ formatApprovalDecision(item.approval?.decision) }}
-              </span>
-            </div>
-            <p class="mt-0.5 text-xs text-slate-500">
-              {{ item.approval?.usuario_nombre ?? item.hint }}
-            </p>
-          </div>
-
-          <!-- Acción -->
-          <button
-            v-if="!isDecidedApproval(item.approval)"
-            class="shrink-0 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
-            :disabled="isLoadingAction"
-            @click="$emit('open:review', item.type)"
-          >
-            {{ item.actionLabel }}
-          </button>
-          <button
-            v-else
-            class="shrink-0 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-medium text-slate-500 transition hover:bg-slate-50"
-            :disabled="isLoadingAction"
-            @click="$emit('open:review', item.type)"
-          >
-            Modificar
-          </button>
-        </div>
+  <!-- CTA fijo de aprobación — neutro -->
+  <div
+    v-if="canRegisterDecision"
+    class="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur-md"
+  >
+    <div class="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-semibold text-slate-900">
+          Revisión de {{ roleLabel.toLowerCase() }}
+        </p>
+        <p class="mt-0.5 truncate text-xs text-slate-500">
+          {{ isApprovalAlreadyDecided
+            ? (currentApproval?.usuario_nombre ?? 'Decisión ya registrada')
+            : 'Pendiente de decisión del personal autorizado' }}
+        </p>
       </div>
+
+      <button
+        v-if="extraReviewType"
+        class="shrink-0 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
+        :disabled="isLoadingAction"
+        @click="$emit('open:review', extraReviewType)"
+      >
+        Validar garantías
+      </button>
+
+      <button
+        v-if="!isApprovalAlreadyDecided"
+        class="shrink-0 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-800 disabled:opacity-60"
+        :disabled="isLoadingAction"
+        @click="$emit('open:review', approvalType)"
+      >
+        Registrar decisión
+      </button>
+      <button
+        v-else
+        class="shrink-0 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+        :disabled="isLoadingAction"
+        @click="$emit('open:review', approvalType)"
+      >
+        Modificar
+      </button>
     </div>
   </div>
   </div>
