@@ -206,7 +206,7 @@ function handleNextWeek(): void {
     <div v-if="!isDetailVisible" class="p-4 pb-0 space-y-3">
       <button
         type="button"
-        class="flex w-full items-center justify-between rounded-[24px] border border-slate-200 bg-white px-5 py-4 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+        class="flex w-full items-center justify-between rounded-3xl border border-slate-200 bg-white px-5 py-4 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
         @click="openAgencyFilter"
       >
         <div class="min-w-0">
@@ -221,7 +221,7 @@ function handleNextWeek(): void {
         </span>
       </button>
 
-      <div class="flex items-center justify-between rounded-[24px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <div class="flex items-center justify-between rounded-3xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
         <button
           type="button"
           class="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 disabled:opacity-30"
@@ -250,7 +250,7 @@ function handleNextWeek(): void {
     <div v-else-if="hasLoanRequests || isDetailVisible" class="space-y-4 p-4">
       <div
         v-if="isDetailVisible && isLoadingSelectedLoanRequest"
-        class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm"
+        class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
       >
         <LoadSkeleton :items="2" />
       </div>
@@ -266,7 +266,7 @@ function handleNextWeek(): void {
       />
 
       <div v-else class="space-y-4">
-        <div class="rounded-[28px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
+        <div class="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
           <p class="text-sm font-medium text-slate-600">
             Se muestran solo las solicitudes pendientes que requieren revisión de {{ currentRoleLabel.toLowerCase() }}.
           </p>

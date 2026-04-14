@@ -55,7 +55,7 @@ const getValueClasses = (value: any): string => {
 </script>
 
 <template>
-  <div class="rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3">
+  <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
     <p :class="labelClass">{{ label }}</p>
 
     <!-- Display JSON object as key-value pairs -->

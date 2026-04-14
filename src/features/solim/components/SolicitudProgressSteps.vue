@@ -17,6 +17,7 @@ import type {
   RutaSolicitudPasoId,
   Solicitud
 } from '../types'
+import { STEP_COPY } from '../constants/filtradoCopy'
 
 interface StepItem {
   id: RutaSolicitudPasoId
@@ -33,21 +34,6 @@ const APPROVAL_LABELS: Record<ApprovalType, string> = {
   garantias: 'Garantías',
   seguridad: 'Seguridad',
   direccion: 'Dirección general'
-}
-
-const STEP_COPY: Record<RutaSolicitudPasoId, { title: string; description: string }> = {
-  prevalidacion_app: {
-    title: 'Prevalidación app',
-    description: 'Validaciones rápidas capturadas por la app antes de pasar a revisión.'
-  },
-  filtrado: {
-    title: 'Filtro',
-    description: 'Resultado del filtrado operativo y del análisis documental.'
-  },
-  vistos_buenos: {
-    title: 'Vistos buenos',
-    description: 'Autorizaciones requeridas por el plan o por la tabla de cargos.'
-  }
 }
 
 const props = defineProps<{
@@ -95,14 +81,15 @@ function formatStepDetail(step: RutaSolicitudPaso): string {
   }
 
   if (step.id === 'prevalidacion_app') {
-    if (step.total === 0) return 'Pendiente'
-    return `${step.completos}/${step.total} correctas`
+    if (step.status === 'completo') return 'Completada'
+    if (step.total === 0) return 'En proceso'
+    return `${step.completos}/${step.total}`
   }
 
   if (step.id === 'filtrado') {
-    if (step.status === 'completo') return 'Sin hallazgos'
+    if (step.status === 'completo') return 'Completado'
     if (step.status === 'bloqueado') return 'Con observaciones'
-    return 'En espera'
+    return 'En proceso'
   }
 
   if (step.total === 0) {
@@ -114,7 +101,7 @@ function formatStepDetail(step: RutaSolicitudPaso): string {
     if (rejected.length > 0) {
       return `${rejected.length} rechazo${rejected.length > 1 ? 's' : ''}`
     }
-    return 'Hay rechazo'
+    return 'Con observaciones'
   }
 
   if (step.status === 'completo') {
@@ -199,35 +186,39 @@ const createdAtLabel = computed(() => {
 })
 
 function stepClasses(status: StepItem['status']) {
+  // Ring (border/bg del card del step) se mantiene neutro siempre.
+  // El color del estado vive solo en el círculo (badge) y en el detail text.
+  const ring = 'border-slate-200 bg-white'
+
   switch (status) {
     case 'complete':
       return {
-        ring: 'border-emerald-200 bg-emerald-50',
-        badge: 'bg-emerald-600 text-white',
+        ring,
+        badge: 'bg-emerald-500 text-white',
         detail: 'text-emerald-700'
       }
     case 'warning':
       return {
-        ring: 'border-amber-200 bg-amber-50',
+        ring,
         badge: 'bg-amber-500 text-white',
         detail: 'text-amber-700'
       }
     case 'progress':
       return {
-        ring: 'border-blue-200 bg-blue-50',
+        ring,
         badge: 'bg-blue-600 text-white',
         detail: 'text-blue-700'
       }
     case 'neutral':
       return {
-        ring: 'border-slate-200 bg-white',
-        badge: 'bg-slate-100 text-slate-600',
+        ring,
+        badge: 'bg-slate-200 text-slate-600',
         detail: 'text-slate-500'
       }
     default:
       return {
-        ring: 'border-slate-200 bg-slate-50',
-        badge: 'bg-slate-200 text-slate-700',
+        ring,
+        badge: 'bg-slate-200 text-slate-600',
         detail: 'text-slate-500'
       }
   }
@@ -249,7 +240,7 @@ function isAnimatedStatus(status: StepItem['status']) {
 <template>
   <button
     type="button"
-    class="block w-full rounded-[22px] border border-slate-200 bg-[linear-gradient(180deg,#fcfdff_0%,#f8fafc_100%)] px-4 py-4 text-left transition hover:border-slate-300 hover:bg-white"
+    class="block w-full rounded-3xl border border-slate-200 bg-[linear-gradient(180deg,#fcfdff_0%,#f8fafc_100%)] px-4 py-4 text-left transition hover:border-slate-300 hover:bg-white"
     @click="openSheet"
   >
     <div class="flex items-start justify-between gap-4">
@@ -292,7 +283,7 @@ function isAnimatedStatus(status: StepItem['status']) {
     </div>
     <div
       v-else
-      class="mt-4 rounded-[18px] border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500"
+      class="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500"
     >
       Esta solicitud aún no expone una ruta de revisión.
     </div>
@@ -329,7 +320,7 @@ function isAnimatedStatus(status: StepItem['status']) {
           </span>
 
           <div
-            class="rounded-[22px] border px-4 py-4 shadow-[0_1px_0_rgba(15,23,42,0.02)] sm:px-5"
+            class="rounded-2xl border px-4 py-4 shadow-[0_1px_0_rgba(15,23,42,0.02)] sm:px-5"
             :class="stepClasses(step.status).ring"
           >
             <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
@@ -377,17 +368,17 @@ function isAnimatedStatus(status: StepItem['status']) {
       </div>
       <div
         v-else
-        class="rounded-[22px] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm leading-7 text-slate-500"
+        class="rounded-3xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm leading-7 text-slate-500"
       >
         El servicio aún no devolvió `ruta_solicitud` para este expediente.
       </div>
 
-      <div class="rounded-[20px] border border-slate-200 bg-white px-4 py-4">
+      <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4">
         <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Creación</p>
         <p class="mt-2 text-sm font-semibold text-slate-900">{{ createdAtLabel }}</p>
       </div>
 
-      <div v-if="requiredApprovalLabels.length" class="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+      <div v-if="requiredApprovalLabels.length" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
         <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Vistos buenos requeridos</p>
         <p class="mt-2 text-sm leading-6 text-slate-600">
           Este plan necesita la validación de las áreas que ves a continuación.
