@@ -23,7 +23,7 @@ export const API_CONFIGURATIONS: ApiConfigurations = {
   },
   hono: {
     baseURL: 'https://xpress-correcciones-back-hono.clvrt.workers.dev',
-    timeout: 10000
+    timeout: 1000 * 60 * 2 // 2 minutos
   },
   elysia: {
     baseURL: 'https://elysia.xpress1.cc/api/',
