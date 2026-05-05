@@ -48,6 +48,7 @@ const {
 } = useSolim()
 
 const selectedRequestId = ref<string | null>(null)
+const dialogPersonaId = ref<string | null>(null)
 const agencyFilterSheetRef = ref<InstanceType<typeof AgencyFilterSheet>>()
 
 const isGarantiasDialogOpen = ref(false)
@@ -78,6 +79,7 @@ function findRequest(id: string) {
 
 function handleOpenDialog(id: string): void {
   const request = findRequest(id)
+  dialogPersonaId.value = request?.cliente_persona_id ?? null
   openDialog({
     requestId: id,
     currentApproval:
@@ -106,6 +108,7 @@ async function handleConfirmAction(): Promise<void> {
 
   await saveApproval(loanApprovalForm.value, dialogRequestId.value, dialogApprovalType.value)
   closeDialog()
+  dialogPersonaId.value = null
 }
 
 async function handleConfirmGarantias(payload: { decision: 'aprobado' | 'rechazado', comentario: string }): Promise<void> {
@@ -173,10 +176,11 @@ function handleNextWeek(): void {
     :role-label="dialogApprovalType === 'garantias' ? 'Garantías' : currentRoleLabel"
     :tabla-cargos-options="tablaCargosOptions"
     :current-plan-id="selectedLoanRequest?.revision?.tabla_cargos_id_sugerido ?? selectedLoanRequest?.tabla_cargos_id ?? null"
+    :cliente-persona-id="dialogPersonaId ?? selectedLoanRequest?.cliente_persona_id ?? null"
     :is-loading="isProcessingAction"
     @update:form="handleUpdateForm"
     @confirm="handleConfirmAction"
-    @cancel="closeDialog"
+    @cancel="() => { closeDialog(); dialogPersonaId = null }"
   />
 
   <GarantiasDialog

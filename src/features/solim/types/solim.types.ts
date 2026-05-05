@@ -281,3 +281,42 @@ export interface UpdateCheckPayload {
   tablaCargosIdSugerido?: number | null
   decisionPayload?: Record<string, unknown> | null
 }
+
+export interface HistorialPrestamo {
+  PrestamoID: string
+  tipo_prestamo: string
+  Tipo_de_Cliente: string
+  Gerencia: string
+  Agente: string
+  Semana: number
+  Anio: number
+  plazo: number
+  Tarifa: number
+  Saldo: number
+  Cobrado: number
+  Monto_otorgado: number
+  total_visitas: number
+  total_semanas_pagadas: number
+  semanas_sin_pago: number
+  semanas_reducidas: number
+  semanas_reducidas_bajo_50: number
+  pct_deficit_promedio: number
+  promedio_monto_reducido: number
+  cumple_saldo: 0 | 1
+  cumple_plazo: 0 | 1
+  cumple_sin_no_pagos: 0 | 1
+  cumple_sin_reducidos_graves: 0 | 1
+  cumple_minimo_reducido: 0 | 1
+  score: number
+}
+
+export interface HistorialData {
+  score_final: number
+  prestamos: HistorialPrestamo[]
+}
+
+export interface HistorialResponse {
+  success: boolean
+  message: string
+  data: HistorialData
+}

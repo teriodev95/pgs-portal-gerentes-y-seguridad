@@ -10,6 +10,7 @@ import {
   DrawerTitle
 } from '@/components/ui/drawer'
 import SlideUnlock from 'vue-slide-unlock'
+import ClienteHistorialDisclosure from './ClienteHistorialDisclosure.vue'
 
 interface Props {
   isOpen: boolean
@@ -18,6 +19,7 @@ interface Props {
   tablaCargosOptions: TablaCargosOption[]
   currentPlanId?: number | null
   isLoading?: boolean
+  clientePersonaId?: string | null
 }
 
 interface Emits {
@@ -189,6 +191,8 @@ function selectMonto(value: number) {
       </DrawerHeader>
 
       <div class="flex-1 space-y-6 overflow-y-auto px-6 pb-4 overscroll-contain">
+        <ClienteHistorialDisclosure :persona-id="clientePersonaId" />
+
         <section class="grid gap-5 md:grid-cols-2">
           <div class="space-y-2">
             <label class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">

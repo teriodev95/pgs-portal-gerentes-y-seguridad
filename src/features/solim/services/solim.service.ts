@@ -5,7 +5,8 @@ import type {
   LoanRequestsListResponse,
   ApprovalType,
   TablaCargosOptionsResponse,
-  UpdateCheckPayload
+  UpdateCheckPayload,
+  HistorialResponse
 } from '../types'
 import {
   mapLoanRequestDetailResponse,
@@ -56,6 +57,12 @@ class SolimService {
 
   async getTablaCargos() {
     return this.apiClient.get<TablaCargosOptionsResponse>('/tabla-cargos')
+  }
+
+  async getClienteHistorial(personaId: string) {
+    return this.apiClient.get<HistorialResponse>(
+      `/filtrado-clientes/historial/${encodeURIComponent(personaId)}`
+    )
   }
 
   async updateLoanApplicationCheck(id: string, type: ApprovalType, payload: UpdateCheckPayload) {
