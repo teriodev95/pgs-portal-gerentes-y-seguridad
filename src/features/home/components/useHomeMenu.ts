@@ -223,7 +223,6 @@ export function useHomeMenu() {
       title: 'Solicitudes app',
       icon: FileCheck,
       route: ROUTE_NAME.ADMIN_SOLIM,
-      disabled: isRegionalUser.value,
       description: 'Revisar solicitudes'
     },
     {
