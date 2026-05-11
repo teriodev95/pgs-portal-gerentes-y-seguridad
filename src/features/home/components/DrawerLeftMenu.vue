@@ -139,8 +139,8 @@ function logout() {
   <!-- Main Menu Drawer (Left Side) -->
   <Drawer :open="props.open" direction="left" @update:open="(value: boolean) => emit('update:open', value)">
     <DrawerPortal>
-      <DrawerOverlay />
-      <DrawerContent class="fixed inset-y-0 left-0 z-50 h-full w-64 flex flex-col border-r bg-white">
+      <DrawerOverlay class="!bg-black/20" />
+      <DrawerContent class="fixed !inset-y-0 left-0 !top-0 !bottom-0 z-50 !h-screen !min-h-screen w-64 flex flex-col border-r bg-white shadow-xl !rounded-none">
         <!-- User Info Header -->
         <div class="p-4 border-b">
           <div class="flex items-center gap-3">
