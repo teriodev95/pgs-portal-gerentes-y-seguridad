@@ -1,12 +1,11 @@
 // composables/useUIState.ts
 import { ref, watch } from 'vue'
-import { initDrawers } from 'flowbite'
 import { useSignStore } from '@/features/weekly-close/stores'
 
 export function useUIState() {
   const $sign = useSignStore()
   
-  const isMenuVisible = ref(false)
+  const isMenuVisible = ref(true)
   
   // Constants
   const INIT_DRAWER_DELAY = 1000
@@ -17,7 +16,6 @@ export function useUIState() {
   function initializeMenuVisibility() {
     setTimeout(() => {
       isMenuVisible.value = true
-      initDrawers()
     }, INIT_DRAWER_DELAY)
   }
 

@@ -193,6 +193,11 @@ const router = createRouter({
           path: 'promissory-notes',
           name: ROUTE_NAME.PROMISSORY_NOTES,
           component: () => import('@/features/promissory-note/views/PromissoryNoteView.vue')
+        },
+        {
+          path: 'personal-information',
+          name: ROUTE_NAME.PERSONAL_INFORMATION,
+          component: () => import('@/features/personal-information/views/PersonalInfoView.vue')
         }
       ]
     },
