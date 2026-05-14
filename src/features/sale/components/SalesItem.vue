@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ROUTE_NAME } from '@/router';
-import { toCurrency } from '@/shared/utils';
+import { formatToHumanDate, toCurrency } from '@/shared/utils';
 import { useRouter } from 'vue-router';
 import type { SaleDetails } from '../types';
 
@@ -14,6 +14,7 @@ import BtnComponent from '@/shared/components/BtnComponent.vue';
 import EyeIcon from '@/shared/components/icons/EyeIcon.vue';
 import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue';
 import DataField from '@/shared/components/DataField.vue';
+import TextCT from '@/shared/components/ui/TextCT.vue';
 
 /**
  * ------------------------------------------
@@ -55,6 +56,12 @@ const navigateToCorrection = () => {
     <DataField label="Cliente" :value="sale.nombreCliente" />
     <DataField label="Tipo" :value="sale.tipo" />
     <DataField label="Monto" :value="toCurrency(sale.monto)" />
+    <TextCT variant="tertiary" >
+      Fecha de venta: {{ formatToHumanDate(sale.fecha ?? '') }}
+    </TextCT>
+    <TextCT variant="tertiary">
+      Creada: {{ sale.createdAtFormatted }}
+    </TextCT>
 
     <div class="space-y-2">
       <BtnComponent variant="primary" size="sm" full-width @click="$emit('action:show-details', sale)">

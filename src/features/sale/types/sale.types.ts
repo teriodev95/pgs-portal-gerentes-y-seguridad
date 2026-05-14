@@ -14,4 +14,5 @@ export interface SaleDetails extends SaleFormData {
   gerencia: string
   id?: number
   semana: number
+  createdAtFormatted: string
 }
