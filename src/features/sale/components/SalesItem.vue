@@ -56,10 +56,10 @@ const navigateToCorrection = () => {
     <DataField label="Cliente" :value="sale.nombreCliente" />
     <DataField label="Tipo" :value="sale.tipo" />
     <DataField label="Monto" :value="toCurrency(sale.monto)" />
-    <TextCT variant="tertiary" >
+    <TextCT class="capitalize" variant="tertiary" >
       Fecha de venta: {{ formatToHumanDate(sale.fecha ?? '') }}
     </TextCT>
-    <TextCT variant="tertiary">
+    <TextCT class="capitalize" variant="tertiary">
       Creada: {{ sale.createdAtFormatted }}
     </TextCT>
 
