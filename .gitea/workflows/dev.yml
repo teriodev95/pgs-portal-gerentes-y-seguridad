@@ -30,6 +30,11 @@ jobs:
         env:
           VITE_ENVIRONMENT: dev
           VITE_FAX_API_URL: https://fax-dev.terio.dev
+          VITE_JAVALIN_API_URL: https://jav-dev.terio.dev/api
+          VITE_ELYSIA_API_URL: https://ely-dev.terio.dev/api
+          VITE_MCP_API_URL: https://mcp.xpress1.cc
+          VITE_IMG_REPORTES_API_URL: https://img-dev.terio.dev/api/reportes
+          VITE_MOX_URL: https://mox-dev.terio.dev
         run: |
           set -euo pipefail
           pnpm run build

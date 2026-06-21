@@ -4,11 +4,12 @@ import { ROUTE_NAME } from '@/router';
 import { useRouter } from 'vue-router';
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue';
 import MainCT from '@/shared/components/ui/MainCT.vue';
+import { XPRESS_ENDPOINTS } from '@/shared/config/endpoints';
 
 const $router = useRouter();
 
 const url = computed(() => {
-  return `https://cierres.xpress1.cc/simulador-credito`
+  return XPRESS_ENDPOINTS.loanSimulatorUrl
 })
 
 function handleBack() {
