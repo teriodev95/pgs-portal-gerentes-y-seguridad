@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { WalletCards } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
+import { useStore } from '@/shared/stores'
 import { useAssignmentsData } from '../composables'
 // Components
 import AssignmentWidget from '@/features/assignment/components/AssignmentWidget.vue'
@@ -13,6 +16,7 @@ import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 
 // Composables
 const router = useRouter()
+const $store = useStore()
 const {
   assignmentData,
   isLoading,
@@ -21,9 +25,15 @@ const {
   navigateToCreateAssignment
 } = useAssignmentsData('management')
 
+const canUseCustody = computed(() => ['Seguridad', 'Regional'].includes($store.user?.tipo ?? ''))
+
 // Methods
 function handleBack() {
   router.push({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
+
+function navigateToCustody() {
+  router.push({ name: ROUTE_NAME.MANAGER_ASSIGNMENTS_CUSTODY })
 }
 </script>
 
@@ -37,7 +47,16 @@ function handleBack() {
     />
 
     <!-- Floating Action Button -->
-    <div data-dial-init class="group fixed bottom-[1.5rem] right-6 z-50">
+    <div data-dial-init class="group fixed bottom-[1.5rem] right-6 z-50 flex items-center gap-3">
+      <button
+        v-if="canUseCustody"
+        type="button"
+        class="inline-flex h-12 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-sm font-medium text-blue-700 shadow-[0px_0px_11px_4px_rgba(0,0,0,0.12)] hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
+        @click="navigateToCustody"
+      >
+        <WalletCards class="size-4" :stroke-width="1.8" />
+        Custodia
+      </button>
       <FloatBtn @click="navigateToCreateAssignment" type="primary" />
     </div>
 

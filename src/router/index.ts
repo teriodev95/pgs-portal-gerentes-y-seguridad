@@ -79,6 +79,11 @@ const router = createRouter({
               path: 'create',
               name: ROUTE_NAME.MANAGER_ASSIGNMENTS_VIEW_CREATE,
               component: () => import('@/features/assignment/views/AssignmentsCreateView.vue'),
+            },
+            {
+              path: 'custody',
+              name: ROUTE_NAME.MANAGER_ASSIGNMENTS_CUSTODY,
+              component: () => import('@/features/assignment/views/AssignmentsCustodyView.vue'),
             }
           ]
         },
