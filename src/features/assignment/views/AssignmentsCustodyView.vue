@@ -30,6 +30,7 @@ const isVerifyingRecipientPin = ref(false)
 const recipientErrorMessage = ref('')
 const recipientStatus = ref<ValidationStatus>('default')
 const recipientUser = ref<IUserVerificationPin>()
+const selectionNotice = ref('')
 const selectedDestination = ref<Destination>('gerente')
 const selectedIds = ref<string[]>([])
 const week = ref(0)
@@ -45,25 +46,74 @@ const moneyFormatter = new Intl.NumberFormat('es-MX', {
 
 const canUseCustody = computed(() => ['Seguridad', 'Regional'].includes($store.user?.tipo ?? ''))
 const hasAssignments = computed(() => assignments.value.length > 0)
+const custodyTotal = computed(() =>
+  assignments.value.reduce((total, assignment) => total + assignment.amount, 0)
+)
 const selectedAssignments = computed(() =>
   assignments.value.filter((assignment) => selectedIds.value.includes(assignment.originAssignmentId))
 )
-const selectedManagements = computed(() =>
-  Array.from(new Set(selectedAssignments.value.map((assignment) => assignment.derivedManagement)))
-)
+const selectedAssignment = computed(() => selectedAssignments.value[0])
 const selectedTotal = computed(() =>
   selectedAssignments.value.reduce((total, assignment) => total + assignment.amount, 0)
 )
-const hasMixedManagementsForManager = computed(
-  () => selectedDestination.value === 'gerente' && selectedManagements.value.length > 1
+const isManagerDestination = computed(() => selectedDestination.value === 'gerente')
+const isSelectionReadyForDestination = computed(() =>
+  isManagerDestination.value ? selectedIds.value.length === 1 : selectedIds.value.length > 0
 )
 const canSave = computed(
   () =>
-    selectedIds.value.length > 0 &&
+    isSelectionReadyForDestination.value &&
     recipientStatus.value === 'success' &&
-    !hasMixedManagementsForManager.value &&
     !isSaving.value
 )
+const selectedCountLabel = computed(() =>
+  selectedIds.value.length === 1 ? '1 asignación' : `${selectedIds.value.length} asignaciones`
+)
+const availableCountLabel = computed(() =>
+  assignments.value.length === 1 ? '1 asignación disponible' : `${assignments.value.length} asignaciones disponibles`
+)
+const destinationHelpText = computed(() => {
+  if (isManagerDestination.value) {
+    if (selectionNotice.value) return selectionNotice.value
+    if (selectedIds.value.length === 0) return 'Selecciona una asignación para devolverla al gerente.'
+    if (selectedIds.value.length > 1) return 'Para devolver al gerente solo puedes seleccionar una asignación.'
+
+    const assignment = selectedAssignment.value
+    return assignment
+      ? `Se devolverá la asignación de ${assignment.agency} al gerente de ${assignment.derivedManagement}.`
+      : 'Selecciona una asignación para devolverla al gerente.'
+  }
+
+  if (selectedIds.value.length === 0) {
+    return 'Selecciona una o varias asignaciones para entregarlas a Administración.'
+  }
+
+  return `Administración recibirá ${selectedCountLabel.value}.`
+})
+const destinationHelpClass = computed(() => {
+  if (isManagerDestination.value && selectedIds.value.length > 1) {
+    return 'bg-red-50 text-red-700'
+  }
+
+  return isSelectionReadyForDestination.value
+    ? 'bg-blue-50 text-blue-800'
+    : 'bg-gray-50 text-gray-600'
+})
+const recipientPinInstruction = computed(() => {
+  if (!isSelectionReadyForDestination.value) {
+    return isManagerDestination.value
+      ? 'Selecciona una asignación para validar el PIN del gerente'
+      : 'Selecciona al menos una asignación para validar el PIN de Administración'
+  }
+
+  if (isManagerDestination.value) {
+    return 'Ingresa el PIN del gerente que recibe esta asignación'
+  }
+
+  return selectedIds.value.length === 1
+    ? 'Ingresa el PIN de quien recibe esta asignación en Administración'
+    : 'Ingresa el PIN de quien recibe estas asignaciones en Administración'
+})
 
 function formatMoney(value: number) {
   return moneyFormatter.format(value)
@@ -87,9 +137,20 @@ function isSelected(id: string) {
 }
 
 function toggleAssignment(id: string) {
+  selectionNotice.value = ''
+
+  if (isManagerDestination.value) {
+    selectedIds.value = isSelected(id) ? [] : [id]
+    return
+  }
+
   selectedIds.value = isSelected(id)
     ? selectedIds.value.filter((selectedId) => selectedId !== id)
     : [...selectedIds.value, id]
+}
+
+function selectDestination(destination: Destination) {
+  selectedDestination.value = destination
 }
 
 function resetRecipientValidation() {
@@ -97,6 +158,18 @@ function resetRecipientValidation() {
   recipientErrorMessage.value = ''
   recipientStatus.value = 'default'
   recipientUser.value = undefined
+}
+
+function recipientBelongsToSelectedManagement(user: IUserVerificationPin) {
+  if (!isManagerDestination.value) return true
+
+  const management = selectedAssignment.value?.derivedManagement
+  if (!management) return false
+
+  return (
+    user.gerencia === management ||
+    user.gerenciasACargo?.some((gerencia) => gerencia.gerenciaid === management)
+  )
 }
 
 async function loadCustody() {
@@ -119,9 +192,17 @@ async function loadCustody() {
 }
 
 async function validateRecipientPin() {
+  if (!isSelectionReadyForDestination.value) {
+    recipientStatus.value = 'error'
+    recipientErrorMessage.value = isManagerDestination.value
+      ? 'Selecciona una sola asignación antes de validar el PIN del gerente.'
+      : 'Selecciona al menos una asignación antes de validar el PIN de Administración.'
+    return
+  }
+
   if (!inputRecipientPin.value.trim()) {
     recipientStatus.value = 'error'
-    recipientErrorMessage.value = 'El PIN es requerido'
+    recipientErrorMessage.value = 'Ingresa el PIN de quien recibirá el efectivo.'
     return
   }
 
@@ -138,8 +219,16 @@ async function validateRecipientPin() {
       recipientStatus.value = 'error'
       recipientErrorMessage.value =
         selectedDestination.value === 'admin'
-          ? 'El PIN debe ser de Administracion'
-          : 'El PIN debe ser de Gerente'
+          ? 'Para entregar a Administración, valida el PIN de un usuario administrativo.'
+          : 'Para devolver al gerente, valida el PIN de un usuario Gerente.'
+      recipientUser.value = undefined
+      return
+    }
+
+    if (!recipientBelongsToSelectedManagement(user)) {
+      const management = selectedAssignment.value?.derivedManagement
+      recipientStatus.value = 'error'
+      recipientErrorMessage.value = `Ese gerente no corresponde a ${management}. Valida el PIN del gerente de esa asignación.`
       recipientUser.value = undefined
       return
     }
@@ -149,7 +238,7 @@ async function validateRecipientPin() {
     recipientErrorMessage.value = ''
   } catch (error) {
     recipientStatus.value = 'error'
-    recipientErrorMessage.value = 'Error al validar PIN'
+    recipientErrorMessage.value = 'No se pudo validar el PIN. Revisa que esté correcto e intenta otra vez.'
     showError('Error al validar PIN del receptor')
   } finally {
     isVerifyingRecipientPin.value = false
@@ -177,7 +266,24 @@ async function saveCustodyReturn() {
   }
 }
 
-watch(selectedDestination, resetRecipientValidation)
+watch(selectedDestination, (destination) => {
+  resetRecipientValidation()
+
+  if (destination === 'gerente' && selectedIds.value.length > 1) {
+    selectedIds.value = [selectedIds.value[0]]
+    selectionNotice.value = 'Para devolver al gerente se permite una sola asignación. Conservamos la primera selección.'
+  } else {
+    selectionNotice.value = ''
+  }
+})
+
+watch(selectedIds, () => {
+  resetRecipientValidation()
+
+  if (!isManagerDestination.value || selectedIds.value.length !== 1) {
+    selectionNotice.value = ''
+  }
+})
 
 onMounted(async () => {
   if (!canUseCustody.value) {
@@ -201,7 +307,8 @@ onMounted(async () => {
       <div class="mb-3 flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white p-3">
         <div>
           <p class="text-xs font-medium text-gray-500">Semana {{ week || $store.currentDate.week }}</p>
-          <p class="text-lg font-semibold text-gray-950">{{ formatMoney(selectedTotal) }}</p>
+          <p class="text-lg font-semibold text-gray-950">{{ formatMoney(custodyTotal) }}</p>
+          <p class="text-[11px] font-medium text-gray-500">{{ availableCountLabel }}</p>
         </div>
         <button
           type="button"
@@ -218,7 +325,7 @@ onMounted(async () => {
       <EmptyCT
         v-else-if="!hasAssignments"
         message="No hay efectivo en custodia"
-        description="No tienes partidas pendientes de la semana actual."
+        description="No tienes asignaciones pendientes de la semana actual."
       />
 
       <div v-else class="space-y-2 pb-72">
@@ -256,10 +363,11 @@ onMounted(async () => {
               {{ assignment.derivedManagement }}
             </span>
             <span
-              class="inline-flex size-6 items-center justify-center rounded-md border"
+              class="inline-flex size-6 items-center justify-center border"
+              :title="isManagerDestination ? 'Selección única para gerente' : 'Selección múltiple para Administración'"
               :class="isSelected(assignment.originAssignmentId)
-                ? 'border-blue-600 bg-blue-600 text-white'
-                : 'border-gray-300 text-transparent'"
+                ? `border-blue-600 bg-blue-600 text-white ${isManagerDestination ? 'rounded-full' : 'rounded-md'}`
+                : `border-gray-300 text-transparent ${isManagerDestination ? 'rounded-full' : 'rounded-md'}`"
             >
               <Check class="size-4" :stroke-width="2" />
             </span>
@@ -280,9 +388,10 @@ onMounted(async () => {
             :class="selectedDestination === 'gerente'
               ? 'border-blue-600 bg-blue-600 text-white'
               : 'border-gray-200 text-gray-700'"
-            @click="selectedDestination = 'gerente'"
+            @click="selectDestination('gerente')"
           >
-            Gerente
+            <span class="block">Gerente</span>
+            <span class="block text-[11px] font-medium opacity-80">1 asignación</span>
           </button>
           <button
             type="button"
@@ -290,19 +399,20 @@ onMounted(async () => {
             :class="selectedDestination === 'admin'
               ? 'border-blue-600 bg-blue-600 text-white'
               : 'border-gray-200 text-gray-700'"
-            @click="selectedDestination = 'admin'"
+            @click="selectDestination('admin')"
           >
-            Administracion
+            <span class="block">Administración</span>
+            <span class="block text-[11px] font-medium opacity-80">varias asignaciones</span>
           </button>
         </div>
 
         <div class="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-          <span class="text-xs font-medium text-gray-600">{{ selectedIds.length }} partidas</span>
+          <span class="text-xs font-medium text-gray-600">{{ selectedCountLabel }}</span>
           <span class="text-sm font-semibold text-gray-950">{{ formatMoney(selectedTotal) }}</span>
         </div>
 
-        <p v-if="hasMixedManagementsForManager" class="text-xs font-medium text-red-600">
-          Selecciona una sola gerencia para devolver a gerente.
+        <p class="rounded-lg px-3 py-2 text-xs font-medium" :class="destinationHelpClass">
+          {{ destinationHelpText }}
         </p>
 
         <ValidationPin
@@ -312,7 +422,9 @@ onMounted(async () => {
           :status="recipientStatus"
           :user="recipientUser"
           :error-message="recipientErrorMessage"
+          :instruction="recipientPinInstruction"
           :is-verifying="isVerifyingRecipientPin"
+          :disabled="!isSelectionReadyForDestination"
           @validate="validateRecipientPin"
         />
 

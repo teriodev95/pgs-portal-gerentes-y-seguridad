@@ -149,11 +149,11 @@ class AssignmentService {
       meta: {
         successNotification: {
           mainText: 'Efectivo retornado',
-          secondaryText: 'La asignación se registró correctamente'
+          secondaryText: 'El retorno quedó registrado correctamente'
         },
         errorNotification: {
           title: 'Error al retornar custodia',
-          message: 'No se pudo registrar el retorno. Verifica los datos e intenta nuevamente.',
+          message: 'No se pudo registrar el retorno. Revisa la asignación seleccionada y el PIN del receptor.',
           type: 'error'
         }
       }
