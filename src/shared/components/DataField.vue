@@ -38,13 +38,13 @@ const getBasePropertyClass = computed(() => {
  * Computed property that returns the complete CSS class combining base and variant styles
  */
 const getValueClass = computed(() => {
-  if (props.valueClass) return props.valueClass
+  if (props.valueClass) return `${props.valueClass} capitalize`
 
   const baseClass = getBasePropertyClass.value
   const variantClass = VARIANT_CLASSES[props.variant]
   const alignmentClass = props.rightAligned ? 'text-right' : ''
 
-  return `${baseClass} ${variantClass} ${alignmentClass}`.trim()
+  return `${baseClass} ${variantClass} ${alignmentClass} capitalize`.trim()
 })
 
 /**
@@ -60,10 +60,10 @@ const getContainerClass = computed(() => {
 <template>
   <div :class="getContainerClass">
     <div v-if="props.label">
-      <p class="font-light text-gray-400">
+      <p class="font-light text-gray-400 capitalize">
         {{ props.label }}
       </p>
-      <p v-if="props.notice" class="font-sm-700 text-gray-400 text-sm mt-1 flex items-center gap-2">
+      <p v-if="props.notice" class="font-sm-700 text-gray-400 text-sm mt-1 flex items-center gap-2 capitalize">
         <InfoIcon class="h-4 w-4" /> {{ props.notice }}
       </p>
     </div>

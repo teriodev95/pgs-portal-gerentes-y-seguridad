@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { APP_VERSION, ELEMENT_ID } from '@/shared/constants'
-import { onMounted } from 'vue'
+import { APP_VERSION } from '@/shared/constants'
+import { onMounted, ref } from 'vue'
 import { useAgencyData } from '@/features/home/composables/useAgencyData'
 import { useCollections } from '@/features/home/composables/useCollections'
 import { useUIState } from '@/features/home/composables/useUIState'
 
 // Components import
 import AgencySlider from '@/features/home/components/AgencySlider.vue'
-import DrawerLeft from '@/features/home/components/DrawerLeft.vue'
+import DrawerLeftMenu from '@/features/home/components/DrawerLeftMenu.vue'
 import FilterButton from '@/shared/components/FilterButton.vue'
 import GerencySlider from '@/features/home/components/GerencySlider.vue'
 import HomeMenu from '@/features/home/components/HomeMenu.vue'
@@ -18,8 +18,10 @@ import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 
 // Constants
-const DRAWER_ID = ELEMENT_ID.DRAWER_LEFT
 const ENVIRONMENT = import.meta.env.VITE_ENVIRONMENT
+
+// State
+const isDrawerOpen = ref(false)
 
 // Services, Composables and Stores initialization
 const {
@@ -53,6 +55,10 @@ async function onAgencySelection() {
   await handleAgencySelection(fetchCollectionData)
 }
 
+function openDrawer() {
+  isDrawerOpen.value = true
+}
+
 // Setup watchers and lifecycle
 setupSucursalesWatcher(sucursales)
 
@@ -63,8 +69,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- Side Navigation -->
-  <DrawerLeft v-if="sucursales.length" />
+  <!-- Side Navigation Drawer -->
+  <DrawerLeftMenu v-model:open="isDrawerOpen" />
 
   <MainCT>
     <!-- Top Navigation Bar -->
@@ -72,8 +78,10 @@ onMounted(() => {
       <!-- Gerency Selector Area -->
       <div class="flex items-center gap-2">
         <!-- Drawer button Menu -->
-        <button v-show="isMenuVisible" type="button" :data-drawer-target="DRAWER_ID" :data-drawer-show="DRAWER_ID"
-          :aria-controls="DRAWER_ID"
+        <button
+          v-show="isMenuVisible"
+          type="button"
+          @click="openDrawer"
           class="inline-flex h-10 w-10 items-center justify-center rounded-lg p-2 text-sm text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 md:hidden">
           <span class="sr-only">Open main menu</span>
           <svg class="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">

@@ -12,6 +12,7 @@ export interface SaleFormData {
 export interface SaleDetails extends SaleFormData {
   anio: number 
   gerencia: string
-  id?: number
   semana: number
+  createdAtFormatted?: string
+  id?: number
 }

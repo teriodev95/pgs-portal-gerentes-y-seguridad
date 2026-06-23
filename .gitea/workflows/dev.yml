@@ -1,0 +1,54 @@
+name: Dev - Cloudflare Pages
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+jobs:
+  deploy-dev:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: self-hosted
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify project shape
+        run: |
+          set -euo pipefail
+          test -f package.json
+          test -f pnpm-lock.yaml
+          test -d src
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+
+      - name: Type-check and build
+        env:
+          VITE_ENVIRONMENT: dev
+          VITE_FAX_API_URL: https://fax-dev.terio.dev
+          VITE_JAVALIN_API_URL: https://jav-dev.terio.dev/api
+          VITE_ELYSIA_API_URL: https://ely-dev.terio.dev/api
+          VITE_MCP_API_URL: https://mcp.xpress1.cc
+          VITE_IMG_REPORTES_API_URL: https://img-dev.terio.dev/api/reportes
+          VITE_MOX_URL: https://mox-dev.terio.dev
+        run: |
+          set -euo pipefail
+          pnpm run build
+
+      - name: Deploy dev to Cloudflare Pages
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          COMMIT_SHA="${GITHUB_SHA:-$(git rev-parse HEAD)}"
+          COMMIT_MESSAGE="$(git log -1 --pretty=%s)"
+          npx --yes wrangler@4.70.0 pages deploy dist \
+            --project-name pgs-portal-gerentes-y-seguridad \
+            --branch dev \
+            --commit-hash "$COMMIT_SHA" \
+            --commit-message "$COMMIT_MESSAGE"
