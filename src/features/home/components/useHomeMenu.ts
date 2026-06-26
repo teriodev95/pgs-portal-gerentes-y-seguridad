@@ -70,7 +70,7 @@ export function useHomeMenu() {
       import.meta.env.VITE_ENVIRONMENT === 'dev' ||
       hostname === 'localhost' ||
       hostname.includes('127.0.0.1') ||
-      hostname.includes('pgs-dev.terio.xyz')
+      hostname.includes('pgs-dev.terio.dev')
     )
   })
 

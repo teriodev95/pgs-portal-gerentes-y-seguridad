@@ -1,4 +1,19 @@
-# vue-project
+# Xpress PGS
+
+## Pruebas manuales (dev)
+
+Usar estas URLs para validar la rama `dev` antes de promover cambios a `main`.
+
+| Recurso | URL | Validacion minima |
+|---|---|---|
+| Frontend PGS dev | https://pgs-dev.terio.dev/ | Debe cargar home/login y navegacion principal |
+| MOX dev | https://mox-dev.terio.dev/login | Validar links o flujos cruzados hacia MOX cuando aplique |
+| FAX dev | https://fax-dev.terio.dev/health | Debe responder `healthy`; CORS permite `pgs-dev.terio.dev` |
+| Elysia dev | https://ely-dev.terio.dev/swagger | Revisar contratos consumidos por PGS |
+| Javalin dev | https://jav-dev.terio.dev/api/comisiones/info | Debe responder informacion de API |
+| IMG reportes dev | https://img-dev.terio.dev/health | Debe responder 200 antes de probar generacion de reportes |
+
+Produccion sigue en Cloudflare Pages branch `main`; no usar dominios `xpress1.cc` para QA de `dev`.
 
 This template should help get you started developing with Vue 3 in Vite.
 

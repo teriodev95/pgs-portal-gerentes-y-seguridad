@@ -1,6 +1,7 @@
 import type { InternalAxiosRequestConfig, AxiosRequestHeaders } from 'axios'
 import type { InterceptorConfig } from './types'
 import { useStore } from '@/shared/stores'
+import { XPRESS_ENDPOINTS } from '@/shared/config/endpoints'
 
 // Default content-type interceptor (same as current implementation)
 export const contentTypeInterceptor: InterceptorConfig = {
@@ -43,8 +44,8 @@ export const elysiaAuthInterceptor = (): InterceptorConfig => ({
   request: {
     onFulfilled: (config: InternalAxiosRequestConfig) => {
       // Solo aplica si es una petición al API de Elysia
-      const isElysiaApi = config.baseURL?.includes('elysia.xpress1.cc') ||
-                          config.url?.includes('elysia.xpress1.cc')
+      const isElysiaApi = config.baseURL?.startsWith(XPRESS_ENDPOINTS.elysiaApi) ||
+                          config.url?.startsWith(XPRESS_ENDPOINTS.elysiaApi)
 
       console.log('[Elysia Auth Debug] isElysiaApi:', isElysiaApi, 'baseURL:', config.baseURL, 'url:', config.url)
 

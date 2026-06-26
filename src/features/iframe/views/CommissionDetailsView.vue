@@ -6,13 +6,14 @@ import { getPreviousWeek } from '@/shared/utils';
 import { useRouter } from 'vue-router';
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue';
 import MainCT from '@/shared/components/ui/MainCT.vue';
+import { XPRESS_ENDPOINTS } from '@/shared/config/endpoints';
 
 const $store = useStore()
 const $router = useRouter()
 
 const previousWeek = computed(() => getPreviousWeek($store.currentDate.week, $store.currentDate.year))
 const url = computed(() => {
-  return `https://comi.xpress1.cc/agencia?anio=${$store.currentDate.year}&semana=${previousWeek.value}&agencia=${$store.agencySelected}`
+  return `${XPRESS_ENDPOINTS.commissionUrl}/agencia?anio=${$store.currentDate.year}&semana=${previousWeek.value}&agencia=${$store.agencySelected}`
 })
 
 

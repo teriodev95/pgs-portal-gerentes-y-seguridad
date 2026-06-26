@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { ROUTE_NAME } from './names'
 // Pages
 import AgencyDetailsView from '@/features/entity/views/AgencyDetailsView.vue'
+import AssignmentsCustodyView from '@/features/assignment/views/AssignmentsCustodyView.vue'
 import AssignmentsView from '@/features/assignment/views/AssignmentsView.vue'
 import AuthLayout from '@/shared/components/layouts/AuthLayout.vue'
 import AuthLogin from '@/features/auth/views/AuthLogin.vue'
@@ -79,6 +80,11 @@ const router = createRouter({
               path: 'create',
               name: ROUTE_NAME.MANAGER_ASSIGNMENTS_VIEW_CREATE,
               component: () => import('@/features/assignment/views/AssignmentsCreateView.vue'),
+            },
+            {
+              path: 'custody',
+              name: ROUTE_NAME.MANAGER_ASSIGNMENTS_CUSTODY,
+              component: AssignmentsCustodyView,
             }
           ]
         },
@@ -218,6 +224,38 @@ const router = createRouter({
       ]
     }
   ]
+})
+
+const DYNAMIC_IMPORT_RELOAD_KEY = 'pgs:dynamic-import-reload'
+
+function isDynamicImportError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error)
+
+  return [
+    'Failed to fetch dynamically imported module',
+    'Importing a module script failed',
+    'error loading dynamically imported module'
+  ].some((text) => message.includes(text))
+}
+
+router.onError((error) => {
+  if (!isDynamicImportError(error)) return
+
+  const currentRoute = `${window.location.pathname}${window.location.search}`
+  const previousReload = sessionStorage.getItem(DYNAMIC_IMPORT_RELOAD_KEY)
+
+  if (previousReload === currentRoute) {
+    sessionStorage.removeItem(DYNAMIC_IMPORT_RELOAD_KEY)
+    console.error('No se pudo cargar la vista después de actualizar la aplicación.', error)
+    return
+  }
+
+  sessionStorage.setItem(DYNAMIC_IMPORT_RELOAD_KEY, currentRoute)
+  window.location.reload()
+})
+
+router.afterEach(() => {
+  sessionStorage.removeItem(DYNAMIC_IMPORT_RELOAD_KEY)
 })
 
 export default router

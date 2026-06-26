@@ -26,7 +26,9 @@ interface Props {
   status: ValidationStatus
   user?: IUserVerificationPin
   errorMessage?: string
+  instruction?: string
   isVerifying?: boolean
+  disabled?: boolean
 }
 
 // Emits
@@ -36,6 +38,7 @@ interface Emit {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  disabled: false,
   isVerifying: false
 })
 
@@ -86,9 +89,14 @@ const handleValidate = () => {
       :class="[currentStyles.label, 'text-xs flex items-center gap-0.5']"
     >
       <p>
-        Ingresa el PIN de quien
-        <span class="font-semibold">{{ actionText }}</span>
-        la asignación
+        <template v-if="instruction">
+          {{ instruction }}
+        </template>
+        <template v-else>
+          Ingresa el PIN de quien
+          <span class="font-semibold">{{ actionText }}</span>
+          la asignación
+        </template>
         <span v-if="user">({{ user.nombre }})</span>
         <span v-if="isInvalidRecipient" class="text-red-500 font-medium">
           - Un agente no puede recibir
@@ -112,7 +120,7 @@ const handleValidate = () => {
           @input="handleInput"
           class="bg-gray-50 text-gray-900 text-sm rounded-lg block w-full ps-10 p-2.5 disabled:bg-opacity-60"
           :class="currentStyles.input"
-          :disabled="status === 'success' || isVerifying"
+          :disabled="disabled || status === 'success' || isVerifying"
           placeholder="Ingresa tu PIN aquí"
           autocomplete="off"
         />
@@ -121,7 +129,7 @@ const handleValidate = () => {
       <button
         @click="handleValidate"
         class="btn btn-primary disabled:bg-opacity-50 min-w-[80px]"
-        :disabled="isVerifying || status === 'success' || !pin.trim()"
+        :disabled="disabled || isVerifying || status === 'success' || !pin.trim()"
       >
         <span v-if="isVerifying">...</span>
         <span v-else-if="status === 'success'">✓</span>

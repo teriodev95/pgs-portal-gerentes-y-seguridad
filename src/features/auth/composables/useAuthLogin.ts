@@ -37,6 +37,7 @@ export function useAuthLogin() {
 
       // Store user data and authentication state
       $store.user = user
+      $store.authPin = loginForm.value.pin
       $store.elysiaToken = token
       $store.isAuth = true
       $store.saveData()
