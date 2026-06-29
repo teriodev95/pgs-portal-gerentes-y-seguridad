@@ -24,7 +24,6 @@ export interface InterceptorConfig {
 export interface ApiConfigurations {
   elysia: ApiConfig
   fastApi: ApiConfig
-  hono: ApiConfig
   javalin: ApiConfig
   workerUploadExpenseImage: ApiConfig
   workerUploadVideo: ApiConfig,

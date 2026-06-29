@@ -22,10 +22,6 @@ export const API_CONFIGURATIONS: ApiConfigurations = {
     baseURL: XPRESS_ENDPOINTS.javalinApi,
     timeout: 100000
   },
-  hono: {
-    baseURL: 'https://xpress-correcciones-back-hono.clvrt.workers.dev',
-    timeout: 1000 * 60 * 2 // 2 minutos
-  },
   elysia: {
     baseURL: XPRESS_ENDPOINTS.elysiaApi,
     timeout: 10000
