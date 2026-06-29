@@ -43,7 +43,10 @@ const {
   handleSubmit,
   handleCancel,
   updateActionType,
-  errorMessage
+  errorMessage,
+  motivoRequerido,
+  motivoTexto,
+  confirmarConMotivo
 } = useRecordCorrection();
 
 // Methods
@@ -93,8 +96,31 @@ function handleBack() {
             {{ errorMessage }}
           </div>
 
+          <!-- Motivo obligatorio: el pago no es un duplicado confirmado -->
+          <div v-if="motivoRequerido" class="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-3">
+            <p class="text-sm text-amber-800">
+              Este pago no es un duplicado. Indica el motivo para solicitar su eliminación.
+            </p>
+            <textarea
+              v-model="motivoTexto"
+              rows="3"
+              maxlength="500"
+              placeholder="Motivo de la eliminación"
+              class="w-full rounded border border-amber-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+            ></textarea>
+            <button
+              type="button"
+              :disabled="state.isSubmitting"
+              class="w-full rounded-md bg-amber-600 py-2 text-sm font-medium text-white disabled:opacity-50"
+              @click="confirmarConMotivo"
+            >
+              Confirmar eliminación
+            </button>
+          </div>
+
           <!-- Form Buttons -->
           <FormSubmitActions
+            v-if="!motivoRequerido"
             :action-type="state.actionType"
             :is-submitting="state.isSubmitting"
             :is-form-valid="isFormValid"

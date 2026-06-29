@@ -16,11 +16,9 @@ class CorrectionService {
           ctaText: 'Volver al inicio',
           onClose
         },
-        errorNotification: {
-          title: 'Error al enviar corrección',
-          message: 'No se pudo registrar la corrección. Por favor, intenta nuevamente.',
-          type: 'error'
-        }
+        // El composable maneja los errores: el 422 MOTIVO_REQUERIDO no debe mostrar el
+        // diálogo genérico (pide motivo); los demás errores se notifican desde el composable.
+        skipErrorNotification: true
       }
     })
   }
