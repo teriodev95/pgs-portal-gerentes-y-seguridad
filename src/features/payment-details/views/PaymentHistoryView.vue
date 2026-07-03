@@ -9,6 +9,7 @@ import { usePaymentHistory } from '../composables'
 // Components
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 import MapWidget from '@/shared/components/MapWidget.vue'
+import NavigationIcon from '@/shared/components/icons/NavigationIcon.vue'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
@@ -26,7 +27,8 @@ const {
   isLoading,
   loadLoanHistory,
   hideMap,
-  showMap
+  showMap,
+  startNavigation
 } = usePaymentHistory()
 
 // Methods
@@ -98,6 +100,18 @@ onBeforeMount(async () => {
     <div class="relative h-full w-full">
       <MapWidget :center="[mapMarker.lat, mapMarker.lng]" :marker="mapMarker" readonly @go-back="hideMap" :back="true"
         :zoom="16" class="z-20" />
+
+      <!-- Start Navigation FAB -->
+      <button
+        type="button"
+        @click="startNavigation"
+        aria-label="Iniciar navegación en Google Maps hasta la ubicación del pago"
+        class="absolute inset-x-0 z-30 mx-auto flex w-fit items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]"
+        style="bottom: max(env(safe-area-inset-bottom), 1.5rem)"
+      >
+        <NavigationIcon class="h-5 w-5" />
+        Cómo llegar
+      </button>
     </div>
   </div>
 </template>
