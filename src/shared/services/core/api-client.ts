@@ -9,24 +9,21 @@ import {
   successNotificationInterceptor,
   errorNotificationInterceptor
 } from './interceptors'
+import { XPRESS_ENDPOINTS } from '@/shared/config/endpoints'
 
 // Predefined API configurations based on current implementation
 export const API_CONFIGURATIONS: ApiConfigurations = {
   fastApi: {
-    baseURL: `${import.meta.env.VITE_FAX_API_URL}/api`,
+    baseURL: XPRESS_ENDPOINTS.faxApi,
     apiKey: 'ua7Sj^e6Qn#7m7BDW#8oX9*52#KDqPuK',
     timeout: 100000
   },
   javalin: {
-    baseURL: 'https://javalin.xpress1.cc/api',
+    baseURL: XPRESS_ENDPOINTS.javalinApi,
     timeout: 100000
   },
-  hono: {
-    baseURL: 'https://xpress-correcciones-back-hono.clvrt.workers.dev',
-    timeout: 1000 * 60 * 2 // 2 minutos
-  },
   elysia: {
-    baseURL: 'https://elysia.xpress1.cc/api/',
+    baseURL: XPRESS_ENDPOINTS.elysiaApi,
     timeout: 10000
   },
   workerUploadVideo: {
@@ -38,7 +35,7 @@ export const API_CONFIGURATIONS: ApiConfigurations = {
     timeout: 10000
   },
   mcp: {
-    baseURL: 'https://mcp.xpress1.cc/',
+    baseURL: XPRESS_ENDPOINTS.mcpApi,
     timeout: 10000,
     apiKey: '9mYS%hyyFGBg#x3ByAu%v@d@'
   }

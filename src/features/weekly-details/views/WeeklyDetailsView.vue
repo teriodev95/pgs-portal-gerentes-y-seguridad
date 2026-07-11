@@ -6,6 +6,7 @@ import { useStore } from '@/shared/stores';
 import { useWeeklyClosingData } from '@/features/weekly-details/composables/useWeeklyClosingData';
 import { useWeeklyClosingTemplate } from '@/features/weekly-details/composables/useWeeklyClosingTemplate';
 import type { userPDF } from '@/interfaces';
+import { XPRESS_ENDPOINTS } from '@/shared/config/endpoints';
 
 /**
  * ------------------------------------------
@@ -109,7 +110,7 @@ onBeforeMount(async () => {
 
     <!-- Embedded Details View -->
     <iframe
-      :src="`https://mox-ii.xpress1.cc/detalles-cierre/embed?gerencia=${$store.gerenciaSelected}&semana=${$store.currentDate.week}&anio=${$store.currentDate.year}`"
+      :src="`${XPRESS_ENDPOINTS.moxUrl}/detalles-cierre/embed?gerencia=${$store.gerenciaSelected}&semana=${$store.currentDate.week}&anio=${$store.currentDate.year}`"
       class="w-full min-h-screen" frameborder="0"></iframe>
 
 

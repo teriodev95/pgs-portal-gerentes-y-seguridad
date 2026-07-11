@@ -61,6 +61,8 @@ function close(): void {
 }
 
 function handleOpenChange(open: boolean): void {
+  isOpen.value = open
+
   if (!open) {
     setTimeout(() => {
       promptType.value = null
@@ -126,7 +128,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Drawer :open="isOpen" @update:open="handleOpenChange">
+  <Drawer :open="isOpen && promptType !== null" @update:open="handleOpenChange">
     <DrawerContent>
       <div class="mx-auto w-full max-w-lg">
         <DrawerHeader>

@@ -49,3 +49,38 @@ export interface IUserVerificationPin {
   createdAtFormatted: string;
   updatedAtFormatted: string;
 }
+
+export interface IAssignmentParticipant {
+  usuarioId: number;
+  usuario: string;
+  nombre: string;
+  tipo: string;
+  gerencia: string | null;
+  agencia: string | null;
+}
+
+export interface ICustodyAssignment {
+  originAssignmentId: string;
+  amount: number;
+  agency: string;
+  derivedManagement: string;
+  week: number;
+  year: number;
+  status: 'pendiente' | 'retornado';
+  createdAt: string;
+  agent: IAssignmentParticipant | null;
+  custodian: IAssignmentParticipant | null;
+}
+
+export interface ICustodyAssignmentsResponse {
+  week: number;
+  year: number;
+  total: number;
+  assignments: ICustodyAssignment[];
+}
+
+export interface IReturnCustodyPayload {
+  destino: 'gerente' | 'admin';
+  quien_recibio: number;
+  origen_asignacion_ids: string[];
+}

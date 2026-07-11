@@ -51,6 +51,10 @@ export function useRecordCorrection() {
     salesCommissionPaidInWeek: parsedAmounts.salesCommissionPaidInWeek || 0
   });
 
+  // Motivo: se activa cuando el backend responde MOTIVO_REQUERIDO (pago no duplicado).
+  const motivoRequerido = ref(false);
+  const motivoTexto = ref('');
+
   // Form data
   const formData = ref<CorrectionFormData>({
     newAmount: 0,
@@ -105,8 +109,11 @@ export function useRecordCorrection() {
     });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (motivo?: unknown) => {
     if (!validateForm(state.value.actionType, state.value.correctionType, formData.value)) return;
+
+    // `@submit` pasa el evento como argumento; solo se toma motivo si es texto.
+    const motivoStr = typeof motivo === 'string' && motivo.trim() ? motivo.trim() : undefined;
 
     state.value.isSubmitting = true;
 
@@ -117,7 +124,7 @@ export function useRecordCorrection() {
         state.value.actionType,
         formData.value
       );
-      
+
       const correctionRequest = buildCorrectionRequest(correctionData, {
         agencySelected: $store.agencySelected as string,
         gerenciaSelected: $store.gerenciaSelected as string,
@@ -125,19 +132,45 @@ export function useRecordCorrection() {
         user: $store.user as { usuario: string }
       });
 
-      console.log('Correction Request:', correctionRequest);
+      const payload = motivoStr ? { ...correctionRequest, motivo: motivoStr } : correctionRequest;
+
       // Send the request to the API with onClose callback
-      const response = await correctionService.correctionsCreateOne(correctionRequest, () => {
+      const response = await correctionService.correctionsCreateOne(payload, () => {
         resetForm();
         window.history.back();
       });
 
+      motivoRequerido.value = false;
       return response.data;
     } catch (error: any) {
+      // El backend pide un motivo: este pago no es un duplicado confirmado.
+      if (error?.response?.status === 422 && error?.response?.data?.code === 'MOTIVO_REQUERIDO') {
+        motivoRequerido.value = true;
+        return;
+      }
+      // Error real: mostrar el diálogo (el service tiene skipErrorNotification).
       console.error('Error submitting correction:', error);
+      try {
+        const { useErrorDialogStore } = await import('@/shared/stores/errorDialog');
+        useErrorDialogStore().showError({
+          title: 'Error al enviar corrección',
+          message: error?.response?.data?.message || 'No se pudo registrar la corrección. Por favor, intenta nuevamente.',
+          type: 'error'
+        });
+      } catch { /* noop */ }
     } finally {
       state.value.isSubmitting = false;
     }
+  };
+
+  // Reenvía la eliminación incluyendo el motivo obligatorio.
+  const confirmarConMotivo = async () => {
+    if (!motivoTexto.value.trim()) {
+      validationState.value.errorMessage = 'El motivo es obligatorio para eliminar este pago.';
+      return;
+    }
+    validationState.value.errorMessage = null;
+    await handleSubmit(motivoTexto.value);
   };
 
   const handleCancel = () => {
@@ -227,6 +260,11 @@ export function useRecordCorrection() {
     shouldShowActionSelection,
     shouldShowAmountField,
     shouldShowClosureFields,
+
+    // Motivo (pago no duplicado)
+    motivoRequerido,
+    motivoTexto,
+    confirmarConMotivo,
 
     // Methods
     resetForm,

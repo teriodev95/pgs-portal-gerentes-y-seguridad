@@ -58,6 +58,13 @@ export function usePaymentHistory() {
     mapMarker.value = position
   }
 
+  function startNavigation(): void {
+    if (!mapMarker.value) return
+    const { lat, lng } = mapMarker.value
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
   function showPaymentLocation(payment: IPayment): void {
     if (!payment.lat || !payment.lng) return 
     const position = latLng(payment.lat, payment.lng)
@@ -87,6 +94,7 @@ export function usePaymentHistory() {
     hideMap,
     showMap,
     showPaymentLocation,
+    startNavigation,
     clearData
   }
 }

@@ -61,7 +61,6 @@ export function useHomeMenu() {
   const isManagerUser = computed(() => $store.user?.tipo === 'Gerente')
   const isRegionalUser = computed(() => $store.user?.tipo === 'Regional')
   const currentWeek = computed(() => $store.currentDate.week)
-  const isAgencyUsingApp = computed(() => $store.isAgencyUsingApp)
   const formattedCurrentDate = computed(() => getDateTime2())
   
   const isDevelopmentEnvironment = computed(() => {
@@ -70,7 +69,7 @@ export function useHomeMenu() {
       import.meta.env.VITE_ENVIRONMENT === 'dev' ||
       hostname === 'localhost' ||
       hostname.includes('127.0.0.1') ||
-      hostname.includes('pgs-dev.terio.xyz')
+      hostname.includes('pgs-dev.terio.dev')
     )
   })
 
@@ -100,7 +99,6 @@ export function useHomeMenu() {
       title: 'Pagos',
       icon: CreditCard,
       route: ROUTE_NAME.LOAN_PAYMENT,
-      disabled: !isAgencyUsingApp.value,
       description: 'Registrar pagos'
     },
     {

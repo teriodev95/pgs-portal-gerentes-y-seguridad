@@ -1,5 +1,7 @@
+import { XPRESS_ENDPOINTS } from '@/shared/config/endpoints'
+
 export const REPORT_CONFIG = {
-  API_BASE: 'https://img-reporte.xpress1.cc/api/reportes',
+  API_BASE: XPRESS_ENDPOINTS.reportesApi,
   API_MANAGEMENT_ENDPOINT: '/generar',
   API_AGENCY_ENDPOINT: '/agencias/generar',
   API_KEY: 'qfxS8ABtPvft0YI4PPxjvYvXOgcKeeWwUOv2LLTgDAI=',

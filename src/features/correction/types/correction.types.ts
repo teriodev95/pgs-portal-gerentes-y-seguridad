@@ -13,6 +13,8 @@ export interface CorrectionRequest {
     pagoComisionVentas?: number // Optional for 'eliminar' operation
   }
   creadoPor: string
+  // Motivo del solicitante: obligatorio solo al eliminar un pago que no es duplicado.
+  motivo?: string
 }
 
 export interface CorrectionFormData {

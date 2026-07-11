@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onBeforeMount } from 'vue'
-import { RouterView } from 'vue-router'
+import { computed, onBeforeMount } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import { useStore } from './shared/stores'
 import { useCsvLoaderStore } from './shared/stores'
 import { onMounted } from 'vue'
@@ -11,8 +11,10 @@ import PwaPrompt from './shared/components/ui/PwaPrompt.vue'
 import DialogError from './shared/components/DialogError.vue'
 import RevealCircle from './shared/components/RevealCircle.vue'
 
+const route = useRoute()
 const $store = useStore()
 const $csvLoaderStore = useCsvLoaderStore()
+const isAuthRoute = computed(() => route.path.startsWith('/auth'))
 
 onBeforeMount(async () => {
   $store.loadData()
@@ -27,7 +29,7 @@ onMounted(() => {
 
 <template>
   <ConnectionAlert />
-  <PwaPrompt />
+  <PwaPrompt v-if="!isAuthRoute" />
   <DialogError />
   <RevealCircle />
   <RouterView />
