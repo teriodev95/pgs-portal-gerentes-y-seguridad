@@ -104,17 +104,6 @@ export const useStore = defineStore(STORE_NAME, () => {
     })
   }
 
-  const isAgencyUsingApp = computed<boolean>(() => {
-    if (!agencySelected.value) {
-      return false
-    }
-
-    const agency = agencies.value.find((agency) => agency.agencia === agencySelected.value)
-
-    console.log('isAgencyUsingApp', agency?.usaApp)
-    return agency?.usaApp === false
-  })
-
   return {
     agencies,
     agencyData,
@@ -128,7 +117,6 @@ export const useStore = defineStore(STORE_NAME, () => {
     gerencias,
     gerenciaSelected,
     hasCobranzasWithCrtp,
-    isAgencyUsingApp,
     isAuth,
     isUserManager: computed<boolean>(() => user.value?.tipo === 'Gerente'),
     loading,
