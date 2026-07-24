@@ -4,7 +4,7 @@ import { latLng } from 'leaflet'
 import { useStore } from '@/shared/stores'
 import { toCurrency } from '@/shared/utils'
 import { tipoBadgeClass, tipoPagoLabel } from '../constants'
-import { parseRemanenteAdelanto } from '../helpers'
+import { fechaLarga, parseRemanenteAdelanto } from '../helpers'
 import type { IPayment } from '../types'
 
 // Components
@@ -91,17 +91,7 @@ const esMarcadorAdelanto = computed(() => props.payment?.tipo === 'Adelantado')
 // compartido con el acordeón)
 const remanenteAdelanto = computed(() => parseRemanenteAdelanto(props.payment))
 
-const fechaLegible = computed(() => {
-  if (!props.payment) return ''
-  const fecha = new Date(props.payment.fechaPago)
-  if (isNaN(fecha.getTime())) return props.payment.fechaPago
-  return new Intl.DateTimeFormat('es-MX', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(fecha)
-})
+const fechaLegible = computed(() => (props.payment ? fechaLarga(props.payment.fechaPago) : ''))
 
 // Nota: la historia pago↔tarifa NO va aquí — la tarifa es una vara SEMANAL
 // (con 2 pagos en la misma semana, comparar cada uno contra la tarifa
@@ -118,7 +108,7 @@ function handleOpenChange(open: boolean) {
       <div v-if="payment" class="mx-auto w-full max-w-lg overflow-y-auto px-4 pb-6">
         <DrawerHeader class="px-0 pb-2 text-center">
           <DrawerTitle>Semana {{ payment.semana }} · {{ payment.anio }}</DrawerTitle>
-          <DrawerDescription class="capitalize">{{ fechaLegible }}</DrawerDescription>
+          <DrawerDescription>{{ fechaLegible }}</DrawerDescription>
         </DrawerHeader>
 
         <!-- Monto + tipo: lo primero que se busca de un pago -->

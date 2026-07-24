@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { toCurrency } from '@/shared/utils'
 import { tipoBadgeClass, tipoPagoLabel } from '../constants'
+import { diaNominal } from '../helpers'
 import type { IPayment } from '../types'
 
 // Components
@@ -24,11 +25,9 @@ const emit = defineEmits<Emits>()
 
 const yaAdelantado = computed(() => !!props.payment.comentario?.includes('ADELANTO:'))
 
-const fechaCorta = computed(() => {
-  const fecha = new Date(props.payment.fechaPago)
-  if (isNaN(fecha.getTime())) return ''
-  return new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' }).format(fecha)
-})
+// El día con nombre es el dato conductual: "Miércoles" = puntual,
+// "Sábado" = pagó tarde — el gerente lo lee sin explicación
+const fechaCorta = computed(() => diaNominal(props.payment.fechaPago))
 </script>
 
 <template>

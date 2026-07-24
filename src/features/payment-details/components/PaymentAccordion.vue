@@ -2,7 +2,13 @@
 import { computed, ref } from 'vue'
 import { useStore } from '@/shared/stores'
 import { toCurrency } from '@/shared/utils'
-import { parseRemanenteAdelanto, TIPOS_NO_MONETARIOS } from '../helpers'
+import {
+  etiquetaMes,
+  formatoRango,
+  parseRemanenteAdelanto,
+  rangoSemana,
+  TIPOS_NO_MONETARIOS
+} from '../helpers'
 import type { IPayment } from '../types'
 import PaymentCard from './PaymentCard.vue'
 import TextCT from '@/shared/components/ui/TextCT.vue'
@@ -39,6 +45,8 @@ interface SemanaGroup {
   cobertura: Cobertura
   adelantada: boolean
   remanenteSiguiente: number | null
+  rango: string
+  mes: string
 }
 
 const semanas = computed<SemanaGroup[]>(() => {
@@ -48,7 +56,7 @@ const semanas = computed<SemanaGroup[]>(() => {
     const key = `${pago.anio}-${pago.semana}`
     let grupo = map.get(key)
     if (!grupo) {
-      grupo = { key, anio: pago.anio, semana: pago.semana, pagos: [], total: 0, cobertura: 'sin-pago', adelantada: false, remanenteSiguiente: null }
+      grupo = { key, anio: pago.anio, semana: pago.semana, pagos: [], total: 0, cobertura: 'sin-pago', adelantada: false, remanenteSiguiente: null, rango: '', mes: '' }
       map.set(key, grupo)
     }
     grupo.pagos.push(pago)
@@ -66,6 +74,12 @@ const semanas = computed<SemanaGroup[]>(() => {
     // que sigue (etiqueta [remanente=] del marcador)
     const marcador = grupo.pagos.find((p) => p.tipo === 'Adelantado')
     grupo.remanenteSiguiente = parseRemanenteAdelanto(marcador)?.remanente ?? null
+
+    // Identidad calendárica: rango mié–mar y mes, derivados de la fecha de
+    // cualquier pago de la semana (los marcadores traen el miércoles)
+    const rango = rangoSemana(grupo.pagos[0]?.fechaPago ?? '')
+    grupo.rango = rango ? formatoRango(rango) : `Semana ${grupo.semana} / ${grupo.anio}`
+    grupo.mes = rango ? etiquetaMes(rango) : String(grupo.anio)
 
     if (grupo.adelantada || liquidacion || (tarifa > 0 && grupo.total >= tarifa)) {
       grupo.cobertura = 'completa'
@@ -129,11 +143,44 @@ function handleAdelantar(grupo: SemanaGroup) {
   if (ancla) emit('adelantar', ancla)
 }
 
-const COBERTURA_DOT: Record<Cobertura, string> = {
-  completa: 'bg-green-500',
-  parcial: 'bg-amber-400',
-  'sin-pago': 'bg-red-400'
+// Estado de la semana en palabras — la norma en silencio, la excepción con
+// voz: las semanas cumplidas van en gris con un punto verde mínimo (si todo
+// está bien, la lista se ve serena); solo las desviaciones llevan color.
+interface EstadoSemana {
+  texto: string
+  clase: string
+  punto?: string
 }
+
+function estadoSemana(grupo: SemanaGroup): EstadoSemana {
+  if (grupo.adelantada) {
+    return { texto: 'Cubierta por adelanto', clase: 'text-teal-700 font-medium' }
+  }
+  if (grupo.pagos.some((p) => p.tipo === 'Liquidacion')) {
+    return { texto: 'Liquidó', clase: 'text-purple-700 font-medium' }
+  }
+  const tarifa = grupo.pagos[0]?.tarifa ?? 0
+  if (grupo.cobertura === 'completa') {
+    return {
+      texto: grupo.total > tarifa ? 'Pagada con excedente' : 'Pagada',
+      clase: 'font-light text-gray-400',
+      punto: 'bg-green-500'
+    }
+  }
+  if (grupo.cobertura === 'parcial') {
+    return { texto: 'Pago parcial', clase: 'text-amber-600 font-medium' }
+  }
+  return { texto: 'Sin pago', clase: 'text-red-500 font-medium' }
+}
+
+// Separadores de mes: la lista se lee como calendario; el año vive aquí,
+// una sola vez por bloque
+const semanasConMes = computed(() =>
+  semanas.value.map((grupo, i) => ({
+    grupo,
+    nuevoMes: i === 0 || grupo.mes !== semanas.value[i - 1].mes
+  }))
+)
 
 const openKey = ref<string | null>(null)
 
@@ -144,63 +191,72 @@ function toggle(key: string) {
 
 <template>
   <div class="overflow-hidden rounded-lg border bg-white">
-    <div v-for="grupo in semanas" :key="grupo.key" class="border-b border-gray-100 last:border-b-0">
+    <template v-for="item in semanasConMes" :key="item.grupo.key">
+      <!-- Separador de mes: el año vive aquí, una sola vez por bloque -->
+      <div
+        v-if="item.nuevoMes"
+        class="border-b border-gray-100 bg-gray-50/80 px-4 pb-1.5 pt-2.5 text-[11px] font-semibold tracking-wider text-gray-400"
+      >
+        {{ item.grupo.mes }}
+      </div>
+
+      <div class="border-b border-gray-100 last:border-b-0">
       <button
         type="button"
         class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 focus:outline-none focus-visible:bg-gray-50"
-        @click="toggle(grupo.key)"
+        @click="toggle(item.grupo.key)"
       >
         <!-- Tile de semana: ancla visual escaneable (patrón calendario) -->
         <span class="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-blue-50">
-          <span class="text-sm font-bold leading-none text-blue-800">{{ grupo.semana }}</span>
+          <span class="text-sm font-bold leading-none text-blue-800">{{ item.grupo.semana }}</span>
           <span class="mt-0.5 text-[9px] font-medium uppercase leading-none text-blue-400">sem</span>
         </span>
 
         <span class="flex min-w-0 flex-1 flex-col">
-          <span class="text-sm font-semibold text-gray-800">Semana {{ grupo.semana }}</span>
-          <span class="text-xs font-light text-gray-400">
-            {{ grupo.anio }}<template v-if="grupo.pagos.length > 1"> · {{ grupo.pagos.length }} pagos</template>
+          <!-- Título = cuándo (identidad calendárica) -->
+          <span class="text-sm font-semibold text-gray-800">{{ item.grupo.rango }}</span>
+          <!-- Subtítulo = cómo se portó (norma en gris + punto; excepción en color) -->
+          <span class="inline-flex items-center gap-1.5 text-xs">
+            <span
+              v-if="estadoSemana(item.grupo).punto"
+              class="h-1.5 w-1.5 shrink-0 rounded-full"
+              :class="estadoSemana(item.grupo).punto"
+            ></span>
+            <span :class="estadoSemana(item.grupo).clase">{{ estadoSemana(item.grupo).texto }}</span>
+            <span v-if="item.grupo.pagos.length > 1" class="font-light text-gray-400">
+              · {{ item.grupo.pagos.length }} pagos
+            </span>
           </span>
-          <span v-if="grupo.remanenteSiguiente" class="text-xs font-medium text-teal-700">
-            dejó {{ toCurrency(grupo.remanenteSiguiente) }} abonados a la siguiente semana
+          <span v-if="item.grupo.remanenteSiguiente" class="text-xs font-medium text-teal-700">
+            dejó {{ toCurrency(item.grupo.remanenteSiguiente) }} abonados a la siguiente semana
           </span>
         </span>
 
         <span class="flex shrink-0 items-center gap-3">
-          <!-- Semana cubierta por adelanto: no entró dinero ESTA semana; decir
-               "Cubierta" comunica el estado mejor que un $0.00 -->
-          <span
-            v-if="grupo.adelantada && grupo.total === 0"
-            class="text-sm font-semibold text-teal-700"
-          >Cubierta</span>
-          <TextCT v-else variant="secondary">{{ toCurrency(grupo.total) }}</TextCT>
-          <span
-            class="h-2 w-2 shrink-0 rounded-full"
-            :class="COBERTURA_DOT[grupo.cobertura]"
-            :aria-label="grupo.cobertura === 'completa' ? 'Semana cubierta' : grupo.cobertura === 'parcial' ? 'Semana parcial' : 'Semana sin pago'"
-          ></span>
+          <!-- Monto solo cuando entró dinero; el estado ya explica los $0 -->
+          <TextCT v-if="item.grupo.total > 0" variant="secondary">{{ toCurrency(item.grupo.total) }}</TextCT>
           <ArrowDown
             class="size-4 text-gray-400 transition-transform duration-200"
-            :class="{ 'rotate-180': openKey === grupo.key }"
+            :class="{ 'rotate-180': openKey === item.grupo.key }"
           />
         </span>
       </button>
 
       <!-- Nivel 2: los pagos viven en una tarjeta inset — contención visual
            clara de "esto está DENTRO de la semana" -->
-      <div v-if="openKey === grupo.key" class="space-y-3 border-t border-gray-100 bg-gray-50/70 px-4 py-3">
+      <div v-if="openKey === item.grupo.key" class="space-y-3 border-t border-gray-100 bg-gray-50/70 px-4 py-3">
         <!-- Adelantar: acción de la SEMANA (cubre el caso de tarifa en varios
              pagos), el porqué junto al qué -->
         <div
-          v-if="puedeAdelantarGrupo(grupo)"
+          v-if="puedeAdelantarGrupo(item.grupo)"
           class="space-y-3 rounded-lg border border-blue-200 bg-blue-50/70 p-3"
         >
           <p class="text-sm leading-snug text-blue-900">
-            <b>{{ grupo.pagos.length > 1 ? 'Los pagos de esta semana cubren más de una tarifa del cliente.' : 'Este pago cubre más de una tarifa del cliente.' }}</b>
+            <b>{{ item.grupo.pagos.length > 1 ? 'Los pagos de esta semana cubren más de una tarifa del cliente.' : 'Este pago cubre más de una tarifa del cliente.' }}</b>
             Con el sobrante puedes dejar
-            {{ semanasQueCubriria(grupo) === 1 ? 'pagada por adelantado la siguiente semana' : `pagadas por adelantado las siguientes ${semanasQueCubriria(grupo)} semanas` }}.
+            {{ semanasQueCubriria(item.grupo) === 1 ? 'pagada por adelantado la siguiente semana' : `pagadas por adelantado las siguientes ${semanasQueCubriria(item.grupo)} semanas` }}.
           </p>
-          <BtnComponent variant="primary" full-width size="sm" @click="handleAdelantar(grupo)">
+          <BtnComponent variant="primary" full-width size="sm" @click="handleAdelantar(item.grupo)">
             <template #icon-left>
               <CalendarIcon class="size-4" />
             </template>
@@ -210,13 +266,14 @@ function toggle(key: string) {
 
         <div class="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200 bg-white">
           <PaymentCard
-            v-for="pago in grupo.pagos"
+            v-for="pago in item.grupo.pagos"
             :key="pago.pagoId"
             :payment="pago"
             @ver-detalles="emit('verDetalles', $event)"
           />
         </div>
       </div>
-    </div>
+      </div>
+    </template>
   </div>
 </template>
