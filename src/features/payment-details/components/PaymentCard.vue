@@ -1,79 +1,65 @@
 <script setup lang="ts">
-import CardContainer from '@/shared/components/CardContainer.vue'
-import EyeIcon from '@/shared/components/icons/EyeIcon.vue'
-import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue'
+import { computed } from 'vue'
 import { toCurrency } from '@/shared/utils'
-import { useStore } from '@/shared/stores'
+import { tipoBadgeClass, tipoPagoLabel } from '../constants'
 import type { IPayment } from '../types'
-import TextCT from '@/shared/components/ui/TextCT.vue'
-import SectionContainer from '@/shared/components/SectionContainer.vue'
-import DataField from '@/shared/components/DataField.vue'
-import BtnComponent from '@/shared/components/BtnComponent.vue'
 
+// Components
+import TextCT from '@/shared/components/ui/TextCT.vue'
+import AngleRight from '@/shared/components/icons/AngleRight.vue'
+
+// Fila compacta de pago dentro de una semana: la fila ENTERA es el affordance
+// (chevron → hay más). Badge + fecha responden "¿qué fue?"; monto "¿cuánto?".
+// Todo lo demás vive en PagoDetallesDrawer. Misma forma para 1 o N pagos.
 interface Props {
   payment: IPayment
 }
 
 interface Emits {
-  (e: 'paymentAction', action: 'showMap' | 'correction', payment: IPayment): void
+  (e: 'verDetalles', payment: IPayment): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const $store = useStore()
+const yaAdelantado = computed(() => !!props.payment.comentario?.includes('ADELANTO:'))
 
-function showPaymentLocation() {
-  emit('paymentAction', 'showMap', props.payment)
-}
-
-function navigateToCorrection() {
-  emit('paymentAction', 'correction', props.payment)
-}
+const fechaCorta = computed(() => {
+  const fecha = new Date(props.payment.fechaPago)
+  if (isNaN(fecha.getTime())) return ''
+  return new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' }).format(fecha)
+})
 </script>
 
 <template>
-  <div class="space-y-2">
-    <CardContainer>
-      <SectionContainer>
-        <TextCT variant="tertiary">ID: {{ payment.pagoId }}</TextCT>
+  <!-- Tipografía de segundo nivel: monto gris (el azul bold es de los
+       totales semanales) y chevron ligero — se lee como sub-ítem -->
+  <button
+    type="button"
+    class="flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition-colors hover:bg-gray-50 focus:outline-none focus-visible:bg-gray-50"
+    @click="emit('verDetalles', payment)"
+  >
+    <span class="flex min-w-0 items-center gap-2">
+      <span
+        class="shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium"
+        :class="tipoBadgeClass(payment.tipo)"
+      >
+        {{ tipoPagoLabel(payment.tipo) }}
+      </span>
+      <svg
+        v-if="yaAdelantado"
+        class="h-4 w-4 shrink-0 text-green-600"
+        aria-label="Pago adelantado: cubre semanas siguientes"
+        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+      <TextCT variant="tertiary" class="truncate">{{ fechaCorta }}</TextCT>
+    </span>
 
-        <div class="flex justify-between gap-2">
-          <DataField label="Tarifa" :value="toCurrency(payment.tarifa)" orientation="vertical" />
-          <DataField label="Tipo" :value="payment.tipo" orientation="vertical" />
-        </div>
-
-        <div class="flex justify-between gap-2">
-          <DataField label="Abre con" :value="toCurrency(payment.abreCon)" orientation="vertical" />
-          <DataField label="Cierra con" :value="toCurrency(payment.cierraCon)" orientation="vertical" />
-        </div>
-
-        <DataField v-if="payment.comentario" label="Comentario" :value="payment.comentario" orientation="vertical" />
-
-        <div class="flex justify-between gap-2">
-          <DataField label="Creado desde" :value="payment.creadoDesde" orientation="vertical" />
-          <DataField label="¿Quien Pago?" :value="''" orientation="vertical" />
-        </div>
-      </SectionContainer>
-
-      <!-- Action Buttons (only for the most recent payment) -->
-      <div v-if="payment.semana === $store.currentDate.week" class="space-y-2">
-        <!-- View Map Button -->
-        <BtnComponent @click="showPaymentLocation" variant="primary" full-width size="sm">
-          <template #icon-left>
-            <EyeIcon class="size-4" />
-          </template>
-          Ver mapa
-        </BtnComponent>
-
-        <!-- Request Correction Button -->
-        <BtnComponent @click="navigateToCorrection" variant="primary" outline full-width size="sm">
-          <template #icon-left>
-            <ToolsIcon class="size-4" />
-          </template>
-          Solicitar correción
-        </BtnComponent>
-      </div>
-    </CardContainer>
-  </div>
+    <span class="flex shrink-0 items-center gap-1.5">
+      <span class="text-sm font-semibold text-gray-700">{{ toCurrency(payment.monto) }}</span>
+      <AngleRight class="size-3.5 text-gray-300" />
+    </span>
+  </button>
 </template>
