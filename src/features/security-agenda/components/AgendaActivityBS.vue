@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import {
   DEFAULT_DURATION_MINUTES,
   DETAIL_MAX_LENGTH,
+  MAX_DURATION_MINUTES,
   PRIORITY_OPTIONS,
   PRIORITY_STYLE,
   STATUS_STYLE
@@ -59,10 +60,17 @@ const formError = ref('')
 const confirmingDelete = ref(false)
 
 const slots = timeSlots()
+/** El fin de la jornada sólo sirve como hora de fin. */
+const startSlots = slots.slice(0, -1)
 
-const endSlots = computed(() =>
-  slots.filter((slot) => toMinutes(slot) > toMinutes(horaInicio.value || '00:00'))
-)
+// El backend rechaza más de 2 horas: si no se puede elegir, no se ofrece.
+const endSlots = computed(() => {
+  const start = toMinutes(horaInicio.value || '00:00')
+  return slots.filter((slot) => {
+    const end = toMinutes(slot)
+    return end > start && end - start <= MAX_DURATION_MINUTES
+  })
+})
 
 const agencias = computed(
   () => props.scope.gerencias.find((item) => item.gerenciaId === gerencia.value)?.agencias ?? []
@@ -176,7 +184,7 @@ function submit() {
             <div class="space-y-1">
               <LabelForm for="agenda-inicio">Inicio</LabelForm>
               <InputSelect id="agenda-inicio" v-model="horaInicio">
-                <option v-for="slot in slots" :key="`inicio-${slot}`" :value="slot">
+                <option v-for="slot in startSlots" :key="`inicio-${slot}`" :value="slot">
                   {{ formatTime(slot) }}
                 </option>
               </InputSelect>

@@ -13,9 +13,16 @@ export const HOUR_ROW_HEIGHT = 72
 /** Piso táctil: ningún bloque baja de esto aunque dure 15 min. */
 export const MIN_BLOCK_HEIGHT = 56
 
-/** Ventana del día que dibuja el riel. */
-export const DAY_START_HOUR = 5
+/**
+ * Jornada que acepta el backend (`JORNADA_INICIO`/`JORNADA_FIN`): fuera de
+ * 6:00–22:00 la actividad se rechaza, así que el riel no la ofrece.
+ */
+export const DAY_START_HOUR = 6
 export const DAY_END_HOUR = 22
+/** Última hora en la que se puede empezar algo que termine dentro de la jornada. */
+export const LAST_START_HOUR = DAY_END_HOUR - 1
+/** Tope de duración del backend (`DURACION_MAXIMA_MINUTOS`). */
+export const MAX_DURATION_MINUTES = 120
 
 /** Ventana visible por defecto cuando la agenda todavía no tiene actividades. */
 export const EMPTY_DAY_START_HOUR = 6

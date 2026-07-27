@@ -1,10 +1,10 @@
 import { computed, onUnmounted, ref, type Ref } from 'vue'
 import {
-  DAY_END_HOUR,
   DAY_START_HOUR,
   EMPTY_DAY_END_HOUR,
   EMPTY_DAY_START_HOUR,
   HOUR_ROW_HEIGHT,
+  LAST_START_HOUR,
   MIN_BLOCK_HEIGHT
 } from '../constants'
 import { isToday, nowMinutes, toMinutes } from '../utils/time'
@@ -113,17 +113,18 @@ export function useAgendaTimeline(activities: Ref<AgendaTimelineActivity[]>, fec
       if (!covered.has(hour)) result.push(gapRow(hour))
     }
 
-    // Después del último bloque
-    if (lastHour <= DAY_END_HOUR) {
+    // Después del último bloque. El riel llega hasta la última hora en la que
+    // todavía se puede agendar: un hueco a las 10 pm no aceptaría nada.
+    if (lastHour <= LAST_START_HOUR) {
       if (expandedTrailing.value) {
-        for (let hour = lastHour; hour <= DAY_END_HOUR; hour++) result.push(gapRow(hour))
+        for (let hour = lastHour; hour <= LAST_START_HOUR; hour++) result.push(gapRow(hour))
       } else {
         result.push({
           kind: 'collapsed',
           key: 'collapsed-trailing',
           position: 'trailing',
           fromHour: lastHour,
-          toHour: DAY_END_HOUR,
+          toHour: LAST_START_HOUR,
           startMinutes: lastHour * 60
         })
       }
