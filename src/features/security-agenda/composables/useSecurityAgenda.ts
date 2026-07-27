@@ -1,6 +1,10 @@
 import { computed, ref } from 'vue'
 import { useNotification } from '@/shared/composables/useNotification'
-import { agendaErrorMessage, securityAgendaService } from '../services/agenda.service'
+import {
+  agendaErrorMessage,
+  agendaErrorStatus,
+  securityAgendaService
+} from '../services/agenda.service'
 import { todayISO } from '../utils/time'
 import type {
   Agenda,
@@ -31,6 +35,12 @@ export function useSecurityAgenda() {
   const loading = ref(false)
   const saving = ref(false)
   const loadError = ref('')
+  /**
+   * 403: el perfil no alcanza. Es alcanzable de verdad —un Regional con
+   * gerencias que no es responsable de seguridad ve la entrada del menú—, y
+   * ahí no hay nada que reintentar ni que enviar.
+   */
+  const denied = ref(false)
 
   const activities = computed(() => agenda.value?.actividades ?? [])
   const completed = computed(
@@ -55,6 +65,7 @@ export function useSecurityAgenda() {
   async function load() {
     loading.value = true
     loadError.value = ''
+    denied.value = false
 
     try {
       const [summary] = await securityAgendaService.listAgendas(fecha.value, auditorId.value)
@@ -62,6 +73,7 @@ export function useSecurityAgenda() {
     } catch (error) {
       agenda.value = null
       loadError.value = agendaErrorMessage(error, 'No pudimos cargar la agenda.')
+      denied.value = agendaErrorStatus(error) === 403
     } finally {
       loading.value = false
     }
@@ -177,6 +189,7 @@ export function useSecurityAgenda() {
     loading,
     saving,
     loadError,
+    denied,
 
     // Computed
     activities,

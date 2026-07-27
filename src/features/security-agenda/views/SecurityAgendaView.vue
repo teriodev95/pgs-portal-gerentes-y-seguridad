@@ -37,6 +37,7 @@ const {
   loading,
   saving,
   loadError,
+  denied,
   activities,
   completed,
   isSent,
@@ -179,7 +180,6 @@ async function handleShare() {
   await shareAgenda({
     fecha: agenda.value.fecha,
     auditorNombre: agenda.value.auditorNombre,
-    auditorUsuario: agenda.value.auditorUsuario,
     totalActividades: activities.value.length,
     url
   })
@@ -192,7 +192,6 @@ async function handleCopy() {
   const text = buildShareText({
     fecha: agenda.value.fecha,
     auditorNombre: agenda.value.auditorNombre,
-    auditorUsuario: agenda.value.auditorUsuario,
     totalActividades: activities.value.length,
     url: agenda.value.shareUrl
   })
@@ -304,10 +303,12 @@ function goBack() {
           @revoke="revokeShare"
         />
 
-        <!-- Error de carga: mensaje del backend tal cual -->
+        <!-- Error de carga y sin permiso: mensaje del backend tal cual.
+             Reintentar sólo aparece cuando reintentar puede servir de algo. -->
         <div v-if="loadError" class="rounded-lg border border-red-600 bg-red-50 p-3">
           <p class="text-sm text-red-900">{{ loadError }}</p>
           <button
+            v-if="!denied"
             type="button"
             class="mt-1 inline-flex min-h-[44px] items-center text-sm font-medium text-red-900"
             @click="load()"
@@ -371,7 +372,7 @@ function goBack() {
 
     <!-- Acción primaria fija -->
     <div
-      v-if="!isTeamDetail && tab === 'mi-agenda'"
+      v-if="!isTeamDetail && tab === 'mi-agenda' && !denied"
       class="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200 bg-white p-3"
     >
       <BtnComponent v-if="isSent" full-width :loading="saving" @click="handleShare">

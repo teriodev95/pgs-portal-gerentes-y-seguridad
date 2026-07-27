@@ -225,7 +225,10 @@ function submit() {
           <div class="space-y-1">
             <LabelForm for="agenda-gerencia">Gerencia</LabelForm>
             <InputSelect id="agenda-gerencia" v-model="gerencia" :is-required="false">
-              <option value="">Sin gerencia</option>
+              <!-- Hay auditores sin ámbito y pueden capturar igual: se dice. -->
+              <option value="">
+                {{ scope.gerencias.length ? 'Sin gerencia' : 'No tienes gerencias asignadas' }}
+              </option>
               <option
                 v-for="item in scope.gerencias"
                 :key="item.gerenciaId"
