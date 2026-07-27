@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/shared/stores'
 import { getDateTime2 } from '@/shared/utils'
+import { useAgendaAccess } from '@/features/security-agenda/composables/useAgendaAccess'
 import { ROUTE_NAME } from '@/router'
 
 // Lucide Icons
@@ -28,6 +29,7 @@ import {
   Share,
   Book,
   Calendar,
+  CalendarCheck,
 } from 'lucide-vue-next'
 
 /**
@@ -50,6 +52,7 @@ export interface MenuItem {
 export function useHomeMenu() {
   const router = useRouter()
   const $store = useStore()
+  const { canUseAgenda } = useAgendaAccess()
 
   // Drawer states
   const isAgencyDrawerOpen = ref(false)
@@ -201,6 +204,15 @@ export function useHomeMenu() {
       route: ROUTE_NAME.DAILY_REPORT ,
       icon: Share,
       description: 'Compartir vía Whatsapp'
+    },
+    {
+      // Espejo de la tarjeta del Home: misma vista, misma condición de acceso.
+      id: 'agenda-seguridad',
+      title: 'Agenda',
+      icon: CalendarCheck,
+      route: ROUTE_NAME.SECURITY_AGENDA,
+      disabled: !canUseAgenda.value,
+      description: 'Agenda del día'
     },
     {
       id: 'calendar',

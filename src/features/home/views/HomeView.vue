@@ -7,6 +7,7 @@ import { useUIState } from '@/features/home/composables/useUIState'
 
 // Components import
 import AgencySlider from '@/features/home/components/AgencySlider.vue'
+import AgendaHomeCard from '@/features/security-agenda/components/AgendaHomeCard.vue'
 import DrawerLeftMenu from '@/features/home/components/DrawerLeftMenu.vue'
 import FilterButton from '@/shared/components/FilterButton.vue'
 import GerencySlider from '@/features/home/components/GerencySlider.vue'
@@ -100,6 +101,11 @@ onMounted(() => {
         </div>
         <FilterButton v-model="filterOptions" />
       </div>
+    </div>
+
+    <!-- Agenda del día (sólo Seguridad y Regional con ámbito) -->
+    <div class="px-2 pt-2">
+      <AgendaHomeCard />
     </div>
 
     <!-- Main Content Area -->
