@@ -3,14 +3,22 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatToHumanDate } from '@/shared/utils'
 import { EMPTY_AGENDA_DESCRIPTION, EMPTY_AGENDA_MESSAGE } from '../constants'
-import { useAgendaTimeline, useSecurityAgenda } from '../composables'
+import {
+  useAgendaCutoff,
+  useAgendaShare,
+  useAgendaTimeline,
+  useSecurityAgenda
+} from '../composables'
 import { todayISO, tomorrowISO } from '../utils/time'
 import type { AgendaActivity } from '../types'
 
 // Components
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import AgendaActivityBS from '../components/AgendaActivityBS.vue'
+import AgendaShareRow from '../components/AgendaShareRow.vue'
 import AgendaTimeline from '../components/AgendaTimeline.vue'
 import AgendaTimelineSkeleton from '../components/AgendaTimelineSkeleton.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
@@ -19,6 +27,7 @@ const $router = useRouter()
 
 const {
   fecha,
+  agenda,
   activityTypes,
   scope,
   loading,
@@ -26,18 +35,37 @@ const {
   loadError,
   activities,
   completed,
+  isSent,
+  canSend,
   loadCatalogs,
   load,
   createActivity,
   updateActivity,
-  deleteActivity
+  deleteActivity,
+  send,
+  share,
+  revokeShare
 } = useSecurityAgenda()
 
 const { rows, expandLeading, expandTrailing } = useAgendaTimeline(activities, fecha)
 
+const cutoffSource = computed(() =>
+  agenda.value
+    ? {
+        status: agenda.value.status,
+        enviadaAt: agenda.value.enviadaAt,
+        enviadaATiempo: agenda.value.enviadaATiempo
+      }
+    : null
+)
+const { state: cutoff } = useAgendaCutoff(fecha, cutoffSource)
+
+const { shareAgenda, copyLink, buildShareText } = useAgendaShare()
+
 const sheetOpen = ref(false)
 const editing = ref<AgendaActivity | null>(null)
 const defaultHoraInicio = ref('08:00')
+const sentOpen = ref(false)
 
 const timeline = ref<InstanceType<typeof AgendaTimeline>>()
 
@@ -106,6 +134,40 @@ async function handleSave(payload: Parameters<typeof createActivity>[0]) {
 async function handleDelete(id: string) {
   if (await deleteActivity(id)) sheetOpen.value = false
 }
+
+async function handleSend() {
+  if (await send()) sentOpen.value = true
+}
+
+/** Genera el enlace si aún no existe y abre la hoja nativa de compartir. */
+async function handleShare() {
+  if (!agenda.value) return
+
+  const url = agenda.value.shareUrl || (await share())?.url
+  if (!url) return
+
+  await shareAgenda({
+    fecha: agenda.value.fecha,
+    auditorNombre: agenda.value.auditorNombre,
+    auditorUsuario: agenda.value.auditorUsuario,
+    totalActividades: activities.value.length,
+    url
+  })
+  sentOpen.value = false
+}
+
+async function handleCopy() {
+  if (!agenda.value?.shareUrl) return
+
+  const text = buildShareText({
+    fecha: agenda.value.fecha,
+    auditorNombre: agenda.value.auditorNombre,
+    auditorUsuario: agenda.value.auditorUsuario,
+    totalActividades: activities.value.length,
+    url: agenda.value.shareUrl
+  })
+  await copyLink(`${text}\n${agenda.value.shareUrl}`)
+}
 </script>
 
 <template>
@@ -117,7 +179,7 @@ async function handleDelete(id: string) {
       @back="$router.back()"
     />
 
-    <div class="space-y-3 px-3 pb-10 pt-3">
+    <div class="space-y-3 px-3 pb-44 pt-3">
       <!-- Sólo hoy y mañana: la agenda es un compromiso del día -->
       <div class="grid grid-cols-2 gap-2">
         <button
@@ -156,7 +218,23 @@ async function handleDelete(id: string) {
         <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
           <div class="agenda-progress h-full bg-blue-700" :style="{ width: `${progress}%` }" />
         </div>
+
+        <div class="mt-3 rounded-lg border p-2.5" :class="cutoff.classes">
+          <p class="text-sm font-medium">{{ cutoff.label }}</p>
+          <p v-if="!cutoff.collapsed && cutoff.detail" class="mt-0.5 text-xs">
+            {{ cutoff.detail }}
+          </p>
+        </div>
       </div>
+
+      <!-- Enlace público, sólo si ya existe token -->
+      <AgendaShareRow
+        v-if="agenda?.shareToken"
+        :busy="saving"
+        @share="handleShare"
+        @copy="handleCopy"
+        @revoke="revokeShare"
+      />
 
       <!-- Error de carga: mensaje del backend tal cual -->
       <div v-if="loadError" class="rounded-lg border border-red-600 bg-red-50 p-3">
@@ -185,6 +263,21 @@ async function handleDelete(id: string) {
         />
       </template>
     </div>
+
+    <!-- Acción primaria fija -->
+    <div class="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200 bg-white p-3">
+      <BtnComponent v-if="isSent" full-width :loading="saving" @click="handleShare">
+        Compartir agenda
+      </BtnComponent>
+      <template v-else>
+        <BtnComponent full-width :disabled="!canSend" :loading="saving" @click="handleSend">
+          Enviar agenda
+        </BtnComponent>
+        <p v-if="!activities.length" class="mt-1.5 text-center text-xs text-gray-700">
+          Agrega al menos una actividad para poder enviarla.
+        </p>
+      </template>
+    </div>
   </MainCT>
 
   <!-- Alta y edición -->
@@ -199,6 +292,26 @@ async function handleDelete(id: string) {
     @save="handleSave"
     @delete="handleDelete"
   />
+
+  <!-- Confirmación de envío -->
+  <Drawer :open="sentOpen" @update:open="(value: boolean) => (sentOpen = value)">
+    <DrawerContent>
+      <div class="mx-auto w-full max-w-lg">
+        <DrawerHeader>
+          <DrawerTitle>{{ cutoff.label }}</DrawerTitle>
+        </DrawerHeader>
+        <div class="space-y-2 p-4 pb-6">
+          <p class="text-sm text-gray-700">
+            Tu agenda quedó registrada. Puedes compartir el enlace con el grupo.
+          </p>
+          <BtnComponent full-width :loading="saving" @click="handleShare">
+            Compartir al grupo
+          </BtnComponent>
+          <BtnComponent outline full-width @click="sentOpen = false">Ahora no</BtnComponent>
+        </div>
+      </div>
+    </DrawerContent>
+  </Drawer>
 </template>
 
 <style scoped>
