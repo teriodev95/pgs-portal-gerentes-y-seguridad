@@ -1,5 +1,6 @@
 export * from './useAgendaAccess'
 export * from './useAgendaCutoff'
 export * from './useAgendaShare'
+export * from './useAgendaTeam'
 export * from './useAgendaTimeline'
 export * from './useSecurityAgenda'
