@@ -45,7 +45,7 @@ const props = withDefaults(defineProps<Props>(), { saving: false })
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'save', payload: ActivityFormPayload): void
-  (e: 'delete', id: string): void
+  (e: 'delete', id: number): void
 }>()
 
 const tipo = ref('')

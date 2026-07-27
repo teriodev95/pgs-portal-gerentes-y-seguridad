@@ -4,7 +4,7 @@ import { ChevronDown, Plus } from 'lucide-vue-next'
 import { HOUR_ROW_HEIGHT } from '../constants'
 import { formatHourLabel, formatTime, toHHMM } from '../utils/time'
 import type { TimelineRow } from '../composables/useAgendaTimeline'
-import type { AgendaActivity } from '../types'
+import type { AgendaTimelineActivity } from '../types'
 
 // Components
 import AgendaActivityBlock from './AgendaActivityBlock.vue'
@@ -19,7 +19,7 @@ withDefaults(defineProps<Props>(), { readonly: false })
 
 defineEmits<{
   (e: 'select-gap', hour: number): void
-  (e: 'select-activity', activity: AgendaActivity): void
+  (e: 'select-activity', activity: AgendaTimelineActivity): void
   (e: 'expand', position: 'leading' | 'trailing'): void
 }>()
 

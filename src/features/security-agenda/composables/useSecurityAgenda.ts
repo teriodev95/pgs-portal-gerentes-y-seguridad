@@ -4,6 +4,7 @@ import { agendaErrorMessage, securityAgendaService } from '../services/agenda.se
 import { todayISO } from '../utils/time'
 import type {
   Agenda,
+  AgendaActivityChanges,
   AgendaActivityPayload,
   AgendaActivityType,
   AgendaScope,
@@ -85,10 +86,7 @@ export function useSecurityAgenda() {
     }
   }
 
-  async function updateActivity(
-    id: string,
-    payload: Partial<AgendaActivityPayload>
-  ): Promise<boolean> {
+  async function updateActivity(id: number, payload: AgendaActivityChanges): Promise<boolean> {
     saving.value = true
     try {
       await securityAgendaService.updateActivity(id, payload)
@@ -102,7 +100,7 @@ export function useSecurityAgenda() {
     }
   }
 
-  async function deleteActivity(id: string): Promise<boolean> {
+  async function deleteActivity(id: number): Promise<boolean> {
     saving.value = true
     try {
       await securityAgendaService.deleteActivity(id)

@@ -2,6 +2,7 @@ import { createApiClientFromPreset } from '@/shared/services/core'
 import type {
   Agenda,
   AgendaActivity,
+  AgendaActivityChanges,
   AgendaActivityPayload,
   AgendaActivityType,
   AgendaPublic,
@@ -53,7 +54,7 @@ class SecurityAgendaService {
     return data.data
   }
 
-  async getAgenda(id: string): Promise<Agenda> {
+  async getAgenda(id: number): Promise<Agenda> {
     const { data } = await this.apiClient.get<ApiEnvelope<Agenda>>(`${this.base}/${id}`)
     return data.data
   }
@@ -66,10 +67,7 @@ class SecurityAgendaService {
     return data.data
   }
 
-  async updateActivity(
-    id: string,
-    payload: Partial<AgendaActivityPayload>
-  ): Promise<AgendaActivity> {
+  async updateActivity(id: number, payload: AgendaActivityChanges): Promise<AgendaActivity> {
     const { data } = await this.apiClient.put<ApiEnvelope<AgendaActivity>>(
       `${this.base}/actividades/${id}`,
       payload
@@ -77,18 +75,18 @@ class SecurityAgendaService {
     return data.data
   }
 
-  async deleteActivity(id: string): Promise<void> {
+  async deleteActivity(id: number): Promise<void> {
     await this.apiClient.delete(`${this.base}/actividades/${id}`)
   }
 
-  async send(id: string): Promise<AgendaSendResult> {
+  async send(id: number): Promise<AgendaSendResult> {
     const { data } = await this.apiClient.post<ApiEnvelope<AgendaSendResult>>(
       `${this.base}/${id}/enviar`
     )
     return data.data
   }
 
-  async share(id: string, rotar = false): Promise<AgendaShareLink> {
+  async share(id: number, rotar = false): Promise<AgendaShareLink> {
     const { data } = await this.apiClient.post<ApiEnvelope<AgendaShareLink>>(
       `${this.base}/${id}/compartir`,
       { rotar }
@@ -96,7 +94,7 @@ class SecurityAgendaService {
     return data.data
   }
 
-  async revokeShare(id: string): Promise<void> {
+  async revokeShare(id: number): Promise<void> {
     await this.apiClient.delete(`${this.base}/${id}/compartir`)
   }
 

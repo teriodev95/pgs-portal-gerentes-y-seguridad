@@ -8,7 +8,7 @@ import {
   MIN_BLOCK_HEIGHT
 } from '../constants'
 import { isToday, nowMinutes, toMinutes } from '../utils/time'
-import type { AgendaActivity } from '../types'
+import type { AgendaTimelineActivity } from '../types'
 
 export type TimelineRow =
   | {
@@ -23,7 +23,7 @@ export type TimelineRow =
   | {
       kind: 'activity'
       key: string
-      activity: AgendaActivity
+      activity: AgendaTimelineActivity
       minHeight: number
       isPast: boolean
       startMinutes: number
@@ -38,7 +38,7 @@ export type TimelineRow =
  * proporcional a su duración. Las horas que quedan cubiertas por una actividad
  * larga no generan fila propia: las cubre el alto del bloque.
  */
-export function useAgendaTimeline(activities: Ref<AgendaActivity[]>, fecha: Ref<string>) {
+export function useAgendaTimeline(activities: Ref<AgendaTimelineActivity[]>, fecha: Ref<string>) {
   const expandedLeading = ref(false)
   const expandedTrailing = ref(false)
 
@@ -98,7 +98,9 @@ export function useAgendaTimeline(activities: Ref<AgendaActivity[]>, fecha: Ref<
           const duration = Math.max(0, toMinutes(activity.horaFin) - start)
           result.push({
             kind: 'activity',
-            key: activity.id,
+            // La vista pública no recibe ids; el backend no permite traslapes,
+            // así que la hora de inicio identifica la fila igual de bien.
+            key: `activity-${activity.horaInicio}`,
             activity,
             minHeight: Math.max(MIN_BLOCK_HEIGHT, (duration / 60) * HOUR_ROW_HEIGHT),
             isPast: showsNow && toMinutes(activity.horaFin) <= currentMinutes.value,

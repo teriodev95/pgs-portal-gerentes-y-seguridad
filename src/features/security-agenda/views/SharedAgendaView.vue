@@ -40,19 +40,9 @@ const cutoffSource = computed(() =>
 )
 const { state: cutoff } = useAgendaCutoff(fecha, cutoffSource)
 
-/** Lo más reciente que tocó alguien: sirve de "actualizado hace X". */
-const lastUpdate = computed(() => {
-  const timestamps = activities.value
-    .map((activity) => activity.actualizadaEn)
-    .concat(agenda.value?.enviadaAt ?? null)
-    .filter((value): value is string => !!value)
-
-  if (!timestamps.length) return ''
-  const latest = timestamps.reduce((max, value) =>
-    new Date(value) > new Date(max) ? value : max
-  )
-  return formatRelative(latest)
-})
+/** El enlace público no trae la auditoría de cada actividad: el único
+ *  timestamp disponible es el del envío. */
+const lastUpdate = computed(() => formatRelative(agenda.value?.enviadaAt ?? null))
 
 const activityCountLabel = computed(() => {
   const total = activities.value.length
@@ -106,7 +96,7 @@ onMounted(async () => {
         <AgendaTimeline :rows="rows" readonly />
 
         <div class="space-y-2 pt-2 text-center">
-          <p v-if="lastUpdate" class="text-xs text-gray-600">Actualizado {{ lastUpdate }}</p>
+          <p v-if="lastUpdate" class="text-xs text-gray-600">Enviada {{ lastUpdate }}</p>
           <a href="/" class="btn-primary-outline inline-block">Abrir en PGS</a>
         </div>
       </template>

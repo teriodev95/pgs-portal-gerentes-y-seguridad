@@ -2,14 +2,14 @@
 import { computed } from 'vue'
 import { STATUS_STYLE } from '../constants'
 import { formatTime } from '../utils/time'
-import type { AgendaActivity } from '../types'
+import type { AgendaTimelineActivity } from '../types'
 
 // Components
 import AgendaPriorityTag from './AgendaPriorityTag.vue'
 import AgendaStatusChip from './AgendaStatusChip.vue'
 
 interface Props {
-  activity: AgendaActivity
+  activity: AgendaTimelineActivity
   minHeight: number
   isPast?: boolean
   readonly?: boolean
@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   readonly: false
 })
 
-defineEmits<{ (e: 'select', activity: AgendaActivity): void }>()
+defineEmits<{ (e: 'select', activity: AgendaTimelineActivity): void }>()
 
 // Pasado: se apaga el fondo y el borde, nunca el texto.
 const blockClass = computed(() => {

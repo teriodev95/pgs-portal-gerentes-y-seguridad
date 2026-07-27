@@ -19,7 +19,8 @@ export interface AgendaActivityType {
 
 export interface AgendaScopeGerencia {
   gerenciaId: string
-  sucursalId: string
+  /** Una gerencia puede no tener sucursal. */
+  sucursalId: string | null
   agencias: string[]
 }
 
@@ -28,8 +29,8 @@ export interface AgendaScope {
 }
 
 export interface AgendaActivity {
-  id: string
-  agendaId: string
+  id: number
+  agendaId: number
   tipo: string
   tipoNombre: string
   detalle: string | null
@@ -47,8 +48,29 @@ export interface AgendaActivity {
   actualizadaEn: string | null
 }
 
+/**
+ * El enlace público no expone ids ni la auditoría de la actividad: sólo lo que
+ * se muestra. No es un `AgendaActivity` recortado por gusto, el backend manda
+ * exactamente estos campos.
+ */
+export type AgendaPublicActivity = Pick<
+  AgendaActivity,
+  | 'tipo'
+  | 'tipoNombre'
+  | 'detalle'
+  | 'horaInicio'
+  | 'horaFin'
+  | 'prioridad'
+  | 'gerencia'
+  | 'agencia'
+  | 'status'
+>
+
+/** Lo que el riel necesita: sirve a la agenda propia y a la vista pública. */
+export type AgendaTimelineActivity = AgendaPublicActivity & Partial<AgendaActivity>
+
 export interface Agenda {
-  id: string
+  id: number
   auditorId: number
   auditorUsuario: string
   auditorNombre: string
@@ -63,7 +85,7 @@ export interface Agenda {
 
 /** Resumen que devuelven `GET /` y el bloque `agenda` de `GET /equipo`. */
 export interface AgendaSummary {
-  id: string
+  id: number
   status: AgendaStatus
   enviadaAt: string | null
   enviadaATiempo: boolean | null
@@ -86,7 +108,7 @@ export interface AgendaPublic {
   status: AgendaStatus
   enviadaAt: string | null
   enviadaATiempo: boolean | null
-  actividades: AgendaActivity[]
+  actividades: AgendaPublicActivity[]
 }
 
 export interface AgendaShareLink {
@@ -95,7 +117,7 @@ export interface AgendaShareLink {
 }
 
 export interface AgendaSendResult {
-  id: string
+  id: number
   status: AgendaStatus
   enviadaAt: string
   enviadaATiempo: boolean
@@ -112,4 +134,15 @@ export interface AgendaActivityPayload {
   prioridad?: AgendaPriority
   gerencia?: string
   agencia?: string
+}
+
+/**
+ * Body de `PUT /actividades/:id`. Sólo viaja lo que cambia, y `null` es la única
+ * forma de limpiar un campo: omitirlo conserva el valor anterior.
+ */
+export interface AgendaActivityChanges
+  extends Omit<Partial<AgendaActivityPayload>, 'detalle' | 'gerencia' | 'agencia'> {
+  detalle?: string | null
+  gerencia?: string | null
+  agencia?: string | null
 }

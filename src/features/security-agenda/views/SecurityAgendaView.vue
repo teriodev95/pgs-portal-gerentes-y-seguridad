@@ -11,7 +11,7 @@ import {
   useSecurityAgenda
 } from '../composables'
 import { todayISO, tomorrowISO } from '../utils/time'
-import type { AgendaActivity, AgendaTeamMember } from '../types'
+import type { AgendaActivity, AgendaTeamMember, AgendaTimelineActivity } from '../types'
 
 // Components
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -139,20 +139,29 @@ function openGap(hour: number) {
   sheetOpen.value = true
 }
 
-function openActivity(activity: AgendaActivity) {
-  editing.value = activity
+// El riel sólo emite selección cuando es editable, y ahí la actividad viene
+// completa: la vista pública lo monta en `readonly`.
+function openActivity(activity: AgendaTimelineActivity) {
+  editing.value = activity as AgendaActivity
   defaultHoraInicio.value = activity.horaInicio
   sheetOpen.value = true
 }
 
 async function handleSave(payload: Parameters<typeof createActivity>[0]) {
   const ok = editing.value
-    ? await updateActivity(editing.value.id, payload)
+    ? await updateActivity(editing.value.id, {
+        ...payload,
+        // El PUT sólo toca lo que viaja: `null` limpia el campo, omitirlo
+        // dejaría el valor anterior y no se podría borrar nada.
+        detalle: payload.detalle ?? null,
+        gerencia: payload.gerencia ?? null,
+        agencia: payload.agencia ?? null
+      })
     : await createActivity(payload)
   if (ok) sheetOpen.value = false
 }
 
-async function handleDelete(id: string) {
+async function handleDelete(id: number) {
   if (await deleteActivity(id)) sheetOpen.value = false
 }
 
