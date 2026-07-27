@@ -37,21 +37,46 @@ export function formatHourLabel(hour: number): string {
   return `${hours12} ${suffix}`
 }
 
-export function toISODate(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+/**
+ * Zona de operación. El backend decide "hoy" y el corte de las 7:30 en
+ * CDMX (`TZ_OPERACION`), así que la vista lee el reloj en la misma zona: con el
+ * teléfono en otro huso o con la hora corrida, la agenda seguiría siendo la del
+ * día que el servidor espera.
+ */
+const TZ_OPERACION = 'America/Mexico_City'
+
+/** `en-CA` da directo `YYYY-MM-DD`. */
+const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: TZ_OPERACION,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+})
+
+/** `en-GB` da directo `HH:MM` en formato de 24 horas. */
+const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+  timeZone: TZ_OPERACION,
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+})
+
+/** Hora de pared de un instante en la zona de operación. */
+function zonedHHMM(date: Date): string {
+  return timeFormatter.format(date)
+}
+
+function addDays(fecha: string, days: number): string {
+  const [year, month, day] = fecha.split('-').map(Number)
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10)
 }
 
 export function todayISO(): string {
-  return toISODate(new Date())
+  return dateFormatter.format(new Date())
 }
 
 export function tomorrowISO(): string {
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  return toISODate(date)
+  return addDays(todayISO(), 1)
 }
 
 export function isToday(fecha: string): boolean {
@@ -65,28 +90,22 @@ export function formatShortDate(fecha: string): string {
 }
 
 export function nowMinutes(): number {
-  const now = new Date()
-  return now.getHours() * 60 + now.getMinutes()
-}
-
-export function nowLabel(): string {
-  const now = new Date()
-  return formatTime(`${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`)
+  return toMinutes(zonedHHMM(new Date()))
 }
 
 /** Minutos que faltan para el corte de la fecha dada (negativo si ya pasó). */
 export function minutesToCutoff(fecha: string): number {
-  const cutoff = new Date(`${fecha}T00:00:00`)
-  cutoff.setHours(CUTOFF_HOUR, CUTOFF_MINUTE, 0, 0)
-  return Math.round((cutoff.getTime() - Date.now()) / 60000)
+  const dias =
+    (Date.parse(`${fecha}T00:00:00Z`) - Date.parse(`${todayISO()}T00:00:00Z`)) / 86_400_000
+  return dias * 24 * 60 + (CUTOFF_HOUR * 60 + CUTOFF_MINUTE) - nowMinutes()
 }
 
-/** `2026-07-27T06:58:00Z` -> `6:58 am`. */
+/** `2026-07-27T12:58:00Z` -> `6:58 am` (hora de la zona de operación). */
 export function formatTimestampTime(timestamp: string | null): string {
   if (!timestamp) return ''
   const date = new Date(timestamp)
   if (Number.isNaN(date.getTime())) return ''
-  return formatTime(`${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`)
+  return formatTime(zonedHHMM(date))
 }
 
 /** `Actualizado hace X` de la vista pública. */
