@@ -12,7 +12,7 @@ const rowHeight = HOUR_ROW_HEIGHT - 8
 <template>
   <div role="status" aria-label="Cargando agenda">
     <div v-for="hour in HOURS" :key="`skeleton-${hour}`" class="flex gap-2">
-      <span class="w-14 shrink-0 pt-1 text-right text-xs text-gray-400">
+      <span class="w-14 shrink-0 pt-1 text-right text-xs text-gray-600">
         {{ formatHourLabel(hour) }}
       </span>
       <div class="flex-1 border-l border-gray-200 pb-2 pl-3">

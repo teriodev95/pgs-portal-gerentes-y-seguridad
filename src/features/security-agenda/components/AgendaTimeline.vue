@@ -43,10 +43,10 @@ const gapHeight = HOUR_ROW_HEIGHT - 8
       <button
         v-if="row.kind === 'collapsed'"
         type="button"
-        class="flex w-full items-center gap-2 py-1 text-left"
+        class="flex min-h-[44px] w-full items-center gap-2 py-1 text-left"
         @click="$emit('expand', row.position)"
       >
-        <span class="w-14 shrink-0 text-right text-xs text-gray-500">
+        <span class="w-14 shrink-0 text-right text-xs text-gray-600">
           {{ formatHourLabel(row.fromHour) }}
         </span>
         <span
@@ -70,7 +70,7 @@ const gapHeight = HOUR_ROW_HEIGHT - 8
 
       <!-- Hueco tocable: precarga la hora en la hoja de alta -->
       <div v-else-if="row.kind === 'gap'" class="flex gap-2">
-        <span class="w-14 shrink-0 pt-1 text-right text-xs text-gray-500">
+        <span class="w-14 shrink-0 pt-1 text-right text-xs text-gray-600">
           {{ formatHourLabel(row.hour) }}
         </span>
         <div class="flex-1 border-l border-gray-200 pb-2 pl-3">

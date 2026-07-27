@@ -89,7 +89,7 @@ function open() {
       >
         {{ cutoff.label }}
       </span>
-      <ChevronRight class="size-4 shrink-0 text-gray-400" :stroke-width="2" />
+      <ChevronRight class="size-4 shrink-0 text-gray-600" :stroke-width="2" />
     </div>
 
     <p v-if="!cutoff.collapsed" class="mt-1 pl-6 text-xs text-gray-700">{{ detail }}</p>

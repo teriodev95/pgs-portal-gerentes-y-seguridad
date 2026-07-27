@@ -242,7 +242,7 @@ function goBack() {
         <button
           v-if="isTeamDetail"
           type="button"
-          class="text-sm font-medium text-blue-700"
+          class="inline-flex min-h-[44px] items-center text-sm font-medium text-blue-700"
           @click="backToTeam"
         >
           ← Volver a mi equipo
@@ -252,7 +252,7 @@ function goBack() {
         <div class="grid grid-cols-2 gap-2">
           <button
             type="button"
-            class="rounded-lg border p-2 text-sm"
+            class="min-h-[44px] rounded-lg border p-2 text-sm"
             :class="
               fecha === todayISO()
                 ? 'border-blue-700 font-medium text-blue-800'
@@ -264,7 +264,7 @@ function goBack() {
           </button>
           <button
             type="button"
-            class="rounded-lg border p-2 text-sm"
+            class="min-h-[44px] rounded-lg border p-2 text-sm"
             :class="
               fecha === tomorrowISO()
                 ? 'border-blue-700 font-medium text-blue-800'
@@ -307,7 +307,11 @@ function goBack() {
         <!-- Error de carga: mensaje del backend tal cual -->
         <div v-if="loadError" class="rounded-lg border border-red-600 bg-red-50 p-3">
           <p class="text-sm text-red-900">{{ loadError }}</p>
-          <button type="button" class="mt-2 text-sm font-medium text-red-900" @click="load()">
+          <button
+            type="button"
+            class="mt-1 inline-flex min-h-[44px] items-center text-sm font-medium text-red-900"
+            @click="load()"
+          >
             Reintentar
           </button>
         </div>
@@ -338,7 +342,7 @@ function goBack() {
           <p class="text-sm text-red-900">{{ team.error.value }}</p>
           <button
             type="button"
-            class="mt-2 text-sm font-medium text-red-900"
+            class="mt-1 inline-flex min-h-[44px] items-center text-sm font-medium text-red-900"
             @click="team.loadTeam()"
           >
             Reintentar

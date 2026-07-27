@@ -207,7 +207,7 @@ function submit() {
                 v-for="option in PRIORITY_OPTIONS"
                 :key="option"
                 type="button"
-                class="flex items-center justify-center gap-1.5 rounded-lg border p-2.5 text-sm"
+                class="flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border p-2.5 text-sm"
                 :class="
                   prioridad === option
                     ? 'border-blue-700 font-medium text-blue-800'

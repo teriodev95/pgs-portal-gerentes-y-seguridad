@@ -49,7 +49,7 @@ function pendientes(member: AgendaTeamMember): number {
     <section v-for="group in groups" :key="group.key">
       <button
         type="button"
-        class="flex w-full items-center gap-1.5 py-1 text-left"
+        class="flex min-h-[44px] w-full items-center gap-1.5 py-1 text-left"
         @click="toggle(group.key)"
       >
         <component
