@@ -1,3 +1,5 @@
 export * from './mapbox'
 export * from './adelanto'
 export * from './calendario'
+export * from './semanas'
+export * from './ubicaciones'

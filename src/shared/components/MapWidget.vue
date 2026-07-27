@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { toRefs } from 'vue'
 import 'leaflet/dist/leaflet.css'
-import type { LatLng, LocationEvent, PointExpression } from 'leaflet'
+import type { LatLng, LocationEvent, Map, PointExpression } from 'leaflet'
 import { LControl, LMap, LMarker, LTileLayer } from '@vue-leaflet/vue-leaflet'
 
 import BackIcon from '@/shared/components/icons/BackIcon.vue'
@@ -28,15 +28,28 @@ const $emit = defineEmits<{
   (e: 'update:center', p: LatLng): void
   (e: 'update:zoom', p: number): void
   (e: 'goBack'): void
+  (e: 'ready', map: Map): void
 }>()
 
-const $props = defineProps<{
-  marker?: LatLng
-  center: PointExpression
-  zoom: number
-  readonly?: boolean
-  back?: boolean
-}>()
+const $props = withDefaults(
+  defineProps<{
+    marker?: LatLng
+    center: PointExpression
+    zoom: number
+    readonly?: boolean
+    back?: boolean
+    /** Cómo se dimensiona el mapa. El default ocupa la pantalla (uso
+     *  overlay); una vista embebida pasa lo que necesite su contenedor
+     *  (p. ej. 'absolute inset-0' para llenarlo sin depender de porcentajes) */
+    heightClass?: string
+    /** El :key remonta el mapa en cada cambio de centro/zoom para recentrarlo
+     *  desde afuera. En un mapa que el usuario arrastra eso lo reinicia a
+     *  media interacción: quien lo maneja por código (fitBounds sobre el
+     *  objeto Leaflet del evento ready) lo desactiva. */
+    noRemount?: boolean
+  }>(),
+  { heightClass: 'h-screen' }
+)
 
 const { marker, center, zoom, readonly } = toRefs($props)
 
@@ -64,6 +77,13 @@ function doMoveCenter(_center: LatLng) {
   $emit('update:center', _center)
 }
 /**
+ * onReady — entrega el objeto Leaflet a quien maneje el mapa por código
+ * @param map
+ */
+function onReady(map: Map) {
+  $emit('ready', map)
+}
+/**
  * doMoveZoom
  * @param _zoom
  */
@@ -76,7 +96,8 @@ function doMoveZoom(_zoom: number) {
   <l-map
     ref="map"
     id="map--pageleaflet"
-    class="h-screen w-full"
+    class="w-full"
+    :class="heightClass"
     :zoom="Number(zoom)"
     :center="center"
     :min-zoom="settings.zoom.min"
@@ -84,7 +105,8 @@ function doMoveZoom(_zoom: number) {
     @click="addMarker"
     @update:center="doMoveCenter"
     @update:zoom="doMoveZoom"
-    :key="`map-key-${zoom}-${center.toString()}`"
+    @ready="onReady"
+    :key="noRemount ? 'map-key-static' : `map-key-${zoom}-${center.toString()}`"
   >
     <l-tile-layer :url="MAP_URL" :attribution="ATTRIBUTION" />
     <l-control
