@@ -1,0 +1,101 @@
+import type { Component } from 'vue'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Circle,
+  PlayCircle,
+  XCircle
+} from 'lucide-vue-next'
+import type { AgendaActivityStatus, AgendaPriority } from '../types'
+
+/** Alto de una hora del riel. Un bloque de 2h se ve al doble. */
+export const HOUR_ROW_HEIGHT = 72
+/** Piso táctil: ningún bloque baja de esto aunque dure 15 min. */
+export const MIN_BLOCK_HEIGHT = 56
+
+/** Ventana del día que dibuja el riel. */
+export const DAY_START_HOUR = 5
+export const DAY_END_HOUR = 22
+
+/** Ventana visible por defecto cuando la agenda todavía no tiene actividades. */
+export const EMPTY_DAY_START_HOUR = 6
+export const EMPTY_DAY_END_HOUR = 20
+
+/** Corte de envío de la agenda. */
+export const CUTOFF_HOUR = 7
+export const CUTOFF_MINUTE = 30
+export const CUTOFF_LABEL = '7:30 am'
+/** Minutos previos al corte en los que la barra pasa a cuenta regresiva. */
+export const CUTOFF_WARNING_MINUTES = 60
+
+/** Granularidad del selector de horario. */
+export const SLOT_MINUTES = 30
+/** Duración precargada al abrir la hoja desde un hueco. */
+export const DEFAULT_DURATION_MINUTES = 60
+
+export const DETAIL_MAX_LENGTH = 255
+
+/** Módulo que habilita la pestaña "Mi equipo". */
+export const TEAM_MODULE = 'agenda-equipo'
+
+interface StatusStyle {
+  label: string
+  icon: Component
+  /** Bloque vigente: el color lo manda el estado. */
+  block: string
+  /** Bloque pasado: se apaga fondo y borde, el texto se mantiene legible. */
+  blockPast: string
+  /** Color del segmento en la mini-franja del día del equipo. */
+  stripe: string
+}
+
+export const STATUS_STYLE: Record<AgendaActivityStatus, StatusStyle> = {
+  programada: {
+    label: 'Programada',
+    icon: Circle,
+    block: 'bg-white border-gray-200 text-gray-900',
+    blockPast: 'bg-gray-50 border-gray-100 text-gray-900',
+    stripe: 'bg-gray-300'
+  },
+  en_curso: {
+    label: 'En curso',
+    icon: PlayCircle,
+    block: 'bg-blue-50 border-blue-500 text-blue-900',
+    blockPast: 'bg-blue-50/50 border-blue-200 text-blue-900',
+    stripe: 'bg-blue-500'
+  },
+  completada: {
+    label: 'Completada',
+    icon: CheckCircle2,
+    block: 'bg-green-50 border-green-600 text-green-900',
+    blockPast: 'bg-green-50/50 border-green-200 text-green-900',
+    stripe: 'bg-green-600'
+  },
+  no_se_realizo: {
+    label: 'No se realizó',
+    icon: XCircle,
+    block: 'bg-red-50 border-red-600 text-red-900',
+    blockPast: 'bg-red-50/50 border-red-200 text-red-900',
+    stripe: 'bg-red-600'
+  },
+  en_revision: {
+    label: 'En revisión',
+    icon: AlertTriangle,
+    block: 'bg-amber-50 border-amber-600 text-amber-900',
+    blockPast: 'bg-amber-50/50 border-amber-200 text-amber-900',
+    stripe: 'bg-amber-600'
+  }
+}
+
+/** La prioridad NUNCA pinta el fondo del bloque: sólo punto de 8px + texto. */
+export const PRIORITY_STYLE: Record<AgendaPriority, { label: string; dot: string }> = {
+  alta: { label: 'Alta', dot: 'bg-red-500' },
+  media: { label: 'Media', dot: 'bg-amber-500' },
+  baja: { label: 'Baja', dot: 'bg-gray-400' }
+}
+
+export const PRIORITY_OPTIONS: AgendaPriority[] = ['baja', 'media', 'alta']
+
+export const EMPTY_AGENDA_MESSAGE = 'Tu agenda de hoy está vacía'
+export const EMPTY_AGENDA_DESCRIPTION =
+  `Toca una hora para agregar tu primera actividad. Recuerda enviarla antes de las ${CUTOFF_LABEL}.`
