@@ -40,9 +40,12 @@ const cutoffSource = computed(() =>
 )
 const { state: cutoff } = useAgendaCutoff(fecha, cutoffSource)
 
-/** El enlace público no trae la auditoría de cada actividad: el único
- *  timestamp disponible es el del envío. */
-const lastUpdate = computed(() => formatRelative(agenda.value?.enviadaAt ?? null))
+/**
+ * El enlace sigue vivo: si Administración mueve algo a media mañana, este mismo
+ * enlace lo refleja. La marca lo dice, para que no se lea como una captura.
+ * Mientras el backend no la mande, `formatRelative` devuelve '' y la línea no sale.
+ */
+const lastUpdate = computed(() => formatRelative(agenda.value?.actualizadaEn ?? null))
 
 const activityCountLabel = computed(() => {
   const total = activities.value.length
@@ -96,7 +99,7 @@ onMounted(async () => {
         <AgendaTimeline :rows="rows" readonly />
 
         <div class="space-y-2 pt-2 text-center">
-          <p v-if="lastUpdate" class="text-xs text-gray-600">Enviada {{ lastUpdate }}</p>
+          <p v-if="lastUpdate" class="text-xs text-gray-600">Actualizado {{ lastUpdate }}</p>
           <a href="/" class="btn-primary-outline inline-block">Abrir en PGS</a>
         </div>
       </template>

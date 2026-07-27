@@ -109,6 +109,8 @@ export interface AgendaPublic {
   status: AgendaStatus
   enviadaAt: string | null
   enviadaATiempo: boolean | null
+  /** Máximo entre la cabecera y sus actividades: marca de frescura del enlace. */
+  actualizadaEn: string | null
   actividades: AgendaPublicActivity[]
 }
 
