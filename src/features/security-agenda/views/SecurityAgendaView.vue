@@ -5,8 +5,10 @@ import { formatToHumanDate } from '@/shared/utils'
 import { EMPTY_AGENDA_DESCRIPTION, EMPTY_AGENDA_MESSAGE } from '../constants'
 import { useAgendaTimeline, useSecurityAgenda } from '../composables'
 import { todayISO, tomorrowISO } from '../utils/time'
+import type { AgendaActivity } from '../types'
 
 // Components
+import AgendaActivityBS from '../components/AgendaActivityBS.vue'
 import AgendaTimeline from '../components/AgendaTimeline.vue'
 import AgendaTimelineSkeleton from '../components/AgendaTimelineSkeleton.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
@@ -15,8 +17,27 @@ import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 
 const $router = useRouter()
 
-const { fecha, loading, loadError, activities, completed, load } = useSecurityAgenda()
+const {
+  fecha,
+  activityTypes,
+  scope,
+  loading,
+  saving,
+  loadError,
+  activities,
+  completed,
+  loadCatalogs,
+  load,
+  createActivity,
+  updateActivity,
+  deleteActivity
+} = useSecurityAgenda()
+
 const { rows, expandLeading, expandTrailing } = useAgendaTimeline(activities, fecha)
+
+const sheetOpen = ref(false)
+const editing = ref<AgendaActivity | null>(null)
+const defaultHoraInicio = ref('08:00')
 
 const timeline = ref<InstanceType<typeof AgendaTimeline>>()
 
@@ -38,6 +59,7 @@ const emptyMessage = computed(() =>
 )
 
 onMounted(async () => {
+  loadCatalogs()
   await load()
   scrollToNow()
 })
@@ -60,6 +82,29 @@ async function scrollToNow() {
 
 function setFecha(value: string) {
   if (fecha.value !== value) fecha.value = value
+}
+
+function openGap(hour: number) {
+  editing.value = null
+  defaultHoraInicio.value = `${String(hour).padStart(2, '0')}:00`
+  sheetOpen.value = true
+}
+
+function openActivity(activity: AgendaActivity) {
+  editing.value = activity
+  defaultHoraInicio.value = activity.horaInicio
+  sheetOpen.value = true
+}
+
+async function handleSave(payload: Parameters<typeof createActivity>[0]) {
+  const ok = editing.value
+    ? await updateActivity(editing.value.id, payload)
+    : await createActivity(payload)
+  if (ok) sheetOpen.value = false
+}
+
+async function handleDelete(id: string) {
+  if (await deleteActivity(id)) sheetOpen.value = false
 }
 </script>
 
@@ -134,11 +179,26 @@ function setFecha(value: string) {
         <AgendaTimeline
           ref="timeline"
           :rows="rows"
+          @select-gap="openGap"
+          @select-activity="openActivity"
           @expand="(position) => (position === 'leading' ? expandLeading() : expandTrailing())"
         />
       </template>
     </div>
   </MainCT>
+
+  <!-- Alta y edición -->
+  <AgendaActivityBS
+    :open="sheetOpen"
+    :activity="editing"
+    :default-hora-inicio="defaultHoraInicio"
+    :activity-types="activityTypes"
+    :scope="scope"
+    :saving="saving"
+    @close="sheetOpen = false"
+    @save="handleSave"
+    @delete="handleDelete"
+  />
 </template>
 
 <style scoped>
