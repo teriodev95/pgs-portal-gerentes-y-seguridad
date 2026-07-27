@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { CalendarCheck, ChevronRight } from 'lucide-vue-next'
 // Se importa desde `names` (y no desde `@/router`) para no cerrar el ciclo
@@ -35,20 +35,27 @@ const detail = computed(() => {
   return `${summary.value.totalActividades} actividades · ${summary.value.completadas} hechas`
 })
 
-onMounted(async () => {
-  if (!canUseAgenda.value) return
+// El layout carga las gerencias despues de montar el Home, asi que un Regional
+// llega aqui todavia sin ambito: se espera a que el acceso quede resuelto en vez
+// de decidir una sola vez en `onMounted`.
+watch(
+  canUseAgenda,
+  async (allowed) => {
+    if (!allowed || ready.value) return
 
-  try {
-    const [first] = await securityAgendaService.listAgendas(fecha.value)
-    summary.value = first ?? null
-  } catch {
-    // La tarjeta es una entrada secundaria del Home: si el servicio falla se
-    // omite en silencio en lugar de meter ruido rojo en la pantalla principal.
-    failed.value = true
-  } finally {
-    ready.value = true
-  }
-})
+    try {
+      const [first] = await securityAgendaService.listAgendas(fecha.value)
+      summary.value = first ?? null
+    } catch {
+      // La tarjeta es una entrada secundaria del Home: si el servicio falla se
+      // omite en silencio en lugar de meter ruido rojo en la pantalla principal.
+      failed.value = true
+    } finally {
+      ready.value = true
+    }
+  },
+  { immediate: true }
+)
 
 function open() {
   $router.push({ name: ROUTE_NAME.SECURITY_AGENDA })
