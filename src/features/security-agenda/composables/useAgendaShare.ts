@@ -21,16 +21,22 @@ function buildShareText(input: ShareAgendaInput): string {
 }
 
 export function useAgendaShare() {
-  const { shareData } = useShareData()
+  const { shareData, canShareNatively } = useShareData()
   const { showSuccess, showError } = useNotification()
 
-  /** Comparte con la hoja nativa; si no hay, copia el enlace al portapapeles. */
+  /** Comparte con la hoja nativa; si no hay (escritorio), copia el enlace. */
   async function shareAgenda(input: ShareAgendaInput) {
     const text = buildShareText(input)
-    const result = await shareData({ title: 'Agenda de seguridad', text, url: input.url })
+    const payload = { title: 'Agenda de seguridad', text, url: input.url }
 
-    if (result.success) return
-    await copyLink(`${text}\n${input.url}`)
+    // La decisión se toma antes de abrir la hoja: si se abre y el usuario la
+    // cierra, cancelar es cancelar y no se copia nada a sus espaldas.
+    if (!canShareNatively(payload)) {
+      await copyLink(`${text}\n${input.url}`)
+      return
+    }
+
+    await shareData(payload)
   }
 
   async function copyLink(value: string) {
