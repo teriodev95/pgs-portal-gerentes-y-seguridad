@@ -204,6 +204,11 @@ const router = createRouter({
           path: 'personal-information',
           name: ROUTE_NAME.PERSONAL_INFORMATION,
           component: () => import('@/features/personal-information/views/PersonalInfoView.vue')
+        },
+        {
+          path: 'agenda',
+          name: ROUTE_NAME.SECURITY_AGENDA,
+          component: () => import('@/features/security-agenda/views/SecurityAgendaView.vue')
         }
       ]
     },
