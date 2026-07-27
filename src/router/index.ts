@@ -213,6 +213,13 @@ const router = createRouter({
       ]
     },
     {
+      // Enlace público de una agenda: se abre sin sesión, por eso vive fuera
+      // del bloque con AuthGuard y sin DashboardLayout.
+      path: '/a/:token',
+      name: ROUTE_NAME.SHARED_AGENDA,
+      component: () => import('@/features/security-agenda/views/SharedAgendaView.vue')
+    },
+    {
       path: '/auth',
       component: AuthLayout,
       children: [
