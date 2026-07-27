@@ -102,7 +102,8 @@ export interface AgendaTeamMember {
 }
 
 export interface AgendaPublic {
-  auditorUsuario: string
+  // Sin `auditorUsuario` a propósito: el enlace es público y ese dato es la mitad
+  // del par usuario:pin con el que se autentica la plataforma.
   auditorNombre: string
   fecha: string
   status: AgendaStatus

@@ -69,7 +69,7 @@ onMounted(async () => {
   <MainCT>
     <NavbarCT
       :title="agenda ? agenda.auditorNombre : 'Agenda de seguridad'"
-      :subtitles="agenda ? [agenda.auditorUsuario, formatToHumanDate(agenda.fecha)] : ['Sólo lectura']"
+      :subtitles="agenda ? [formatToHumanDate(agenda.fecha)] : ['Sólo lectura']"
     />
 
     <div class="space-y-3 px-3 pb-10 pt-3">

@@ -5,19 +5,19 @@ import { formatShortDate } from '../utils/time'
 interface ShareAgendaInput {
   fecha: string
   auditorNombre: string
-  auditorUsuario: string
   totalActividades: number
   url: string
 }
 
-/** `Agenda 27/07 — Julio Luna (JLT.HDNEX) · 5 actividades` */
+/**
+ * `Agenda 27/07 — Julio Luna · 5 actividades`
+ * Sin el usuario de acceso: este texto viaja con el enlace cuando lo reenvían.
+ */
 function buildShareText(input: ShareAgendaInput): string {
   const actividades = `${input.totalActividades} ${
     input.totalActividades === 1 ? 'actividad' : 'actividades'
   }`
-  return `Agenda ${formatShortDate(input.fecha)} — ${input.auditorNombre} (${
-    input.auditorUsuario
-  }) · ${actividades}`
+  return `Agenda ${formatShortDate(input.fecha)} — ${input.auditorNombre} · ${actividades}`
 }
 
 export function useAgendaShare() {
