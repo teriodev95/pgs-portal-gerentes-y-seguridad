@@ -117,9 +117,11 @@ onMounted(() => {
     <EmptyCT v-else message="Seleccione una Agencia" />
   </MainCT>
 
-  <!-- Fixed Menu. La agencia la exigen los FABs que la usan, no la fila entera:
-       un auditor sin agencia seleccionada seguiría necesitando su agenda. -->
-  <HomeMenu v-if="!isLoading" />
+  <!-- Fixed Menu. La fila se monta siempre: la condición de cada FAB vive en
+       ella. El de agenda sólo depende de tener acceso a la agenda, y al abrir
+       la app en la mañana —cuando todavía no hay agencia elegida y el corte de
+       las 7:30 está encima— es justo cuando tiene que estar. -->
+  <HomeMenu />
 
   <!-- Bottom Navigation -->
   <div class="fixed bottom-0 z-10 w-full bg-white">

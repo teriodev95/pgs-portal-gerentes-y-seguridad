@@ -16,6 +16,7 @@ import { useHomeMenu } from '@/features/home/components/useHomeMenu'
 // Services, Composables and Stores initialization
 const {
   agency,
+  isLoading,
   agencyMenuItems,
   currentWeek,
   formattedCurrentDate,
@@ -115,12 +116,25 @@ const {
     </DrawerContent>
   </Drawer>
 
-  <!-- Float buttons. Los dos de agencia sólo salen con una seleccionada: sus
-       menús hablan de ella. El `+` conserva la esquina. -->
+  <!--
+    Float buttons. Los dos de agencia conservan su condición de siempre; la
+    agenda no la comparte, porque el corte de las 7:30 no depende de qué
+    agencia esté eligiendo el auditor.
+
+    La agenda va en medio y no a la izquierda: la fila se ancla a la derecha,
+    así que cada FAB queda a la distancia que sumen los que tiene a su derecha.
+    De primero se correría al aparecer los otros dos —el de agencia mide lo que
+    mida el nombre—; en medio sólo tiene al primario, que mide 56px fijos, y por
+    eso cae siempre en el mismo punto. El `+` conserva la esquina.
+  -->
   <div data-dial-init class="fixed bottom-[6rem] right-6 z-40 flex items-center gap-4">
+    <FloatBtn v-if="!isLoading && agency" @click="openAgencyActions" type="secondary" :text="agency" />
+
     <AgendaFab />
-    <FloatBtn v-if="agency" @click="openAgencyActions" type="secondary" :text="agency" />
-    <FloatBtn v-if="agency" @click="openGeneralActions" type="primary" />
+
+    <FloatBtn v-if="!isLoading && agency" @click="openGeneralActions" type="primary" />
+    <!-- Sin el primario hay que dejar su hueco: si no, la agenda se va a la esquina. -->
+    <div v-else class="pointer-events-none size-14 shrink-0" aria-hidden="true" />
   </div>
 </template>
 

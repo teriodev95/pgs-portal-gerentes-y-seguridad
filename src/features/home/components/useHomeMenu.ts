@@ -60,6 +60,8 @@ export function useHomeMenu() {
 
   // Store computed properties
   const agency = computed(() => $store.agencySelected)
+  /** Los FABs de agencia se esperan a que termine de cargar, como siempre. */
+  const isLoading = computed(() => $store.loading)
   const management = computed(() => $store.gerenciaSelected)
   const isManagerUser = computed(() => $store.user?.tipo === 'Gerente')
   const isRegionalUser = computed(() => $store.user?.tipo === 'Regional')
@@ -314,6 +316,7 @@ export function useHomeMenu() {
   return {
     // Estado reactivo
     agency,
+    isLoading,
     currentWeek,
     formattedCurrentDate,
     agencyMenuItems,
