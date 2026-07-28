@@ -6,8 +6,13 @@ export interface VisitTarget {
   prestamoId: string
 }
 
-export function buildVisitDetail(cliente: string, prestamoId: string): string {
-  return `${cliente.trim()}${VISIT_DETAIL_SEPARATOR}${prestamoId.trim()}`
+/**
+ * `cliente` y `prestamoId` son columnas nullable de `visitas`: con una de las dos
+ * vacía se arma el detalle con la otra, en vez de dejar el separador suelto o
+ * romper al agregar la visita a la agenda.
+ */
+export function buildVisitDetail(cliente: string | null, prestamoId: string | null): string {
+  return [cliente?.trim(), prestamoId?.trim()].filter(Boolean).join(VISIT_DETAIL_SEPARATOR)
 }
 
 /**

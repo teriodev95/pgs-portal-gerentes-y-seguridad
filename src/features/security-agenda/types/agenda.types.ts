@@ -48,8 +48,9 @@ export interface AgendaActivityVisit {
 /** Visita registrada en FAX que todavía no existe como actividad del día. */
 export interface AgendaUnlinkedVisit {
   visitaId: string
-  cliente: string
-  prestamoId: string
+  /** Columnas nullable de `visitas`: el detalle se arma con lo que venga. */
+  cliente: string | null
+  prestamoId: string | null
   /** Instante ISO ya resuelto por el backend: se localiza una sola vez. */
   fecha: string
   status: string | null
