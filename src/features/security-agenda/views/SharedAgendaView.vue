@@ -8,6 +8,7 @@ import {
   securityAgendaService
 } from '../services/agenda.service'
 import { useAgendaCutoff, useAgendaTimeline } from '../composables'
+import { VISIT_ACTIVITY_TYPE } from '../constants'
 import { formatRelative, todayISO } from '../utils/time'
 import type { AgendaPublic } from '../types'
 
@@ -25,7 +26,20 @@ const loading = ref(true)
 const error = ref('')
 
 const fecha = computed(() => agenda.value?.fecha ?? todayISO())
-const activities = computed(() => agenda.value?.actividades ?? [])
+
+/**
+ * Este enlace circula por WhatsApp: una visita se ve como "Visita call center"
+ * y nada más —sin cliente, sin préstamo y sin evidencia—. El backend ya lo
+ * recorta; que este enlace no exponga a un cliente no depende de recordarlo
+ * en dos lados.
+ */
+const activities = computed(() =>
+  (agenda.value?.actividades ?? []).map((activity) =>
+    activity.tipo === VISIT_ACTIVITY_TYPE
+      ? { ...activity, detalle: null, visita: null }
+      : activity
+  )
+)
 
 const { rows } = useAgendaTimeline(activities, fecha)
 
