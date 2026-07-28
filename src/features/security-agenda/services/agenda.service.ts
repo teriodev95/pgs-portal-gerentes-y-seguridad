@@ -10,7 +10,8 @@ import type {
   AgendaSendResult,
   AgendaShareLink,
   AgendaSummary,
-  AgendaTeamMember
+  AgendaTeamMember,
+  AgendaUnlinkedVisit
 } from '../types'
 
 interface ApiEnvelope<T> {
@@ -71,6 +72,15 @@ class SecurityAgendaService {
     const { data } = await this.apiClient.put<ApiEnvelope<AgendaActivity>>(
       `${this.base}/actividades/${id}`,
       payload
+    )
+    return data.data
+  }
+
+  /** Visitas del día que el auditor registró fuera de su agenda. */
+  async getUnlinkedVisits(fecha: string): Promise<AgendaUnlinkedVisit[]> {
+    const { data } = await this.apiClient.get<ApiEnvelope<AgendaUnlinkedVisit[]>>(
+      `${this.base}/visitas-sin-ligar`,
+      { params: { fecha } }
     )
     return data.data
   }

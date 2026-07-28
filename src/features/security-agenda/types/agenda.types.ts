@@ -28,6 +28,27 @@ export interface AgendaScope {
   gerencias: AgendaScopeGerencia[]
 }
 
+/**
+ * Evidencia de la visita de call center ligada a la actividad. Llega en
+ * `GET /:id` y `GET /equipo`; el enlace público nunca la recibe.
+ */
+export interface AgendaActivityVisit {
+  status: string
+  observaciones: string | null
+  fecha: string
+  /** Booleano a propósito: la agenda no muestra coordenadas. */
+  tieneUbicacion: boolean
+}
+
+/** Visita registrada en FAX que todavía no existe como actividad del día. */
+export interface AgendaUnlinkedVisit {
+  visitaId: string
+  cliente: string
+  prestamoId: string
+  fecha: string
+  status: string
+}
+
 export interface AgendaActivity {
   id: number
   agendaId: number
@@ -40,6 +61,8 @@ export interface AgendaActivity {
   gerencia: string | null
   agencia: string | null
   status: AgendaActivityStatus
+  /** Sólo en las actividades con visita ligada. */
+  visita: AgendaActivityVisit | null
   comentario: string | null
   motivoCambio: string | null
   creadaPorId: number | null
@@ -148,4 +171,9 @@ export interface AgendaActivityChanges
   detalle?: string | null
   gerencia?: string | null
   agencia?: string | null
+  /**
+   * Liga la visita de call center; `null` la desliga. Al ligar, el servidor
+   * mueve la actividad a `completada`: el front nunca manda el estado.
+   */
+  visitaId?: string | null
 }

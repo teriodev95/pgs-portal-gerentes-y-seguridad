@@ -127,6 +127,28 @@ export function formatRelative(timestamp: string | null): string {
   return days === 1 ? 'hace 1 día' : `hace ${days} días`
 }
 
+/** Encaja un horario dentro de la jornada que acepta el backend. */
+function clampToDay(minutes: number, duration: number): number {
+  return Math.max(DAY_START_HOUR * 60, Math.min(minutes, DAY_END_HOUR * 60 - duration))
+}
+
+/**
+ * Bloque de 30 min más cercano a un instante, en la zona de operación. Es la
+ * hora con la que entra a la agenda una visita que ya se registró.
+ */
+export function slotFromTimestamp(timestamp: string, duration: number): string {
+  const date = new Date(timestamp)
+  const time = Number.isNaN(date.getTime()) ? zonedHHMM(new Date()) : zonedHHMM(date)
+  const rounded = Math.round(toMinutes(time) / SLOT_MINUTES) * SLOT_MINUTES
+  return toHHMM(clampToDay(rounded, duration))
+}
+
+/** Próximo bloque de 30 min a partir de ahora. */
+export function nextSlot(duration: number): string {
+  const rounded = Math.ceil(nowMinutes() / SLOT_MINUTES) * SLOT_MINUTES
+  return toHHMM(clampToDay(rounded, duration))
+}
+
 /** Opciones del selector de horario, en bloques de 30 min. */
 export function timeSlots(): string[] {
   const slots: string[] = []

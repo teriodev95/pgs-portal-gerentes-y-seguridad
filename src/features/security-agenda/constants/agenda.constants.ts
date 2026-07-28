@@ -48,6 +48,19 @@ export const DETAIL_MAX_LENGTH = 255
 /** Módulo que habilita la pestaña "Mi equipo". */
 export const TEAM_MODULE = 'agenda-equipo'
 
+/** Tipo de actividad que se liga con una visita del call center. */
+export const VISIT_ACTIVITY_TYPE = 'VISITA_CALL_CENTER'
+
+/** Duración del bloque que se crea al agregar una visita ya registrada. */
+export const VISIT_DURATION_MINUTES = SLOT_MINUTES
+
+/**
+ * `detalle` de una visita: `"<cliente> — <prestamoId>"`. El préstamo viaja ahí
+ * porque la actividad no tiene otro campo donde guardarlo, y sin él no se puede
+ * registrar la visita en FAX.
+ */
+export const VISIT_DETAIL_SEPARATOR = ' — '
+
 interface StatusStyle {
   label: string
   icon: Component
