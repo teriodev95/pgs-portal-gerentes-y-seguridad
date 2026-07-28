@@ -256,23 +256,11 @@ function submit() {
           <!-- Prioridad: punto de color + texto, nunca fondo de color -->
           <div class="space-y-1">
             <LabelForm for="agenda-prioridad">Prioridad</LabelForm>
-            <div id="agenda-prioridad" class="grid grid-cols-3 gap-2">
-              <button
-                v-for="option in PRIORITY_OPTIONS"
-                :key="option"
-                type="button"
-                class="flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border p-2.5 text-sm"
-                :class="
-                  prioridad === option
-                    ? 'border-blue-700 font-medium text-blue-800'
-                    : 'border-gray-200 text-gray-700'
-                "
-                @click="prioridad = option"
-              >
-                <span class="size-2 rounded-full" :class="PRIORITY_STYLE[option].dot" />
+            <InputSelect id="agenda-prioridad" v-model="prioridad">
+              <option v-for="option in PRIORITY_OPTIONS" :key="option" :value="option">
                 {{ PRIORITY_STYLE[option].label }}
-              </button>
-            </div>
+              </option>
+            </InputSelect>
           </div>
 
           <!-- Gerencia y agencia del ámbito -->
