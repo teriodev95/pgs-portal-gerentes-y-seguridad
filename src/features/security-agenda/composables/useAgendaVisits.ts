@@ -132,8 +132,6 @@ export function useAgendaVisits(fecha: Ref<string>, enabled: Ref<boolean>) {
     visita: AgendaUnlinkedVisit,
     taken: Interval[]
   ): Promise<AgendaActivity | null> {
-    let lastError = ''
-
     for (const inicio of slotCandidates(visita.fecha)) {
       const fin = inicio + VISIT_DURATION_MINUTES
       if (taken.some(([from, to]) => inicio < to && fin > from)) continue
@@ -149,10 +147,12 @@ export function useAgendaVisits(fecha: Ref<string>, enabled: Ref<boolean>) {
           prioridad: 'media'
         })
       } catch (error) {
-        lastError = agendaErrorMessage(error, 'No pudimos agregar la visita a tu agenda.')
-        // 400 es el traslape: corre al siguiente bloque. Lo demás no se reintenta.
-        if (agendaErrorStatus(error) === 400) continue
-        break
+        // 409 es el traslape —el bloque se ocupó desde otro lado—: corre al
+        // siguiente. Los 400 (agenda llena, jornada, fecha pasada) valen igual en
+        // cualquier hora, así que reintentarlos sólo repetiría la misma negativa.
+        if (agendaErrorStatus(error) === 409) continue
+        showError(agendaErrorMessage(error, 'No pudimos agregar la visita a tu agenda.'))
+        return null
       }
 
       // La actividad ya existe: si la liga falla no se reintenta en otro bloque,
@@ -166,7 +166,7 @@ export function useAgendaVisits(fecha: Ref<string>, enabled: Ref<boolean>) {
       return activity
     }
 
-    showError(lastError || 'No queda un bloque libre para esta visita.')
+    showError('No queda un bloque libre en tu agenda para esta visita.')
     return null
   }
 
