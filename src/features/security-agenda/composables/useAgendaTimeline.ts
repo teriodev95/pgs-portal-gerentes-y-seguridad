@@ -4,8 +4,7 @@ import {
   EMPTY_DAY_END_HOUR,
   EMPTY_DAY_START_HOUR,
   HOUR_ROW_HEIGHT,
-  LAST_START_HOUR,
-  MIN_BLOCK_HEIGHT
+  LAST_START_HOUR
 } from '../constants'
 import { isToday, nowMinutes, toMinutes } from '../utils/time'
 import type { AgendaTimelineActivity } from '../types'
@@ -24,7 +23,8 @@ export type TimelineRow =
       kind: 'activity'
       key: string
       activity: AgendaTimelineActivity
-      minHeight: number
+      /** Alto exacto: duración por `HOUR_ROW_HEIGHT`. */
+      height: number
       isPast: boolean
       startMinutes: number
     }
@@ -102,7 +102,7 @@ export function useAgendaTimeline(activities: Ref<AgendaTimelineActivity[]>, fec
             // así que la hora de inicio identifica la fila igual de bien.
             key: `activity-${activity.horaInicio}`,
             activity,
-            minHeight: Math.max(MIN_BLOCK_HEIGHT, (duration / 60) * HOUR_ROW_HEIGHT),
+            height: (duration / 60) * HOUR_ROW_HEIGHT,
             isPast: showsNow && toMinutes(activity.horaFin) <= currentMinutes.value,
             startMinutes: start
           })

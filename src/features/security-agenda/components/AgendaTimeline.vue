@@ -96,7 +96,7 @@ const gapHeight = HOUR_ROW_HEIGHT - 8
         <div class="flex-1 border-l border-gray-200 pb-2 pl-3">
           <AgendaActivityBlock
             :activity="row.activity"
-            :min-height="row.minHeight"
+            :height="row.height"
             :is-past="row.isPast"
             :readonly="readonly"
             @select="$emit('select-activity', $event)"

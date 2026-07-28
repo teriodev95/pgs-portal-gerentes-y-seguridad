@@ -8,10 +8,13 @@ import {
 } from 'lucide-vue-next'
 import type { AgendaActivityStatus, AgendaPriority } from '../types'
 
-/** Alto de una hora del riel. Un bloque de 2h se ve al doble. */
-export const HOUR_ROW_HEIGHT = 72
-/** Piso táctil: ningún bloque baja de esto aunque dure 15 min. */
-export const MIN_BLOCK_HEIGHT = 56
+/**
+ * Alto de una hora del riel. El alto del bloque es exactamente su duración, sin
+ * pisos ni excepciones: 96 px la hora deja la actividad más corta que se puede
+ * capturar —media hora, por los pasos del selector— en 48 px, por encima del
+ * mínimo táctil de 44. Por eso no hace falta un alto mínimo.
+ */
+export const HOUR_ROW_HEIGHT = 96
 
 /**
  * Jornada que acepta el backend (`JORNADA_INICIO`/`JORNADA_FIN`): fuera de
