@@ -8,19 +8,28 @@ import {
   useAgendaShare,
   useAgendaTeam,
   useAgendaTimeline,
-  useSecurityAgenda
+  useAgendaVisits,
+  useSecurityAgenda,
+  type VisitFormPayload
 } from '../composables'
 import { todayISO, tomorrowISO } from '../utils/time'
 import type { AgendaActivity, AgendaTeamMember, AgendaTimelineActivity } from '../types'
 
 // Components
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle
+} from '@/components/ui/drawer'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import AgendaActivityBS from '../components/AgendaActivityBS.vue'
 import AgendaShareRow from '../components/AgendaShareRow.vue'
 import AgendaTeamList from '../components/AgendaTeamList.vue'
 import AgendaTimeline from '../components/AgendaTimeline.vue'
 import AgendaTimelineSkeleton from '../components/AgendaTimelineSkeleton.vue'
+import AgendaVisitBS from '../components/AgendaVisitBS.vue'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
@@ -76,6 +85,19 @@ const editing = ref<AgendaActivity | null>(null)
 const defaultHoraInicio = ref('08:00')
 const sentOpen = ref(false)
 
+const visitOpen = ref(false)
+const visitActivity = ref<AgendaActivity | null>(null)
+
+/** El jefe abre la agenda de un auditor: puede editarla, no enviarla por él. */
+const isTeamDetail = computed(() => selectedMember.value !== null)
+
+/**
+ * Las visitas son mías: se registran con mi usuario y mi ubicación. En la
+ * agenda de otro auditor no hay nada que registrar.
+ */
+const canRegisterVisit = computed(() => !isTeamDetail.value)
+const visits = useAgendaVisits()
+
 const timeline = ref<InstanceType<typeof AgendaTimeline>>()
 
 const progress = computed(() =>
@@ -94,9 +116,6 @@ const isEmpty = computed(() => !loading.value && !loadError.value && !activities
 const emptyMessage = computed(() =>
   fecha.value === todayISO() ? EMPTY_AGENDA_MESSAGE : 'Tu agenda de mañana está vacía'
 )
-
-/** El jefe abre la agenda de un auditor: puede editarla, no enviarla por él. */
-const isTeamDetail = computed(() => selectedMember.value !== null)
 
 const headerTitle = computed(() =>
   selectedMember.value ? selectedMember.value.nombre : 'Mi agenda'
@@ -164,6 +183,24 @@ async function handleSave(payload: Parameters<typeof createActivity>[0]) {
 
 async function handleDelete(id: number) {
   if (await deleteActivity(id)) sheetOpen.value = false
+}
+
+/** La hoja de la visita reemplaza a la de la actividad: una pantalla a la vez. */
+function openRegisterVisit(activity: AgendaTimelineActivity) {
+  sheetOpen.value = false
+  visitActivity.value = activity as AgendaActivity
+  visitOpen.value = true
+}
+
+async function handleVisitSubmit(payload: VisitFormPayload) {
+  if (!visitActivity.value) return
+
+  // `false` sólo cuando la visita no llegó a registrarse: ahí la hoja se queda
+  // abierta con lo que el auditor ya escribió.
+  if (!(await visits.registerVisit(visitActivity.value, payload))) return
+
+  visitOpen.value = false
+  await load()
 }
 
 async function handleSend() {
@@ -330,8 +367,10 @@ function goBack() {
           <AgendaTimeline
             ref="timeline"
             :rows="rows"
+            :can-register-visit="canRegisterVisit"
             @select-gap="openGap"
             @select-activity="openActivity"
+            @register-visit="openRegisterVisit"
             @expand="(position) => (position === 'leading' ? expandLeading() : expandTrailing())"
           />
         </template>
@@ -396,11 +435,30 @@ function goBack() {
     :default-hora-inicio="defaultHoraInicio"
     :activity-types="activityTypes"
     :scope="scope"
+    :can-register-visit="canRegisterVisit"
     :saving="saving"
     @close="sheetOpen = false"
     @save="handleSave"
     @delete="handleDelete"
+    @register-visit="openRegisterVisit"
   />
+
+  <!-- Registro de la visita: la misma hoja del módulo de call center -->
+  <Drawer :open="visitOpen" @update:open="(value: boolean) => (visitOpen = value)">
+    <DrawerContent class="max-h-[92vh]">
+      <div class="mx-auto flex w-full max-w-lg flex-col overflow-y-auto">
+        <DrawerHeader class="pb-2">
+          <DrawerTitle>Registrar visita</DrawerTitle>
+          <DrawerDescription>{{ visitActivity?.detalle }}</DrawerDescription>
+        </DrawerHeader>
+        <AgendaVisitBS
+          v-if="visitOpen"
+          @close="visitOpen = false"
+          @submit="handleVisitSubmit"
+        />
+      </div>
+    </DrawerContent>
+  </Drawer>
 
   <!-- Confirmación de envío -->
   <Drawer :open="sentOpen" @update:open="(value: boolean) => (sentOpen = value)">

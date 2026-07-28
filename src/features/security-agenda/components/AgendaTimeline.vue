@@ -13,13 +13,16 @@ interface Props {
   rows: TimelineRow[]
   /** Vista pública y agenda de otro auditor sin permiso de edición. */
   readonly?: boolean
+  /** Sólo en mi agenda: la visita se registra con mi usuario y mi ubicación. */
+  canRegisterVisit?: boolean
 }
 
-withDefaults(defineProps<Props>(), { readonly: false })
+withDefaults(defineProps<Props>(), { readonly: false, canRegisterVisit: false })
 
 defineEmits<{
   (e: 'select-gap', hour: number): void
   (e: 'select-activity', activity: AgendaTimelineActivity): void
+  (e: 'register-visit', activity: AgendaTimelineActivity): void
   (e: 'expand', position: 'leading' | 'trailing'): void
 }>()
 
@@ -99,7 +102,9 @@ const gapHeight = HOUR_ROW_HEIGHT - 8
             :height="row.height"
             :is-past="row.isPast"
             :readonly="readonly"
+            :can-register-visit="canRegisterVisit"
             @select="$emit('select-activity', $event)"
+            @register-visit="$emit('register-visit', $event)"
           />
         </div>
       </div>

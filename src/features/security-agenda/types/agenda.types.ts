@@ -149,6 +149,14 @@ export interface AgendaSendResult {
   enviadaATiempo: boolean
 }
 
+/** Precarga de la hoja de alta cuando la actividad llega desde otro módulo. */
+export interface AgendaActivityDefaults {
+  tipo?: string
+  detalle?: string
+  gerencia?: string
+  agencia?: string
+}
+
 /** Body de `POST /actividades`; `PUT /actividades/:id` acepta el mismo shape parcial. */
 export interface AgendaActivityPayload {
   auditorId?: number

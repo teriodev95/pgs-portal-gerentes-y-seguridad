@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { MapPin, MapPinCheck } from 'lucide-vue-next'
 import {
   DEFAULT_DURATION_MINUTES,
   DETAIL_MAX_LENGTH,
   MAX_DURATION_MINUTES,
   PRIORITY_OPTIONS,
   PRIORITY_STYLE,
-  STATUS_STYLE
+  STATUS_STYLE,
+  VISIT_ACTIVITY_TYPE
 } from '../constants'
-import { formatTime, timeSlots, toHHMM, toMinutes } from '../utils/time'
+import { formatTime, formatTimestampTime, timeSlots, toHHMM, toMinutes } from '../utils/time'
+import { parseVisitDetail } from '../utils/visit'
 import type {
   AgendaActivity,
+  AgendaActivityDefaults,
   AgendaActivityPayload,
   AgendaActivityType,
   AgendaPriority,
@@ -38,15 +42,24 @@ interface Props {
   defaultHoraInicio: string
   activityTypes: AgendaActivityType[]
   scope: AgendaScope
+  /** Precarga del alta: sólo aplica cuando no hay actividad que editar. */
+  defaults?: AgendaActivityDefaults | null
+  /** Sólo en mi agenda: la visita se registra con mi usuario y mi ubicación. */
+  canRegisterVisit?: boolean
   saving?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), { saving: false })
+const props = withDefaults(defineProps<Props>(), {
+  defaults: null,
+  canRegisterVisit: false,
+  saving: false
+})
 
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'save', payload: ActivityFormPayload): void
   (e: 'delete', id: number): void
+  (e: 'register-visit', activity: AgendaActivity): void
 }>()
 
 const tipo = ref('')
@@ -79,16 +92,52 @@ const agencias = computed(
 // El estado no se edita aquí: lo mueve Administración.
 const statusStyle = computed(() => STATUS_STYLE[props.activity?.status ?? 'programada'])
 
+/** Evidencia de la visita ligada, cuando la actividad ya la tiene. */
+const visita = computed(() => props.activity?.visita ?? null)
+
+/** La visita se registra desde aquí mientras no esté ligada. */
+const puedeRegistrar = computed(
+  () =>
+    props.canRegisterVisit &&
+    props.activity !== null &&
+    props.activity.tipo === VISIT_ACTIVITY_TYPE &&
+    !visita.value
+)
+
+const visitTarget = computed(() => parseVisitDetail(props.activity?.detalle))
+
+/**
+ * La precarga de lugar sólo se aplica si el ámbito del auditor la contiene: el
+ * select no puede quedarse en un valor que no ofrece.
+ */
+const scopedDefaults = computed(() => {
+  const gerencia = props.scope.gerencias.find(
+    (item) => item.gerenciaId === props.defaults?.gerencia
+  )
+  if (!gerencia) return { gerencia: '', agencia: '' }
+
+  const agencia = props.defaults?.agencia
+  return {
+    gerencia: gerencia.gerenciaId,
+    agencia: agencia && gerencia.agencias.includes(agencia) ? agencia : ''
+  }
+})
+
 function reset() {
   const activity = props.activity
-  tipo.value = activity?.tipo ?? props.activityTypes[0]?.clave ?? ''
-  detalle.value = activity?.detalle ?? ''
+  const defaults = activity ? null : props.defaults
+
+  tipo.value = activity?.tipo ?? defaults?.tipo ?? props.activityTypes[0]?.clave ?? ''
+  detalle.value = activity?.detalle ?? defaults?.detalle ?? ''
   horaInicio.value = activity?.horaInicio ?? props.defaultHoraInicio
   horaFin.value =
     activity?.horaFin ?? toHHMM(toMinutes(horaInicio.value) + DEFAULT_DURATION_MINUTES)
   prioridad.value = activity?.prioridad ?? 'media'
-  gerencia.value = activity?.gerencia ?? props.scope.gerencias[0]?.gerenciaId ?? ''
-  agencia.value = activity?.agencia ?? ''
+
+  const lugar = defaults ? scopedDefaults.value : { gerencia: '', agencia: '' }
+  gerencia.value =
+    activity?.gerencia || lugar.gerencia || props.scope.gerencias[0]?.gerenciaId || ''
+  agencia.value = activity?.agencia || lugar.agencia || ''
   formError.value = ''
   confirmingDelete.value = false
 }
@@ -254,6 +303,22 @@ function submit() {
             </InputSelect>
           </div>
 
+          <!-- Evidencia de la visita ligada. Nunca coordenadas. -->
+          <div
+            v-if="visita"
+            class="space-y-1 rounded-lg border border-green-600 bg-green-50 p-2.5 text-green-900"
+          >
+            <p class="flex items-center gap-1.5 text-sm font-medium">
+              <MapPinCheck class="size-4 shrink-0" :stroke-width="2" aria-hidden="true" />
+              Visita registrada · {{ visita.status }}
+            </p>
+            <p class="text-xs">
+              {{ formatTimestampTime(visita.fecha) }}
+              <span v-if="visita.tieneUbicacion">· Con ubicación</span>
+            </p>
+            <p v-if="visita.observaciones" class="text-xs">{{ visita.observaciones }}</p>
+          </div>
+
           <!-- Estado: informativo -->
           <div class="flex items-center justify-between border-t border-gray-100 pt-3">
             <div class="flex items-center gap-1.5 text-sm text-gray-900">
@@ -267,7 +332,29 @@ function submit() {
 
           <!-- Acciones -->
           <div class="space-y-2">
-            <BtnComponent full-width :loading="saving" @click="submit">
+            <template v-if="puedeRegistrar && activity">
+              <BtnComponent
+                v-if="visitTarget"
+                full-width
+                :disabled="saving"
+                @click="emit('register-visit', activity)"
+              >
+                <template #icon-left>
+                  <MapPin class="size-4" :stroke-width="2" aria-hidden="true" />
+                </template>
+                Registrar visita
+              </BtnComponent>
+              <p v-else class="text-xs text-gray-700">
+                Para registrar la visita desde aquí, agéndala desde el reporte del call center.
+              </p>
+            </template>
+
+            <BtnComponent
+              :outline="puedeRegistrar && visitTarget !== null"
+              full-width
+              :loading="saving"
+              @click="submit"
+            >
               {{ activity ? 'Guardar cambios' : 'Agregar actividad' }}
             </BtnComponent>
             <BtnComponent outline full-width :disabled="saving" @click="emit('close')">
