@@ -12,7 +12,7 @@ import {
   useSecurityAgenda,
   type VisitFormPayload
 } from '../composables'
-import { todayISO, tomorrowISO } from '../utils/time'
+import { isToday, todayISO, tomorrowISO } from '../utils/time'
 import type { AgendaActivity, AgendaTeamMember, AgendaTimelineActivity } from '../types'
 
 // Components
@@ -93,10 +93,20 @@ const isTeamDetail = computed(() => selectedMember.value !== null)
 
 /**
  * Las visitas son mías: se registran con mi usuario y mi ubicación. En la
- * agenda de otro auditor no hay nada que registrar.
+ * agenda de otro auditor no hay nada que registrar ni que reconciliar.
  */
 const canRegisterVisit = computed(() => !isTeamDetail.value)
-const visits = useAgendaVisits()
+const visits = useAgendaVisits(
+  fecha,
+  computed(() => canRegisterVisit.value && isToday(fecha.value))
+)
+
+const pendingVisitsLabel = computed(() => {
+  const total = visits.pending.value.length
+  return total === 1
+    ? 'Registraste 1 visita que no está en tu agenda'
+    : `Registraste ${total} visitas que no están en tu agenda`
+})
 
 const timeline = ref<InstanceType<typeof AgendaTimeline>>()
 
@@ -125,11 +135,13 @@ onMounted(async () => {
   loadCatalogs()
   team.checkTeamModule()
   await load()
+  visits.loadPending()
   scrollToNow()
 })
 
 watch(fecha, async () => {
   await load()
+  visits.loadPending()
   if (tab.value === 'equipo' && !isTeamDetail.value) team.loadTeam()
   scrollToNow()
 })
@@ -201,6 +213,10 @@ async function handleVisitSubmit(payload: VisitFormPayload) {
 
   visitOpen.value = false
   await load()
+}
+
+async function handleAddPendingVisits() {
+  if (await visits.addPendingToAgenda(activities.value)) await load()
 }
 
 async function handleSend() {
@@ -329,6 +345,22 @@ function goBack() {
               {{ cutoff.detail }}
             </p>
           </div>
+        </div>
+
+        <!-- Visitas registradas fuera de la agenda: un toque para agregarlas -->
+        <div
+          v-if="visits.pending.value.length"
+          class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white py-1 pl-3 pr-1"
+        >
+          <p class="text-xs text-gray-700">{{ pendingVisitsLabel }}</p>
+          <button
+            type="button"
+            class="inline-flex min-h-[44px] shrink-0 items-center px-3 text-sm font-medium text-blue-700 disabled:opacity-50"
+            :disabled="visits.busy.value"
+            @click="handleAddPendingVisits"
+          >
+            Agregar
+          </button>
         </div>
 
         <!-- Enlace público, sólo si ya existe token -->
