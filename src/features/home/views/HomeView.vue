@@ -7,7 +7,6 @@ import { useUIState } from '@/features/home/composables/useUIState'
 
 // Components import
 import AgencySlider from '@/features/home/components/AgencySlider.vue'
-import AgendaHomeCard from '@/features/security-agenda/components/AgendaHomeCard.vue'
 import DrawerLeftMenu from '@/features/home/components/DrawerLeftMenu.vue'
 import FilterButton from '@/shared/components/FilterButton.vue'
 import GerencySlider from '@/features/home/components/GerencySlider.vue'
@@ -28,7 +27,6 @@ const isDrawerOpen = ref(false)
 const {
   isAgencySelectEnabled,
   agencies,
-  agencySelected,
   gerencias,
   sucursales,
   handleAgencySelection
@@ -103,11 +101,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Agenda del día (sólo Seguridad y Regional con ámbito) -->
-    <div class="px-2 pt-2">
-      <AgendaHomeCard />
-    </div>
-
     <!-- Main Content Area -->
     <template v-if="filteredCollections.length">
       <div class="mt-4 px-2 pb-[10rem]">
@@ -124,8 +117,9 @@ onMounted(() => {
     <EmptyCT v-else message="Seleccione una Agencia" />
   </MainCT>
 
-  <!-- Fixed Menu -->
-  <HomeMenu v-if="!isLoading && agencySelected" />
+  <!-- Fixed Menu. La agencia la exigen los FABs que la usan, no la fila entera:
+       un auditor sin agencia seleccionada seguiría necesitando su agenda. -->
+  <HomeMenu v-if="!isLoading" />
 
   <!-- Bottom Navigation -->
   <div class="fixed bottom-0 z-10 w-full bg-white">

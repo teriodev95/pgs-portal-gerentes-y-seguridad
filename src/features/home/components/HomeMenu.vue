@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/drawer';
 
 // Components
+import AgendaFab from '@/features/security-agenda/components/AgendaFab.vue'
 import FloatBtn from '@/shared/components/FloatBtn.vue'
 
 // Interface - Props - Emits
@@ -114,10 +115,12 @@ const {
     </DrawerContent>
   </Drawer>
 
-  <!-- Float buttons -->
+  <!-- Float buttons. Los dos de agencia sólo salen con una seleccionada: sus
+       menús hablan de ella. El `+` conserva la esquina. -->
   <div data-dial-init class="fixed bottom-[6rem] right-6 z-40 flex items-center gap-4">
-    <FloatBtn @click="openAgencyActions" type="secondary" :text="agency" />
-    <FloatBtn @click="openGeneralActions" type="primary" />
+    <AgendaFab />
+    <FloatBtn v-if="agency" @click="openAgencyActions" type="secondary" :text="agency" />
+    <FloatBtn v-if="agency" @click="openGeneralActions" type="primary" />
   </div>
 </template>
 
