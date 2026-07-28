@@ -265,6 +265,7 @@ async function backToTeam() {
   auditorId.value = undefined
   tab.value = 'equipo'
   await load()
+  visits.loadPending()
   team.loadTeam()
 }
 
@@ -347,9 +348,10 @@ function goBack() {
           </div>
         </div>
 
-        <!-- Visitas registradas fuera de la agenda: un toque para agregarlas -->
+        <!-- Visitas registradas fuera de la agenda: un toque para agregarlas.
+             Sólo en la mía: las visitas y los bloques nuevos serían míos. -->
         <div
-          v-if="visits.pending.value.length"
+          v-if="canRegisterVisit && visits.pending.value.length"
           class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white py-1 pl-3 pr-1"
         >
           <p class="text-xs text-gray-700">{{ pendingVisitsLabel }}</p>
