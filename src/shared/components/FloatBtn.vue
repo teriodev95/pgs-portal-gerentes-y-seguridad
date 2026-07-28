@@ -29,7 +29,10 @@ defineProps<Props>()
       'text-blue-700 bg-white hover:bg-gray-100 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 rounded-lg p-2 space-x-2': type === 'secondary'
     }" type="button">
 
-    <PlusIcon class="size-4" />
+    <!-- El `+` sigue siendo el icono por defecto: sólo quien necesita otro lo pasa. -->
+    <slot>
+      <PlusIcon class="size-4" />
+    </slot>
     <span v-if="text">{{ text }}</span>
     <span class="sr-only">Open actions menu</span>
   </button>
