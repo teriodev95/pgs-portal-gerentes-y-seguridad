@@ -95,6 +95,11 @@ const statusStyle = computed(() => STATUS_STYLE[props.activity?.status ?? 'progr
 /** Evidencia de la visita ligada, cuando la actividad ya la tiene. */
 const visita = computed(() => props.activity?.visita ?? null)
 
+/** Sin `status` la evidencia sigue siendo evidencia: no se deja el separador solo. */
+const evidencia = computed(() =>
+  visita.value?.status ? `Visita registrada · ${visita.value.status}` : 'Visita registrada'
+)
+
 /** La visita se registra desde aquí mientras no esté ligada. */
 const puedeRegistrar = computed(
   () =>
@@ -310,13 +315,11 @@ function submit() {
           >
             <p class="flex items-center gap-1.5 text-sm font-medium">
               <MapPinCheck class="size-4 shrink-0" :stroke-width="2" aria-hidden="true" />
-              Visita registrada · {{ visita.status }}
+              {{ evidencia }}
             </p>
-            <p class="text-xs">
-              {{ formatTimestampTime(visita.fecha) }}
-              <span v-if="visita.tieneUbicacion">· Con ubicación</span>
-            </p>
-            <p v-if="visita.observaciones" class="text-xs">{{ visita.observaciones }}</p>
+            <p class="text-xs">{{ formatTimestampTime(visita.fecha) }}</p>
+            <!-- Sin observaciones se dice, no se deja el hueco: mismo peso visual. -->
+            <p class="text-xs">{{ visita.observaciones || 'Sin observaciones' }}</p>
           </div>
 
           <!-- Estado: informativo -->

@@ -33,8 +33,13 @@ export interface AgendaScope {
  * `GET /:id` y `GET /equipo`; el enlace público nunca la recibe.
  */
 export interface AgendaActivityVisit {
-  status: string
+  /**
+   * Salen del JSON `log`, que viene vacío en buena parte del histórico: o los
+   * dos traen valor o los dos son `null`.
+   */
+  status: string | null
   observaciones: string | null
+  /** Instante ISO ya resuelto por el backend: se localiza una sola vez. */
   fecha: string
   /** Booleano a propósito: la agenda no muestra coordenadas. */
   tieneUbicacion: boolean
@@ -45,8 +50,9 @@ export interface AgendaUnlinkedVisit {
   visitaId: string
   cliente: string
   prestamoId: string
+  /** Instante ISO ya resuelto por el backend: se localiza una sola vez. */
   fecha: string
-  status: string
+  status: string | null
 }
 
 export interface AgendaActivity {

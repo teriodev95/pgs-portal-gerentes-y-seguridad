@@ -47,6 +47,11 @@ const duracion = computed(
 
 const visita = computed(() => props.activity.visita ?? null)
 
+/** Sin `status` la evidencia sigue siendo evidencia: no se deja el separador solo. */
+const evidencia = computed(() =>
+  visita.value?.status ? `Visita registrada · ${visita.value.status}` : 'Visita registrada'
+)
+
 /**
  * Sin préstamo en el detalle no hay nada que mandar a FAX, y media hora no da
  * el alto de un botón tocable: en esos dos casos la acción vive en la hoja de
@@ -117,9 +122,7 @@ const lugar = computed(() =>
         </p>
 
         <!-- Evidencia: qué se encontró en la visita. Nunca coordenadas. -->
-        <p v-if="cabeEvidencia && visita" class="mt-1.5 truncate text-xs font-medium">
-          Visita registrada · {{ visita.status }}
-        </p>
+        <p v-if="cabeEvidencia" class="mt-1.5 truncate text-xs font-medium">{{ evidencia }}</p>
 
         <!-- Una sola línea: si envolviera, la segunda quedaría cortada por el alto. -->
         <div v-if="cabePie" class="mt-2 flex items-center gap-x-3 text-xs">
