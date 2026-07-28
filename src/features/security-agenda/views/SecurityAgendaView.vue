@@ -96,10 +96,15 @@ const isTeamDetail = computed(() => selectedMember.value !== null)
  * agenda de otro auditor no hay nada que registrar ni que reconciliar.
  */
 const canRegisterVisit = computed(() => !isTeamDetail.value)
-const visits = useAgendaVisits(
-  fecha,
-  computed(() => canRegisterVisit.value && isToday(fecha.value))
-)
+
+/**
+ * Reconciliar es meter a la agenda de hoy visitas de hoy. La misma condición
+ * gobierna la carga y la franja: si sólo la gobernara la carga, al cambiar de
+ * día la franja seguiría en pantalla con la lista anterior hasta que llegara la
+ * respuesta, y agregar desde ahí crearía el bloque en el día equivocado.
+ */
+const canReconcileVisits = computed(() => canRegisterVisit.value && isToday(fecha.value))
+const visits = useAgendaVisits(fecha, canReconcileVisits)
 
 const pendingVisitsLabel = computed(() => {
   const total = visits.pending.value.length
@@ -351,7 +356,7 @@ function goBack() {
         <!-- Visitas registradas fuera de la agenda: un toque para agregarlas.
              Sólo en la mía: las visitas y los bloques nuevos serían míos. -->
         <div
-          v-if="canRegisterVisit && visits.pending.value.length"
+          v-if="canReconcileVisits && visits.pending.value.length"
           class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white py-1 pl-3 pr-1"
         >
           <p class="text-xs text-gray-700">{{ pendingVisitsLabel }}</p>
