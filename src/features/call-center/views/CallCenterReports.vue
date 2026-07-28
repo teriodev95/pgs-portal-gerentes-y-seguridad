@@ -1,12 +1,22 @@
 <script lang="ts" setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 // Composables
 import { useCallCenter } from '@/features/call-center/composables/useCallCenter'
 import { useDrawer } from '@/shared/composables'
+import { useNotification } from '@/shared/composables/useNotification'
+import { useAgendaAccess, useSecurityAgenda } from '@/features/security-agenda/composables'
+import {
+  DEFAULT_DURATION_MINUTES,
+  VISIT_ACTIVITY_TYPE
+} from '@/features/security-agenda/constants'
+import { nextSlot } from '@/features/security-agenda/utils/time'
+import { buildVisitDetail } from '@/features/security-agenda/utils/visit'
+import type { AgendaActivityDefaults } from '@/features/security-agenda/types'
 import type { ICallCenterReport, ICallCenterSearchResult } from '@/features/call-center/types'
 
 // Components
+import AgendaActivityBS from '@/features/security-agenda/components/AgendaActivityBS.vue'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
 import CardContainer from '@/shared/components/CardContainer.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
@@ -25,6 +35,14 @@ import TextCT from '@/shared/components/ui/TextCT.vue'
 // Services, Composables and Stores initialization
 const callCenter = useCallCenter()
 const reportDrawer = useDrawer<ICallCenterReport>('call-center-report')
+const agenda = useSecurityAgenda()
+const { canUseAgenda } = useAgendaAccess()
+const { showSuccess } = useNotification()
+
+// Agendar visita: la hoja de alta de la agenda, con el reporte ya cargado
+const scheduleOpen = ref(false)
+const scheduleDefaults = ref<AgendaActivityDefaults | null>(null)
+const scheduleHoraInicio = ref(nextSlot(DEFAULT_DURATION_MINUTES))
 
 // Computed properties
 const hasSummaryReports = computed(() => {
@@ -87,6 +105,35 @@ async function handleSelectWeekAndManagement(gerencia: string, semana: number, a
   await callCenter.selectWeekAndManagement(gerencia, semana, anio)
 }
 
+/**
+ * Abre la hoja de alta de la agenda con todo puesto: tipo, lugar y cliente.
+ * Al auditor sólo le queda elegir la hora. El catálogo se pide aquí, no al
+ * entrar a la vista: casi nadie viene a esto.
+ */
+async function openScheduleVisit(report: ICallCenterReport): Promise<void> {
+  if (!agenda.activityTypes.value.length) await agenda.loadCatalogs()
+
+  scheduleDefaults.value = {
+    tipo: VISIT_ACTIVITY_TYPE,
+    detalle: buildVisitDetail(
+      report.nombres_cliente || report.nombres_aval,
+      report.prestamoId
+    ),
+    gerencia: report.gerencia,
+    agencia: report.agencia
+  }
+  scheduleHoraInicio.value = nextSlot(DEFAULT_DURATION_MINUTES)
+  scheduleOpen.value = true
+}
+
+/** La visita entra a la agenda de hoy: la hoja no pregunta por el día. */
+async function handleScheduleSave(payload: Parameters<typeof agenda.createActivity>[0]): Promise<void> {
+  if (!(await agenda.createActivity(payload))) return
+
+  scheduleOpen.value = false
+  showSuccess('Agendamos la visita en tu agenda de hoy.')
+}
+
 // Lifecycle hooks
 onMounted(async () => {
   try {
@@ -105,6 +152,19 @@ onMounted(async () => {
 <template>
   <!-- Report Drawer -->
   <ReportDrawer />
+
+  <!-- Alta de la visita en la agenda del día -->
+  <AgendaActivityBS
+    :open="scheduleOpen"
+    :activity="null"
+    :default-hora-inicio="scheduleHoraInicio"
+    :activity-types="agenda.activityTypes.value"
+    :scope="agenda.scope.value"
+    :defaults="scheduleDefaults"
+    :saving="agenda.saving.value"
+    @close="scheduleOpen = false"
+    @save="handleScheduleSave"
+  />
 
   <!-- Main Content -->
   <MainCT>
@@ -208,7 +268,9 @@ onMounted(async () => {
           v-show="report"
           :key="`report-${report.prestamoId}-${index}`"
           :reporte="report"
+          :can-schedule-visit="canUseAgenda"
           @selectReport="openReportDetails"
+          @scheduleVisit="openScheduleVisit"
         />
 
         <!-- Back Button -->

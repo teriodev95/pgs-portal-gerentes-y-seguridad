@@ -14,6 +14,8 @@ import BtnComponent from '@/shared/components/BtnComponent.vue'
 // Interface - Props - Emits
 interface Props {
   reporte: ICallCenterReport
+  /** Sólo quien puede usar la agenda de seguridad agenda visitas desde aquí. */
+  canScheduleVisit?: boolean
 }
 
 interface StatusLlamadaInfo {
@@ -23,10 +25,11 @@ interface StatusLlamadaInfo {
 
 interface Emits {
   (e: 'selectReport', reporteSelect: ICallCenterReport): void
+  (e: 'scheduleVisit', reporteSelect: ICallCenterReport): void
 }
 
 defineEmits<Emits>()
-defineProps<Props>()
+withDefaults(defineProps<Props>(), { canScheduleVisit: false })
 
 // Constants
 const StatusLlamada: Record<CallStatus, StatusLlamadaInfo> = {
@@ -128,8 +131,20 @@ onUnmounted(() => {
       Ninguna parte contestó la llamada
     </TextCT>
 
-    <BtnComponent @click="$emit('selectReport', reporte)" outline full-width>
-      Ver detalles
-    </BtnComponent>
+    <div class="flex gap-2">
+      <BtnComponent @click="$emit('selectReport', reporte)" outline full-width>
+        Ver detalles
+      </BtnComponent>
+
+      <!-- Lleva la visita a la agenda del día, con el cliente ya puesto -->
+      <BtnComponent
+        v-if="canScheduleVisit"
+        @click="$emit('scheduleVisit', reporte)"
+        outline
+        full-width
+      >
+        Agendar visita
+      </BtnComponent>
+    </div>
   </CardContainer>
 </template>
