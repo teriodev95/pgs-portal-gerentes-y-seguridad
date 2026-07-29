@@ -362,38 +362,49 @@ function submit() {
             </div>
           </fieldset>
 
-          <!-- Gerencia y agencia del ámbito -->
-          <div class="space-y-1">
-            <LabelForm for="agenda-gerencia">Gerencia</LabelForm>
-            <InputSelect id="agenda-gerencia" v-model="gerencia" :is-required="false">
-              <!-- Hay auditores sin ámbito y pueden capturar igual: se dice. -->
-              <option value="">
-                {{ scope.gerencias.length ? 'Sin gerencia' : 'No tienes gerencias asignadas' }}
-              </option>
-              <option
-                v-for="item in scope.gerencias"
-                :key="item.gerenciaId"
-                :value="item.gerenciaId"
+          <!--
+            Gerencia y agencia son un solo dato en dos pasos: van en el mismo
+            renglón, como inicio y duración. Los dos llevan claves cortas
+            (GERGC, no nombres), así que a 360px la mitad del ancho les sobra.
+          -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <LabelForm for="agenda-gerencia">Gerencia</LabelForm>
+              <InputSelect id="agenda-gerencia" v-model="gerencia" :is-required="false">
+                <option value="">Sin gerencia</option>
+                <option
+                  v-for="item in scope.gerencias"
+                  :key="item.gerenciaId"
+                  :value="item.gerenciaId"
+                >
+                  {{ item.gerenciaId }}
+                </option>
+              </InputSelect>
+            </div>
+
+            <div class="space-y-1">
+              <LabelForm for="agenda-agencia">Agencia</LabelForm>
+              <InputSelect
+                id="agenda-agencia"
+                v-model="agencia"
+                :is-required="false"
+                :is-disabled="!agencias.length"
               >
-                {{ item.gerenciaId }}
-              </option>
-            </InputSelect>
+                <!-- Sin gerencia elegida no hay nada que ofrecer; con una que no
+                     tiene agencias, tampoco. No son lo mismo y no se dicen igual. -->
+                <option value="">{{ gerencia ? 'Sin agencia' : 'Elige gerencia' }}</option>
+                <option v-for="item in agencias" :key="item" :value="item">{{ item }}</option>
+              </InputSelect>
+            </div>
           </div>
 
-          <div class="space-y-1">
-            <LabelForm for="agenda-agencia">Agencia</LabelForm>
-            <InputSelect
-              id="agenda-agencia"
-              v-model="agencia"
-              :is-required="false"
-              :is-disabled="!agencias.length"
-            >
-              <option value="">
-                {{ agencias.length ? 'Sin agencia' : 'Elige primero una gerencia' }}
-              </option>
-              <option v-for="item in agencias" :key="item" :value="item">{{ item }}</option>
-            </InputSelect>
-          </div>
+          <!--
+            Hay auditores sin ámbito y pueden capturar igual: se dice, pero
+            abajo. Como opción del desplegable no cabía en media pantalla.
+          -->
+          <p v-if="!scope.gerencias.length" class="text-xs text-gray-700">
+            No tienes gerencias asignadas. Puedes capturar la actividad sin ellas.
+          </p>
 
           <!-- Evidencia de la visita ligada. Nunca coordenadas. -->
           <div
