@@ -43,6 +43,17 @@ export const SLOT_MINUTES = 30
 /** Duración precargada al abrir la hoja desde un hueco. */
 export const DEFAULT_DURATION_MINUTES = 60
 
+/**
+ * Duraciones que el backend acepta, y son todas: pasos de media hora
+ * (`PASO_MINUTOS`) hasta el tope de dos horas (`DURACION_MAXIMA_MINUTOS`). Se
+ * derivan de esas dos constantes en vez de escribirse a mano para que la lista
+ * no se quede corta si alguna se mueve. Hoy: 30, 60, 90 y 120.
+ */
+export const DURATION_OPTIONS: number[] = Array.from(
+  { length: MAX_DURATION_MINUTES / SLOT_MINUTES },
+  (_, index) => (index + 1) * SLOT_MINUTES
+)
+
 export const DETAIL_MAX_LENGTH = 255
 
 /** Módulo que habilita la pestaña "Mi equipo". */

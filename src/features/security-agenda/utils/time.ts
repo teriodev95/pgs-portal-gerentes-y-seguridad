@@ -30,6 +30,14 @@ export function formatTime(time: string): string {
   return `${hours12}:${String(rest).padStart(2, '0')} ${suffix}`
 }
 
+/** `90` -> `1 h 30`. Etiqueta de las opciones de duración. */
+export function formatDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  if (!hours) return `${rest} min`
+  return rest ? `${hours} h ${rest}` : `${hours} h`
+}
+
 /** Etiqueta compacta del riel: `7 am`, `1 pm`. */
 export function formatHourLabel(hour: number): string {
   const suffix = hour < 12 ? 'am' : 'pm'

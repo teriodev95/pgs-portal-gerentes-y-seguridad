@@ -474,6 +474,7 @@ function goBack() {
     :default-hora-inicio="defaultHoraInicio"
     :activity-types="activityTypes"
     :scope="scope"
+    :day-activities="activities"
     :can-register-visit="canRegisterVisit"
     :saving="saving"
     @close="sheetOpen = false"

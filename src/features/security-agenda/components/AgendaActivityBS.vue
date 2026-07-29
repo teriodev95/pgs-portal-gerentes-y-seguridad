@@ -2,15 +2,23 @@
 import { computed, ref, watch } from 'vue'
 import { MapPin, MapPinCheck } from 'lucide-vue-next'
 import {
+  DAY_END_HOUR,
   DEFAULT_DURATION_MINUTES,
   DETAIL_MAX_LENGTH,
-  MAX_DURATION_MINUTES,
+  DURATION_OPTIONS,
   PRIORITY_OPTIONS,
   PRIORITY_STYLE,
   STATUS_STYLE,
   VISIT_ACTIVITY_TYPE
 } from '../constants'
-import { formatTime, formatTimestampTime, timeSlots, toHHMM, toMinutes } from '../utils/time'
+import {
+  formatDuration,
+  formatTime,
+  formatTimestampTime,
+  timeSlots,
+  toHHMM,
+  toMinutes
+} from '../utils/time'
 import { parseVisitDetail } from '../utils/visit'
 import type {
   AgendaActivity,
@@ -44,6 +52,12 @@ interface Props {
   scope: AgendaScope
   /** Precarga del alta: sólo aplica cuando no hay actividad que editar. */
   defaults?: AgendaActivityDefaults | null
+  /**
+   * Actividades ya capturadas ese día, para no ofrecer una duración que se
+   * encime con otra. Vacío es válido y no rompe nada: ahí las duraciones sólo
+   * se limitan por el fin de la jornada y el traslape lo rechaza el backend.
+   */
+  dayActivities?: AgendaActivity[]
   /** Sólo en mi agenda: la visita se registra con mi usuario y mi ubicación. */
   canRegisterVisit?: boolean
   saving?: boolean
@@ -51,6 +65,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   defaults: null,
+  dayActivities: () => [],
   canRegisterVisit: false,
   saving: false
 })
@@ -65,25 +80,44 @@ const emit = defineEmits<{
 const tipo = ref('')
 const detalle = ref('')
 const horaInicio = ref('')
-const horaFin = ref('')
+const duracion = ref(DEFAULT_DURATION_MINUTES)
 const prioridad = ref<AgendaPriority>('media')
 const gerencia = ref('')
 const agencia = ref('')
 const formError = ref('')
 const confirmingDelete = ref(false)
 
-const slots = timeSlots()
 /** El fin de la jornada sólo sirve como hora de fin. */
-const startSlots = slots.slice(0, -1)
+const startSlots = timeSlots().slice(0, -1)
 
-// El backend rechaza más de 2 horas: si no se puede elegir, no se ofrece.
-const endSlots = computed(() => {
-  const start = toMinutes(horaInicio.value || '00:00')
-  return slots.filter((slot) => {
-    const end = toMinutes(slot)
-    return end > start && end - start <= MAX_DURATION_MINUTES
-  })
-})
+/** El contrato sigue siendo `horaInicio`/`horaFin`; la duración sólo es cómo se captura. */
+const horaFin = computed(() => toHHMM(toMinutes(horaInicio.value) + duracion.value))
+
+/** Lo ya ocupado ese día. Editando, la propia actividad no se estorba a sí misma. */
+const ocupado = computed(() =>
+  props.dayActivities
+    .filter((item) => item.id !== props.activity?.id)
+    .map((item) => [toMinutes(item.horaInicio), toMinutes(item.horaFin)])
+)
+
+/** Cabe si termina dentro de la jornada y no pisa otra actividad. */
+function cabe(minutes: number): boolean {
+  const inicio = toMinutes(horaInicio.value)
+  const fin = inicio + minutes
+  if (fin > DAY_END_HOUR * 60) return false
+  return !ocupado.value.some(([desde, hasta]) => inicio < hasta && fin > desde)
+}
+
+const duraciones = computed(() =>
+  DURATION_OPTIONS.map((minutes) => ({
+    minutes,
+    label: formatDuration(minutes),
+    disabled: !cabe(minutes)
+  }))
+)
+
+/** A las 21:30 con ese bloque ya ocupado no queda ninguna: hay que decirlo. */
+const sinDuracion = computed(() => duraciones.value.every((option) => option.disabled))
 
 const agencias = computed(
   () => props.scope.gerencias.find((item) => item.gerenciaId === gerencia.value)?.agencias ?? []
@@ -135,8 +169,9 @@ function reset() {
   tipo.value = activity?.tipo ?? defaults?.tipo ?? props.activityTypes[0]?.clave ?? ''
   detalle.value = activity?.detalle ?? defaults?.detalle ?? ''
   horaInicio.value = activity?.horaInicio ?? props.defaultHoraInicio
-  horaFin.value =
-    activity?.horaFin ?? toHHMM(toMinutes(horaInicio.value) + DEFAULT_DURATION_MINUTES)
+  duracion.value = activity
+    ? toMinutes(activity.horaFin) - toMinutes(activity.horaInicio)
+    : DEFAULT_DURATION_MINUTES
   prioridad.value = activity?.prioridad ?? 'media'
 
   const lugar = defaults ? scopedDefaults.value : { gerencia: '', agencia: '' }
@@ -155,11 +190,17 @@ watch(
   { immediate: true }
 )
 
-// El fin sigue al inicio: siempre una hora después si quedó invertido.
-watch(horaInicio, (value) => {
-  if (toMinutes(horaFin.value) <= toMinutes(value)) {
-    horaFin.value = toHHMM(toMinutes(value) + DEFAULT_DURATION_MINUTES)
-  }
+/**
+ * Cambiar la hora no borra la duración ya elegida: se conserva mientras quepa.
+ * Si dejó de caber, baja a la más larga que sí cabe —no a la más corta, que
+ * tiraría lo que el auditor había pedido—; y si no cabe ninguna, se queda en la
+ * más corta para que el grupo no aparezca sin nada marcado, con el aviso abajo.
+ */
+watch([horaInicio, ocupado], () => {
+  if (cabe(duracion.value)) return
+
+  const posibles = DURATION_OPTIONS.filter(cabe)
+  duracion.value = posibles.length ? posibles[posibles.length - 1] : DURATION_OPTIONS[0]
 })
 
 watch(gerencia, () => {
@@ -176,8 +217,8 @@ function submit() {
     return
   }
 
-  if (toMinutes(horaFin.value) <= toMinutes(horaInicio.value)) {
-    formError.value = 'La hora de fin debe ser posterior a la de inicio.'
+  if (!cabe(duracion.value)) {
+    formError.value = 'A esa hora no cabe esa duración. Elige otra hora de inicio.'
     return
   }
 
@@ -233,25 +274,55 @@ function submit() {
             </p>
           </div>
 
-          <!-- Horario -->
-          <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-1">
-              <LabelForm for="agenda-inicio">Inicio</LabelForm>
-              <InputSelect id="agenda-inicio" v-model="horaInicio">
-                <option v-for="slot in startSlots" :key="`inicio-${slot}`" :value="slot">
-                  {{ formatTime(slot) }}
-                </option>
-              </InputSelect>
-            </div>
-            <div class="space-y-1">
-              <LabelForm for="agenda-fin">Fin</LabelForm>
-              <InputSelect id="agenda-fin" v-model="horaFin">
-                <option v-for="slot in endSlots" :key="`fin-${slot}`" :value="slot">
-                  {{ formatTime(slot) }}
-                </option>
-              </InputSelect>
-            </div>
+          <!--
+            Inicio sigue siendo un desplegable: son 32 horas y ése es su
+            control. El fin, en cambio, no se elige, se deduce: el backend cierra
+            la duración en pasos de media hora hasta dos, así que son cuatro
+            opciones y caben a la vista. Se piensa en "cuánto dura", que es como
+            se dice, y el rango que resulta se lee arriba, en la cabecera.
+          -->
+          <div class="space-y-1">
+            <LabelForm for="agenda-inicio">Inicio</LabelForm>
+            <InputSelect id="agenda-inicio" v-model="horaInicio">
+              <option v-for="slot in startSlots" :key="`inicio-${slot}`" :value="slot">
+                {{ formatTime(slot) }}
+              </option>
+            </InputSelect>
           </div>
+
+          <fieldset>
+            <legend class="block text-sm font-medium text-gray-900 dark:text-white">
+              Duración
+            </legend>
+            <div class="mt-1 grid grid-cols-4 gap-2">
+              <!-- La que no cabe se deshabilita aquí, no al guardar. -->
+              <label
+                v-for="option in duraciones"
+                :key="option.minutes"
+                class="flex min-h-[44px] items-center justify-center rounded-lg px-1 text-sm transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-1 motion-reduce:transition-none"
+                :class="
+                  option.disabled
+                    ? 'cursor-not-allowed border border-gray-200 bg-gray-50 text-gray-500'
+                    : duracion === option.minutes
+                      ? 'cursor-pointer border-2 border-blue-700 font-semibold text-blue-800'
+                      : 'cursor-pointer border border-gray-200 text-gray-700'
+                "
+              >
+                <input
+                  v-model="duracion"
+                  type="radio"
+                  name="agenda-duracion"
+                  :value="option.minutes"
+                  :disabled="option.disabled"
+                  class="sr-only"
+                />
+                {{ option.label }}
+              </label>
+            </div>
+            <p v-if="sinDuracion" class="mt-1 text-xs text-red-700">
+              A esa hora ya no cabe ninguna actividad. Elige otra hora de inicio.
+            </p>
+          </fieldset>
 
           <!--
             Prioridad: tres opciones a la vista y un toque para elegir. Un

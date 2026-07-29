@@ -111,7 +111,13 @@ async function handleSelectWeekAndManagement(gerencia: string, semana: number, a
  * entrar a la vista: casi nadie viene a esto.
  */
 async function openScheduleVisit(report: ICallCenterReport): Promise<void> {
-  if (!agenda.activityTypes.value.length) await agenda.loadCatalogs()
+  // La agenda del día viaja a la hoja para que no ofrezca una duración que se
+  // encime con lo ya capturado: es la misma hoja de la agenda y tiene que
+  // comportarse igual desde aquí.
+  await Promise.all([
+    agenda.activityTypes.value.length ? null : agenda.loadCatalogs(),
+    agenda.load()
+  ])
 
   scheduleDefaults.value = {
     tipo: VISIT_ACTIVITY_TYPE,
@@ -161,6 +167,7 @@ onMounted(async () => {
     :activity-types="agenda.activityTypes.value"
     :scope="agenda.scope.value"
     :defaults="scheduleDefaults"
+    :day-activities="agenda.activities.value"
     :saving="agenda.saving.value"
     @close="scheduleOpen = false"
     @save="handleScheduleSave"
