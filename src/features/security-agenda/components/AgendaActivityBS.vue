@@ -697,6 +697,17 @@ function submit() {
 </template>
 
 <style scoped>
+/*
+  El navegador le pone `min-inline-size: min-content` a todo `<fieldset>`, así que
+  no encoge: en vez de que el riel se deslice por dentro, el fieldset se estiraba
+  hasta el ancho de sus dieciséis chips y arrastraba al formulario entero, que
+  terminaba más ancho que la pantalla. Ninguno de esta hoja debe crecer más que
+  ella; lo único que se desliza son los rieles.
+*/
+fieldset {
+  min-inline-size: 0;
+}
+
 /* Los rieles se recorren con el dedo; la barra sólo estorbaría en 44px de alto.
    El chip cortado en el borde ya avisa de que hay más. */
 .agenda-rail {
