@@ -87,7 +87,7 @@ const agencia = ref('')
 const formError = ref('')
 const confirmingDelete = ref(false)
 
-/** El fin de la jornada sólo sirve como hora de fin. */
+/** Las 22:00 cierran la jornada: después de ellas no cabe nada que empezar. */
 const startSlots = timeSlots().slice(0, -1)
 
 /** El contrato sigue siendo `horaInicio`/`horaFin`; la duración sólo es cómo se captura. */
