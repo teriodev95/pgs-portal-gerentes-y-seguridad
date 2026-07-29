@@ -405,7 +405,7 @@ function submit() {
           <fieldset>
             <legend class="block text-sm font-medium text-gray-900 dark:text-white">Inicio</legend>
 
-            <div ref="horaRail" class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto pb-1">
+            <div ref="horaRail" class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto py-1">
               <label
                 v-for="hour in START_HOURS"
                 :key="hour"
@@ -538,7 +538,7 @@ function submit() {
             <legend class="block text-sm font-medium text-gray-900 dark:text-white">
               Gerencia
             </legend>
-            <div ref="gerenciaRail" class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto pb-1">
+            <div ref="gerenciaRail" class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto py-1">
               <label
                 v-for="item in ['', ...scope.gerencias.map((one) => one.gerenciaId)]"
                 :key="`gerencia-${item}`"
@@ -571,7 +571,7 @@ function submit() {
             <div
               v-if="agencias.length"
               ref="agenciaRail"
-              class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto pb-1"
+              class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto py-1"
             >
               <label
                 v-for="item in ['', ...agencias]"
