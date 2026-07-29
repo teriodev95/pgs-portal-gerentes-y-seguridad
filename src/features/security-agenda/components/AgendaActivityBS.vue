@@ -253,15 +253,43 @@ function submit() {
             </div>
           </div>
 
-          <!-- Prioridad: punto de color + texto, nunca fondo de color -->
-          <div class="space-y-1">
-            <LabelForm for="agenda-prioridad">Prioridad</LabelForm>
-            <InputSelect id="agenda-prioridad" v-model="prioridad">
-              <option v-for="option in PRIORITY_OPTIONS" :key="option" :value="option">
+          <!--
+            Prioridad: tres opciones a la vista y un toque para elegir. Un
+            desplegable costaba dos —abrir y escoger— para una lista que cabe
+            entera en el renglón.
+
+            Son radios de verdad debajo del estilo: agrupan solos, se mueven con
+            las flechas y anuncian "2 de 3" sin una línea de ARIA. Lo elegido se
+            distingue por borde y peso además del color, no sólo por color.
+            El punto es la prioridad; el fondo nunca se pinta.
+          -->
+          <fieldset>
+            <legend class="block text-sm font-medium text-gray-900 dark:text-white">
+              Prioridad
+            </legend>
+            <div class="mt-1 grid grid-cols-3 gap-2">
+              <label
+                v-for="option in PRIORITY_OPTIONS"
+                :key="option"
+                class="flex min-h-[44px] cursor-pointer items-center justify-center gap-1.5 rounded-lg px-2 text-sm transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 has-[:focus-visible]:ring-offset-1 motion-reduce:transition-none"
+                :class="
+                  prioridad === option
+                    ? 'border-2 border-blue-700 font-semibold text-blue-800'
+                    : 'border border-gray-200 text-gray-700'
+                "
+              >
+                <input
+                  v-model="prioridad"
+                  type="radio"
+                  name="agenda-prioridad"
+                  :value="option"
+                  class="sr-only"
+                />
+                <span class="size-2 shrink-0 rounded-full" :class="PRIORITY_STYLE[option].dot" />
                 {{ PRIORITY_STYLE[option].label }}
-              </option>
-            </InputSelect>
-          </div>
+              </label>
+            </div>
+          </fieldset>
 
           <!-- Gerencia y agencia del ámbito -->
           <div class="space-y-1">
