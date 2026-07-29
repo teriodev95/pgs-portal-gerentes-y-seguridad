@@ -40,7 +40,6 @@ import {
   DrawerTitle
 } from '@/components/ui/drawer'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
-import InputSelect from '@/shared/components/forms/InputSelect.vue'
 import LabelForm from '@/shared/components/forms/LabelForm.vue'
 
 type ActivityFormPayload = Omit<AgendaActivityPayload, 'fecha' | 'auditorId'>
@@ -127,23 +126,26 @@ function setMinuto(minute: number) {
 }
 
 const horaRail = ref<HTMLElement>()
+const gerenciaRail = ref<HTMLElement>()
+const agenciaRail = ref<HTMLElement>()
 
-/** Con dieciséis horas en el riel, la elegida puede quedar fuera de la vista. */
-async function centrarHora() {
+/** Lo elegido puede haber quedado fuera de la vista; al abrir se trae al centro. */
+async function centrarRieles() {
   await nextTick()
   requestAnimationFrame(() => {
-    const rail = horaRail.value
-    const chip = rail?.querySelector<HTMLElement>('[data-selected="true"]')
-    if (!rail || !chip) return
+    for (const rail of [horaRail.value, gerenciaRail.value, agenciaRail.value]) {
+      const chip = rail?.querySelector<HTMLElement>('[data-selected="true"]')
+      if (!rail || !chip) continue
 
-    rail.scrollLeft = chip.offsetLeft - (rail.clientWidth - chip.offsetWidth) / 2
+      rail.scrollLeft = chip.offsetLeft - (rail.clientWidth - chip.offsetWidth) / 2
+    }
   })
 }
 
-// La hoja se monta al abrirse, así que el riel aparece después del `watch` de
-// `open`: centrar también cuando el elemento existe cubre las dos entradas.
+// La hoja se monta al abrirse, así que los rieles aparecen después del `watch`
+// de `open`: centrar también cuando existen cubre las dos entradas.
 watch(horaRail, (rail) => {
-  if (rail) centrarHora()
+  if (rail) centrarRieles()
 })
 
 /** El contrato sigue siendo `horaInicio`/`horaFin`; la duración sólo es cómo se captura. */
@@ -245,7 +247,7 @@ watch(
     if (!open) return
 
     reset()
-    centrarHora()
+    centrarRieles()
   },
   { immediate: true }
 )
@@ -526,48 +528,82 @@ function submit() {
           </fieldset>
 
           <!--
-            Gerencia y agencia son un solo dato en dos pasos: van en el mismo
-            renglón, como inicio y duración. Los dos llevan claves cortas
-            (GERGC, no nombres), así que a 360px la mitad del ancho les sobra.
+            Gerencia y agencia: claves cortas, un riel cada una y un toque para
+            elegir. Dejan de compartir renglón porque a media pantalla el riel
+            enseñaba dos chips y obligaba a deslizar por todo; a lo ancho caben
+            cuatro y la lista se lee de un vistazo. El encadenado no cambia:
+            mover la gerencia limpia la agencia.
           -->
-          <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-1">
-              <LabelForm for="agenda-gerencia">Gerencia</LabelForm>
-              <InputSelect id="agenda-gerencia" v-model="gerencia" :is-required="false">
-                <option value="">Sin gerencia</option>
-                <option
-                  v-for="item in scope.gerencias"
-                  :key="item.gerenciaId"
-                  :value="item.gerenciaId"
-                >
-                  {{ item.gerenciaId }}
-                </option>
-              </InputSelect>
-            </div>
-
-            <div class="space-y-1">
-              <LabelForm for="agenda-agencia">Agencia</LabelForm>
-              <InputSelect
-                id="agenda-agencia"
-                v-model="agencia"
-                :is-required="false"
-                :is-disabled="!agencias.length"
+          <fieldset>
+            <legend class="block text-sm font-medium text-gray-900 dark:text-white">
+              Gerencia
+            </legend>
+            <div ref="gerenciaRail" class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto pb-1">
+              <label
+                v-for="item in ['', ...scope.gerencias.map((one) => one.gerenciaId)]"
+                :key="`gerencia-${item}`"
+                :data-selected="item === gerencia"
+                class="relative flex min-h-[44px] shrink-0 snap-center cursor-pointer items-center justify-center rounded-lg px-3 text-sm transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 motion-reduce:transition-none"
+                :class="
+                  item === gerencia
+                    ? 'border-2 border-blue-700 font-semibold text-blue-800'
+                    : 'border border-gray-200 text-gray-700'
+                "
               >
-                <!-- Sin gerencia elegida no hay nada que ofrecer; con una que no
-                     tiene agencias, tampoco. No son lo mismo y no se dicen igual. -->
-                <option value="">{{ gerencia ? 'Sin agencia' : 'Elige gerencia' }}</option>
-                <option v-for="item in agencias" :key="item" :value="item">{{ item }}</option>
-              </InputSelect>
+                <input
+                  v-model="gerencia"
+                  type="radio"
+                  name="agenda-gerencia"
+                  class="sr-only"
+                  :value="item"
+                />
+                {{ item || 'Sin gerencia' }}
+              </label>
             </div>
-          </div>
+            <!-- Hay auditores sin ámbito y pueden capturar igual: se dice. -->
+            <p v-if="!scope.gerencias.length" class="mt-1 text-xs text-gray-700">
+              No tienes gerencias asignadas. Puedes capturar la actividad sin ellas.
+            </p>
+          </fieldset>
 
-          <!--
-            Hay auditores sin ámbito y pueden capturar igual: se dice, pero
-            abajo. Como opción del desplegable no cabía en media pantalla.
-          -->
-          <p v-if="!scope.gerencias.length" class="text-xs text-gray-700">
-            No tienes gerencias asignadas. Puedes capturar la actividad sin ellas.
-          </p>
+          <fieldset>
+            <legend class="block text-sm font-medium text-gray-900 dark:text-white">Agencia</legend>
+            <div
+              v-if="agencias.length"
+              ref="agenciaRail"
+              class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto pb-1"
+            >
+              <label
+                v-for="item in ['', ...agencias]"
+                :key="`agencia-${item}`"
+                :data-selected="item === agencia"
+                class="relative flex min-h-[44px] shrink-0 snap-center cursor-pointer items-center justify-center rounded-lg px-3 text-sm transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 motion-reduce:transition-none"
+                :class="
+                  item === agencia
+                    ? 'border-2 border-blue-700 font-semibold text-blue-800'
+                    : 'border border-gray-200 text-gray-700'
+                "
+              >
+                <input
+                  v-model="agencia"
+                  type="radio"
+                  name="agenda-agencia"
+                  class="sr-only"
+                  :value="item"
+                />
+                {{ item || 'Sin agencia' }}
+              </label>
+            </div>
+            <!-- Sin gerencia elegida no hay nada que ofrecer; con una que no tiene
+                 agencias, tampoco. No son lo mismo y no se dicen igual. -->
+            <p v-else class="mt-1 text-xs text-gray-700">
+              {{
+                gerencia
+                  ? 'Esa gerencia no tiene agencias.'
+                  : 'Elige una gerencia para ver sus agencias.'
+              }}
+            </p>
+          </fieldset>
 
           <!-- Evidencia de la visita ligada. Nunca coordenadas. -->
           <div
