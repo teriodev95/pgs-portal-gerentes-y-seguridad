@@ -126,26 +126,23 @@ function setMinuto(minute: number) {
 }
 
 const horaRail = ref<HTMLElement>()
-const gerenciaRail = ref<HTMLElement>()
-const agenciaRail = ref<HTMLElement>()
 
-/** Lo elegido puede haber quedado fuera de la vista; al abrir se trae al centro. */
-async function centrarRieles() {
+/** La hora elegida puede haber quedado fuera de la vista; al abrir se trae al centro. */
+async function centrarHora() {
   await nextTick()
   requestAnimationFrame(() => {
-    for (const rail of [horaRail.value, gerenciaRail.value, agenciaRail.value]) {
-      const chip = rail?.querySelector<HTMLElement>('[data-selected="true"]')
-      if (!rail || !chip) continue
+    const rail = horaRail.value
+    const chip = rail?.querySelector<HTMLElement>('[data-selected="true"]')
+    if (!rail || !chip) return
 
-      rail.scrollLeft = chip.offsetLeft - (rail.clientWidth - chip.offsetWidth) / 2
-    }
+    rail.scrollLeft = chip.offsetLeft - (rail.clientWidth - chip.offsetWidth) / 2
   })
 }
 
-// La hoja se monta al abrirse, así que los rieles aparecen después del `watch`
-// de `open`: centrar también cuando existen cubre las dos entradas.
+// La hoja se monta al abrirse, así que el riel aparece después del `watch` de
+// `open`: centrar también cuando existe cubre las dos entradas.
 watch(horaRail, (rail) => {
-  if (rail) centrarRieles()
+  if (rail) centrarHora()
 })
 
 /** El contrato sigue siendo `horaInicio`/`horaFin`; la duración sólo es cómo se captura. */
@@ -180,6 +177,67 @@ const sinDuracion = computed(() => duraciones.value.every((option) => option.dis
 const agencias = computed(
   () => props.scope.gerencias.find((item) => item.gerenciaId === gerencia.value)?.agencias ?? []
 )
+
+/**
+ * Gerencia y agencia se despliegan como la actividad, y por lo mismo: `GERC001`
+ * y `GERC002` sólo se distinguen en el último dígito, y en vertical y alineados
+ * a la izquierda se comparan de un vistazo.
+ *
+ * Los dos renglones cerrados comparten línea, pero la lista abierta ocupa el
+ * ancho completo: a media anchura los códigos quedaban apretados. Como sólo se
+ * abre una a la vez, basta un panel y no hay dos listas casi idénticas.
+ */
+type CampoLugar = 'gerencia' | 'agencia'
+
+const lugarAbierto = ref<CampoLugar | null>(null)
+const gerenciaTrigger = ref<HTMLButtonElement>()
+const agenciaTrigger = ref<HTMLButtonElement>()
+
+/**
+ * Cada opción viaja con el campo al que pertenece, congelado en el render.
+ * Es a propósito: al tocar la fila, el navegador dispara el clic de la etiqueta
+ * antes de marcar el radio, así que para cuando llega el `change` el panel ya se
+ * cerró. Si el destino se dedujera entonces de `lugarAbierto`, una gerencia
+ * acabaría escribiéndose en la agencia.
+ *
+ * El vacío va primero: limpiar es la opción de arriba, no la que hay que buscar.
+ */
+const opcionesLugar = computed(() => {
+  const campo = lugarAbierto.value
+  const valores =
+    campo === 'gerencia'
+      ? ['', ...props.scope.gerencias.map((item) => item.gerenciaId)]
+      : ['', ...agencias.value]
+
+  return valores.map((valor) => ({ campo, valor }))
+})
+
+/** Sólo para pintar: escribir pasa por `fijarLugar`. */
+const valorLugar = computed(() =>
+  lugarAbierto.value === 'gerencia' ? gerencia.value : agencia.value
+)
+
+function fijarLugar(campo: CampoLugar | null, valor: string) {
+  if (campo === 'gerencia') gerencia.value = valor
+  else if (campo === 'agencia') agencia.value = valor
+}
+
+function alternarLugar(campo: CampoLugar) {
+  lugarAbierto.value = lugarAbierto.value === campo ? null : campo
+}
+
+/**
+ * Mismo trato que la actividad: colapsa con el dedo, no con las flechas. El
+ * `lugarAbierto` vacío corta la segunda pasada, la del clic que el navegador
+ * sintetiza sobre el radio y vuelve a subir hasta la etiqueta.
+ */
+function elegirLugar(event: MouseEvent) {
+  if (event.detail === 0 || !lugarAbierto.value) return
+
+  const trigger = lugarAbierto.value === 'gerencia' ? gerenciaTrigger.value : agenciaTrigger.value
+  lugarAbierto.value = null
+  trigger?.focus()
+}
 
 // El estado no se edita aquí: lo mueve Administración.
 const statusStyle = computed(() => STATUS_STYLE[props.activity?.status ?? 'programada'])
@@ -239,6 +297,7 @@ function reset() {
   formError.value = ''
   confirmingDelete.value = false
   tipoAbierto.value = false
+  lugarAbierto.value = null
 }
 
 watch(
@@ -247,7 +306,7 @@ watch(
     if (!open) return
 
     reset()
-    centrarRieles()
+    centrarHora()
   },
   { immediate: true }
 )
@@ -528,82 +587,120 @@ function submit() {
           </fieldset>
 
           <!--
-            Gerencia y agencia: claves cortas, un riel cada una y un toque para
-            elegir. Dejan de compartir renglón porque a media pantalla el riel
-            enseñaba dos chips y obligaba a deslizar por todo; a lo ancho caben
-            cuatro y la lista se lee de un vistazo. El encadenado no cambia:
-            mover la gerencia limpia la agencia.
+            Gerencia y agencia se despliegan como la actividad: `GERC001` y
+            `GERC002` sólo cambian en el último dígito, y en vertical alineados a
+            la izquierda se comparan de un vistazo. Los dos renglones cerrados
+            comparten línea; la lista abierta ocupa el ancho completo, porque a
+            media anchura los códigos quedaban apretados. Sólo se abre una a la
+            vez, así que un panel basta. El encadenado no cambia: mover la
+            gerencia limpia la agencia.
           -->
-          <fieldset>
-            <legend class="block text-sm font-medium text-gray-900 dark:text-white">
-              Gerencia
-            </legend>
-            <div ref="gerenciaRail" class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto py-1">
-              <label
-                v-for="item in ['', ...scope.gerencias.map((one) => one.gerenciaId)]"
-                :key="`gerencia-${item}`"
-                :data-selected="item === gerencia"
-                class="relative flex min-h-[44px] shrink-0 snap-center cursor-pointer items-center justify-center rounded-lg px-3 text-sm transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 motion-reduce:transition-none"
-                :class="
-                  item === gerencia
-                    ? 'border-2 border-blue-700 font-semibold text-blue-800'
-                    : 'border border-gray-200 text-gray-700'
-                "
-              >
-                <input
-                  v-model="gerencia"
-                  type="radio"
-                  name="agenda-gerencia"
-                  class="sr-only"
-                  :value="item"
-                />
-                {{ item || 'Sin gerencia' }}
-              </label>
+          <div class="space-y-1">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <p id="agenda-gerencia-label" class="text-sm font-medium text-gray-900 dark:text-white">
+                  Gerencia
+                </p>
+                <button
+                  ref="gerenciaTrigger"
+                  type="button"
+                  aria-labelledby="agenda-gerencia-label agenda-gerencia-valor"
+                  :aria-expanded="lugarAbierto === 'gerencia'"
+                  aria-controls="agenda-lugar-opciones"
+                  class="flex min-h-[44px] w-full items-center justify-between gap-1 rounded-lg border border-gray-200 px-3 text-left text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  @click="alternarLugar('gerencia')"
+                >
+                  <span id="agenda-gerencia-valor" class="truncate">
+                    {{ gerencia || 'Sin gerencia' }}
+                  </span>
+                  <ChevronDown
+                    class="size-4 shrink-0 text-gray-600 transition-transform duration-200 motion-reduce:transition-none"
+                    :class="{ 'rotate-180': lugarAbierto === 'gerencia' }"
+                    :stroke-width="2"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+
+              <div class="space-y-1">
+                <p id="agenda-agencia-label" class="text-sm font-medium text-gray-900 dark:text-white">
+                  Agencia
+                </p>
+                <!-- Sin agencias que ofrecer el renglón no se abre, y lo dice en
+                     su sitio: "elige gerencia" y "no tiene agencias" no son lo mismo. -->
+                <button
+                  ref="agenciaTrigger"
+                  type="button"
+                  aria-labelledby="agenda-agencia-label agenda-agencia-valor"
+                  :aria-expanded="lugarAbierto === 'agencia'"
+                  aria-controls="agenda-lugar-opciones"
+                  :disabled="!agencias.length"
+                  class="flex min-h-[44px] w-full items-center justify-between gap-1 rounded-lg border border-gray-200 px-3 text-left text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                  @click="alternarLugar('agencia')"
+                >
+                  <span id="agenda-agencia-valor" class="truncate">
+                    {{ agencia || (gerencia ? 'Sin agencia' : 'Elige gerencia') }}
+                  </span>
+                  <ChevronDown
+                    v-if="agencias.length"
+                    class="size-4 shrink-0 text-gray-600 transition-transform duration-200 motion-reduce:transition-none"
+                    :class="{ 'rotate-180': lugarAbierto === 'agencia' }"
+                    :stroke-width="2"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
             </div>
+
+            <Transition
+              enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
+              enter-from-class="opacity-0 -translate-y-1"
+              enter-to-class="opacity-100 translate-y-0"
+              leave-active-class="transition duration-150 ease-in motion-reduce:transition-none"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0"
+            >
+              <fieldset v-if="lugarAbierto" id="agenda-lugar-opciones">
+                <legend class="sr-only">
+                  {{ lugarAbierto === 'gerencia' ? 'Gerencia' : 'Agencia' }}
+                </legend>
+                <div class="overflow-hidden rounded-lg border border-gray-200">
+                  <label
+                    v-for="option in opcionesLugar"
+                    :key="`${option.campo}-${option.valor}`"
+                    class="relative flex min-h-[44px] cursor-pointer items-center gap-2 border-b border-gray-100 px-3 text-sm last:border-b-0 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-inset has-[:focus-visible]:ring-blue-500"
+                    :class="
+                      option.valor === valorLugar ? 'font-semibold text-blue-800' : 'text-gray-900'
+                    "
+                    @click="elegirLugar"
+                  >
+                    <input
+                      type="radio"
+                      :name="`agenda-${option.campo}`"
+                      :value="option.valor"
+                      :checked="option.valor === valorLugar"
+                      class="sr-only"
+                      @change="fijarLugar(option.campo, option.valor)"
+                    />
+                    <!-- El hueco del check se reserva siempre: si no, la fila elegida se corre. -->
+                    <Check
+                      v-if="option.valor === valorLugar"
+                      class="size-4 shrink-0"
+                      :stroke-width="2"
+                      aria-hidden="true"
+                    />
+                    <span v-else class="size-4 shrink-0" aria-hidden="true" />
+                    {{ option.valor || (option.campo === 'gerencia' ? 'Sin gerencia' : 'Sin agencia') }}
+                  </label>
+                </div>
+              </fieldset>
+            </Transition>
+
             <!-- Hay auditores sin ámbito y pueden capturar igual: se dice. -->
-            <p v-if="!scope.gerencias.length" class="mt-1 text-xs text-gray-700">
+            <p v-if="!scope.gerencias.length" class="text-xs text-gray-700">
               No tienes gerencias asignadas. Puedes capturar la actividad sin ellas.
             </p>
-          </fieldset>
-
-          <fieldset>
-            <legend class="block text-sm font-medium text-gray-900 dark:text-white">Agencia</legend>
-            <div
-              v-if="agencias.length"
-              ref="agenciaRail"
-              class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto py-1"
-            >
-              <label
-                v-for="item in ['', ...agencias]"
-                :key="`agencia-${item}`"
-                :data-selected="item === agencia"
-                class="relative flex min-h-[44px] shrink-0 snap-center cursor-pointer items-center justify-center rounded-lg px-3 text-sm transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 motion-reduce:transition-none"
-                :class="
-                  item === agencia
-                    ? 'border-2 border-blue-700 font-semibold text-blue-800'
-                    : 'border border-gray-200 text-gray-700'
-                "
-              >
-                <input
-                  v-model="agencia"
-                  type="radio"
-                  name="agenda-agencia"
-                  class="sr-only"
-                  :value="item"
-                />
-                {{ item || 'Sin agencia' }}
-              </label>
-            </div>
-            <!-- Sin gerencia elegida no hay nada que ofrecer; con una que no tiene
-                 agencias, tampoco. No son lo mismo y no se dicen igual. -->
-            <p v-else class="mt-1 text-xs text-gray-700">
-              {{
-                gerencia
-                  ? 'Esa gerencia no tiene agencias.'
-                  : 'Elige una gerencia para ver sus agencias.'
-              }}
-            </p>
-          </fieldset>
+          </div>
 
           <!-- Evidencia de la visita ligada. Nunca coordenadas. -->
           <div
