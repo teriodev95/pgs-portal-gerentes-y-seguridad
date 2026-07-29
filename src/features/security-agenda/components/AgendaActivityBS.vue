@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { MapPin, MapPinCheck } from 'lucide-vue-next'
+import { Check, ChevronDown, MapPin, MapPinCheck } from 'lucide-vue-next'
 import {
   DAY_END_HOUR,
   DEFAULT_DURATION_MINUTES,
@@ -86,6 +86,28 @@ const gerencia = ref('')
 const agencia = ref('')
 const formError = ref('')
 const confirmingDelete = ref(false)
+
+/** Las siete actividades se despliegan en su sitio; abiertas de golpe se comen la hoja. */
+const tipoAbierto = ref(false)
+const tipoTrigger = ref<HTMLButtonElement>()
+
+const tipoNombre = computed(
+  () =>
+    props.activityTypes.find((item) => item.clave === tipo.value)?.nombre ??
+    'Selecciona una actividad'
+)
+
+/**
+ * Se elige y se colapsa, pero sólo con el dedo o el ratón: `detail` vale 0
+ * cuando el clic lo sintetiza el teclado, y ahí cerrar cortaría el recorrido con
+ * las flechas a media lista. Al colapsar, el foco vuelve al renglón que abrió.
+ */
+function elegirTipo(event: MouseEvent) {
+  if (event.detail === 0) return
+
+  tipoAbierto.value = false
+  tipoTrigger.value?.focus()
+}
 
 /** Las 22:00 cierran la jornada: después de ellas no cabe nada que empezar. */
 const startSlots = timeSlots().slice(0, -1)
@@ -180,6 +202,7 @@ function reset() {
   agencia.value = activity?.agencia || lugar.agencia || ''
   formError.value = ''
   confirmingDelete.value = false
+  tipoAbierto.value = false
 }
 
 watch(
@@ -247,16 +270,73 @@ function submit() {
         </DrawerHeader>
 
         <div class="space-y-4 px-4 pb-6">
-          <!-- Actividad -->
-          <div class="space-y-1">
-            <LabelForm for="agenda-tipo">Actividad</LabelForm>
-            <InputSelect id="agenda-tipo" v-model="tipo">
-              <option value="" disabled>Selecciona una actividad</option>
-              <option v-for="type in activityTypes" :key="type.clave" :value="type.clave">
-                {{ type.nombre }}
-              </option>
-            </InputSelect>
-          </div>
+          <!--
+            Actividad: el renglón muestra la elegida y despliega las siete en su
+            sitio, dentro de la hoja. Nada flota encima ni se sale de la
+            tipografía del formulario. Son radios como los demás grupos: las
+            flechas recorren la lista sin una línea de JS.
+          -->
+          <fieldset>
+            <legend class="block text-sm font-medium text-gray-900 dark:text-white">
+              Actividad
+            </legend>
+            <button
+              ref="tipoTrigger"
+              type="button"
+              :aria-expanded="tipoAbierto"
+              aria-controls="agenda-tipo-opciones"
+              class="mt-1 flex min-h-[44px] w-full items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 text-left text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              @click="tipoAbierto = !tipoAbierto"
+            >
+              <span class="truncate">{{ tipoNombre }}</span>
+              <ChevronDown
+                class="size-4 shrink-0 text-gray-600 transition-transform duration-200 motion-reduce:transition-none"
+                :class="{ 'rotate-180': tipoAbierto }"
+                :stroke-width="2"
+                aria-hidden="true"
+              />
+            </button>
+
+            <Transition
+              enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
+              enter-from-class="opacity-0 -translate-y-1"
+              enter-to-class="opacity-100 translate-y-0"
+              leave-active-class="transition duration-150 ease-in motion-reduce:transition-none"
+              leave-from-class="opacity-100"
+              leave-to-class="opacity-0"
+            >
+              <div
+                v-if="tipoAbierto"
+                id="agenda-tipo-opciones"
+                class="mt-1 overflow-hidden rounded-lg border border-gray-200"
+              >
+                <label
+                  v-for="type in activityTypes"
+                  :key="type.clave"
+                  class="relative flex min-h-[44px] cursor-pointer items-center gap-2 border-b border-gray-100 px-3 text-sm last:border-b-0 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-inset has-[:focus-visible]:ring-blue-500"
+                  :class="tipo === type.clave ? 'font-semibold text-blue-800' : 'text-gray-900'"
+                  @click="elegirTipo"
+                >
+                  <input
+                    v-model="tipo"
+                    type="radio"
+                    name="agenda-tipo"
+                    :value="type.clave"
+                    class="sr-only"
+                  />
+                  <!-- El hueco del check se reserva siempre: si no, la fila elegida se corre. -->
+                  <Check
+                    v-if="tipo === type.clave"
+                    class="size-4 shrink-0"
+                    :stroke-width="2"
+                    aria-hidden="true"
+                  />
+                  <span v-else class="size-4 shrink-0" aria-hidden="true" />
+                  {{ type.nombre }}
+                </label>
+              </div>
+            </Transition>
+          </fieldset>
 
           <!-- Detalle -->
           <div class="space-y-1">
