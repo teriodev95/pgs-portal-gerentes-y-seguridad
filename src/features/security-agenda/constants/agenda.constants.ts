@@ -54,6 +54,17 @@ export const DURATION_OPTIONS: number[] = Array.from(
   (_, index) => (index + 1) * SLOT_MINUTES
 )
 
+/**
+ * Hora e inicio se capturan por separado, y entre las dos listas sale siempre un
+ * bloque válido: cualquier hora de la jornada con `:00` o `:30` es un inicio que
+ * el backend acepta. No hay combinación que haya que validar después.
+ */
+export const START_HOURS: number[] = Array.from(
+  { length: LAST_START_HOUR - DAY_START_HOUR + 1 },
+  (_, index) => DAY_START_HOUR + index
+)
+export const START_MINUTES: number[] = [0, SLOT_MINUTES]
+
 export const DETAIL_MAX_LENGTH = 255
 
 /** Módulo que habilita la pestaña "Mi equipo". */

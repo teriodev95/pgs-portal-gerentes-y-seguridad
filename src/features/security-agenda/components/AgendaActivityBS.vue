@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { Check, ChevronDown, MapPin, MapPinCheck } from 'lucide-vue-next'
 import {
   DAY_END_HOUR,
@@ -8,14 +8,16 @@ import {
   DURATION_OPTIONS,
   PRIORITY_OPTIONS,
   PRIORITY_STYLE,
+  START_HOURS,
+  START_MINUTES,
   STATUS_STYLE,
   VISIT_ACTIVITY_TYPE
 } from '../constants'
 import {
   formatDuration,
+  formatHourLabel,
   formatTime,
   formatTimestampTime,
-  timeSlots,
   toHHMM,
   toMinutes
 } from '../utils/time'
@@ -109,8 +111,40 @@ function elegirTipo(event: MouseEvent) {
   tipoTrigger.value?.focus()
 }
 
-/** Las 22:00 cierran la jornada: después de ellas no cabe nada que empezar. */
-const startSlots = timeSlots().slice(0, -1)
+/**
+ * `horaInicio` sigue siendo la verdad; hora y minuto son dos vistas de ella.
+ * Escribir por separado evita el estado duplicado que habría que resincronizar.
+ */
+const horaSeleccionada = computed(() => Math.floor(toMinutes(horaInicio.value) / 60))
+const minutoSeleccionado = computed(() => toMinutes(horaInicio.value) % 60)
+
+function setHora(hour: number) {
+  horaInicio.value = toHHMM(hour * 60 + minutoSeleccionado.value)
+}
+
+function setMinuto(minute: number) {
+  horaInicio.value = toHHMM(horaSeleccionada.value * 60 + minute)
+}
+
+const horaRail = ref<HTMLElement>()
+
+/** Con dieciséis horas en el riel, la elegida puede quedar fuera de la vista. */
+async function centrarHora() {
+  await nextTick()
+  requestAnimationFrame(() => {
+    const rail = horaRail.value
+    const chip = rail?.querySelector<HTMLElement>('[data-selected="true"]')
+    if (!rail || !chip) return
+
+    rail.scrollLeft = chip.offsetLeft - (rail.clientWidth - chip.offsetWidth) / 2
+  })
+}
+
+// La hoja se monta al abrirse, así que el riel aparece después del `watch` de
+// `open`: centrar también cuando el elemento existe cubre las dos entradas.
+watch(horaRail, (rail) => {
+  if (rail) centrarHora()
+})
 
 /** El contrato sigue siendo `horaInicio`/`horaFin`; la duración sólo es cómo se captura. */
 const horaFin = computed(() => toHHMM(toMinutes(horaInicio.value) + duracion.value))
@@ -208,7 +242,10 @@ function reset() {
 watch(
   () => props.open,
   (open) => {
-    if (open) reset()
+    if (!open) return
+
+    reset()
+    centrarHora()
   },
   { immediate: true }
 )
@@ -355,20 +392,66 @@ function submit() {
           </div>
 
           <!--
-            Inicio sigue siendo un desplegable: son 32 horas y ése es su
-            control. El fin, en cambio, no se elige, se deduce: el backend cierra
-            la duración en pasos de media hora hasta dos, así que son cuatro
-            opciones y caben a la vista. Se piensa en "cuánto dura", que es como
-            se dice, y el rango que resulta se lee arriba, en la cabecera.
+            Inicio, partido en dos controles que caben a la vista: las 32 horas
+            en una sola lista obligaban a recorrerla hasta las 2:30 pm. La hora
+            va en un riel que se desliza y llega centrado en la elegida; los
+            minutos son dos, porque la media hora es la unidad real de
+            agendado. De ahí sale siempre un bloque que el backend acepta, que
+            es lo que una lista larga no garantizaba. El rango completo se lee
+            en la cabecera de la hoja.
           -->
-          <div class="space-y-1">
-            <LabelForm for="agenda-inicio">Inicio</LabelForm>
-            <InputSelect id="agenda-inicio" v-model="horaInicio">
-              <option v-for="slot in startSlots" :key="`inicio-${slot}`" :value="slot">
-                {{ formatTime(slot) }}
-              </option>
-            </InputSelect>
-          </div>
+          <fieldset>
+            <legend class="block text-sm font-medium text-gray-900 dark:text-white">Inicio</legend>
+
+            <div ref="horaRail" class="agenda-rail mt-1 flex snap-x gap-2 overflow-x-auto pb-1">
+              <label
+                v-for="hour in START_HOURS"
+                :key="hour"
+                :data-selected="hour === horaSeleccionada"
+                class="relative flex min-h-[44px] shrink-0 snap-center cursor-pointer items-center justify-center rounded-lg px-3 text-sm transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 motion-reduce:transition-none"
+                :class="
+                  hour === horaSeleccionada
+                    ? 'border-2 border-blue-700 font-semibold text-blue-800'
+                    : 'border border-gray-200 text-gray-700'
+                "
+              >
+                <input
+                  type="radio"
+                  name="agenda-hora"
+                  class="sr-only"
+                  :value="hour"
+                  :checked="hour === horaSeleccionada"
+                  @change="setHora(hour)"
+                />
+                {{ formatHourLabel(hour) }}
+              </label>
+            </div>
+
+            <div class="mt-2 grid grid-cols-2 gap-2">
+              <label
+                v-for="minute in START_MINUTES"
+                :key="minute"
+                class="relative flex min-h-[44px] cursor-pointer items-center justify-center rounded-lg text-sm transition-colors duration-200 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 motion-reduce:transition-none"
+                :class="
+                  minute === minutoSeleccionado
+                    ? 'border-2 border-blue-700 font-semibold text-blue-800'
+                    : 'border border-gray-200 text-gray-700'
+                "
+              >
+                <!-- ":00" se lee mal en voz alta: el nombre va aparte del rótulo. -->
+                <input
+                  type="radio"
+                  name="agenda-minuto"
+                  class="sr-only"
+                  :value="minute"
+                  :checked="minute === minutoSeleccionado"
+                  :aria-label="minute === 0 ? 'En punto' : 'Y media'"
+                  @change="setMinuto(minute)"
+                />
+                :{{ String(minute).padStart(2, '0') }}
+              </label>
+            </div>
+          </fieldset>
 
           <fieldset>
             <legend class="block text-sm font-medium text-gray-900 dark:text-white">
@@ -576,3 +659,15 @@ function submit() {
     </DrawerContent>
   </Drawer>
 </template>
+
+<style scoped>
+/* Los rieles se recorren con el dedo; la barra sólo estorbaría en 44px de alto.
+   El chip cortado en el borde ya avisa de que hay más. */
+.agenda-rail {
+  scrollbar-width: none;
+}
+
+.agenda-rail::-webkit-scrollbar {
+  display: none;
+}
+</style>
