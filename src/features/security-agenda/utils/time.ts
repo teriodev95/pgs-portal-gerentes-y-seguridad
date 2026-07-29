@@ -157,11 +157,3 @@ export function nextSlot(duration: number): string {
   return toHHMM(clampToDay(rounded, duration))
 }
 
-/** Opciones del selector de horario, en bloques de 30 min. */
-export function timeSlots(): string[] {
-  const slots: string[] = []
-  for (let minutes = DAY_START_HOUR * 60; minutes <= DAY_END_HOUR * 60; minutes += SLOT_MINUTES) {
-    slots.push(toHHMM(minutes))
-  }
-  return slots
-}
