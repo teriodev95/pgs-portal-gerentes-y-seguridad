@@ -509,7 +509,8 @@ function submit() {
               -->
               <div v-if="modo === 'ver' && activity" class="min-h-full bg-slate-50">
                 <div class="border-b border-gray-200 bg-white">
-                  <AgendaActivityDetail :activity="activity" />
+                  <!-- Hoja con sesión: aquí sí va el contacto del agente. -->
+                  <AgendaActivityDetail :activity="activity" show-agent-contact />
 
                   <div v-if="puedeRegistrar" class="border-t border-gray-200 px-4 py-6">
                     <BtnComponent

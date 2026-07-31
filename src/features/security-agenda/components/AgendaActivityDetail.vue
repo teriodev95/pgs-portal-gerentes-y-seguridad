@@ -5,11 +5,22 @@ import { PRIORITY_STYLE, STATUS_STYLE } from '../constants'
 import { formatTimestampTime } from '../utils/time'
 import type { AgendaActivity } from '../types'
 
+// Components
+import AgendaAgentContact from './AgendaAgentContact.vue'
+
 interface Props {
   activity: AgendaActivity
+  /**
+   * El contacto del agente trae su celular personal, y esta ficha se lee con
+   * sesión. Va apagado por defecto a propósito: quien la reutilice tiene que
+   * encenderlo a mano, y así ninguna vista pública lo hereda por descuido —que
+   * es justo como el nombre del cliente terminó en un enlace que circula por
+   * WhatsApp—.
+   */
+  showAgentContact?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), { showAgentContact: false })
 
 const statusStyle = computed(() => STATUS_STYLE[props.activity.status])
 const priorityStyle = computed(() => PRIORITY_STYLE[props.activity.prioridad])
@@ -82,6 +93,15 @@ const rastro = computed(() => {
         <dd class="text-sm font-medium text-gray-900">{{ lugar }}</dd>
       </div>
     </dl>
+
+    <!--
+      A quién llamar en ese lugar, pegado al lugar. Un traslado no tiene agencia
+      y por tanto no tiene a quién llamar: ahí no se pinta nada, ni el hueco.
+    -->
+    <AgendaAgentContact
+      v-if="showAgentContact && activity.agencia"
+      :agencia-id="activity.agencia"
+    />
 
     <div v-if="tieneTexto" class="space-y-5 px-4 py-6">
       <div v-if="activity.detalle" class="space-y-1">
