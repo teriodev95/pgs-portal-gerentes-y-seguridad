@@ -103,6 +103,15 @@ const canRegisterVisit = computed(() => !isTeamDetail.value)
  * día la franja seguiría en pantalla con la lista anterior hasta que llegara la
  * respuesta, y agregar desde ahí crearía el bloque en el día equivocado.
  */
+/**
+ * Enviada la agenda, el auditor ya no la mueve: lo que mandó antes del corte es
+ * a lo que se comprometió, y corregirlo después vaciaría de sentido la hora
+ * límite. El jefe sí puede, porque es quien responde por lo que reportó su
+ * gente —sobre su propia agenda y sobre la de sus auditores—, y el módulo de
+ * equipo es justo lo que lo distingue de un auditor.
+ */
+const canEditActivity = computed(() => !isSent.value || team.hasTeamModule.value)
+
 const canReconcileVisits = computed(() => canRegisterVisit.value && isToday(fecha.value))
 const visits = useAgendaVisits(fecha, canReconcileVisits)
 
@@ -476,6 +485,7 @@ function goBack() {
     :scope="scope"
     :day-activities="activities"
     :can-register-visit="canRegisterVisit"
+    :can-edit="canEditActivity"
     :saving="saving"
     @close="sheetOpen = false"
     @save="handleSave"
