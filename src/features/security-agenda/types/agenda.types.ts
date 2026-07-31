@@ -144,6 +144,20 @@ export interface AgendaPublic {
   actividades: AgendaPublicActivity[]
 }
 
+/**
+ * Agente de seguridad asignado a la agencia donde ocurre la actividad
+ * (`GET /agencias/:agenciaId/contacto`). La respuesta es `null` cuando la plaza
+ * está vacante, y eso no es un caso de borde: 120 de las 406 agencias no tienen
+ * agente. Se muestra como un hecho, nunca como un error.
+ *
+ * Nunca viaja al enlace público: es el teléfono personal de una persona.
+ */
+export interface AgendaAgencyContact {
+  nombre: string
+  usuario: string
+  celular: string
+}
+
 export interface AgendaShareLink {
   token: string
   url: string

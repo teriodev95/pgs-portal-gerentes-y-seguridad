@@ -5,6 +5,7 @@ import type {
   AgendaActivityChanges,
   AgendaActivityPayload,
   AgendaActivityType,
+  AgendaAgencyContact,
   AgendaPublic,
   AgendaScope,
   AgendaSendResult,
@@ -38,6 +39,22 @@ class SecurityAgendaService {
   async getScope(): Promise<AgendaScope> {
     const { data } = await this.apiClient.get<ApiEnvelope<AgendaScope>>(`${this.base}/mi-ambito`)
     return data.data
+  }
+
+  /**
+   * Agente asignado a una agencia. `null` es respuesta válida —la plaza está
+   * vacante— y no un fallo: quien llama distingue eso de un error de red.
+   * Va con sesión, como el resto del prefijo salvo `/publica/:token`.
+   */
+  async getAgencyContact(agenciaId: string): Promise<AgendaAgencyContact | null> {
+    const { data } = await this.apiClient.get<ApiEnvelope<AgendaAgencyContact | null>>(
+      `${this.base}/agencias/${encodeURIComponent(agenciaId)}/contacto`
+    )
+    // Aquí `null` significa "agencia vacante" y se muestra como tal, así que un
+    // cuerpo sin éxito no puede colarse como ausencia de agente: se levanta y la
+    // tarjeta desaparece, que es lo que corresponde a un fallo.
+    if (!data.success) throw new Error('No pudimos leer el contacto de la agencia')
+    return data.data ?? null
   }
 
   async getTeam(fecha: string): Promise<AgendaTeamMember[]> {
