@@ -108,7 +108,36 @@
   }
 
   .tertiary-text {
-    @apply text-xs font-light text-gray-400 
+    @apply text-xs font-light text-gray-400
+  }
+
+  /* Riel horizontal de chips. Se recorre con el dedo, así que la barra de
+     scroll sólo robaría alto, y los bordes se desvanecen para que el chip a
+     medias se lea como "hay más" y no como un recorte.
+     El relleno vertical es el que pide la sombra del chip: `overflow-x`
+     también recorta arriba y abajo. El derecho es más ancho que el izquierdo
+     para que, al llegar al final, el último chip quede fuera del degradado. */
+  .chip-rail {
+    @apply flex overflow-x-auto py-3 pl-2 pr-6;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 0.5rem,
+      #000 calc(100% - 1.5rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 0.5rem,
+      #000 calc(100% - 1.5rem),
+      transparent 100%
+    );
+  }
+
+  .chip-rail::-webkit-scrollbar {
+    display: none;
   }
 
 }

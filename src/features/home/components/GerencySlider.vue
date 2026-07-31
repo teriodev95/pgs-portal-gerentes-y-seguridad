@@ -60,13 +60,15 @@ async function selectManagement(managementId: string, navigateToDashboard = fals
 </script>
 
 <template>
-  <ul class="text-md relative flex space-x-2 overflow-y-hidden overflow-x-scroll p-2">
+  <!-- `min-w-0` porque el riel comparte renglón con el botón del menú: sin él
+       el ancho de todas las gerencias empujaría la fila fuera de la pantalla. -->
+  <ul class="chip-rail min-w-0 space-x-2">
     <li v-for="(management, index) in gerencias" :key="`management-${index}`" class="flex-shrink-0">
       <div class="flex flex-shrink-0 items-center gap-1">
         <!-- Management name and manager -->
         <button @click="() => selectManagement(management.gerencia)" :class="[
           management.gerencia === selectedManagement ? 'bg-slate-700 text-white' : 'bg-white',
-          'flex cursor-pointer flex-col rounded-xl border px-4 py-1.5 text-[0.8rem] shadow-lg'
+          'flex cursor-pointer flex-col rounded-xl border px-4 py-1.5 text-[0.8rem] shadow-md'
         ]" :aria-label="`Seleccionar gerencia ${management.gerencia}`">
           <span>{{ management.gerencia }}</span>
           <span class="flex-auto text-[0.4rem]">{{ formatManagerName(management.gerente) }}</span>
@@ -75,7 +77,7 @@ async function selectManagement(managementId: string, navigateToDashboard = fals
         <!-- Details button -->
         <button @click="() => selectManagement(management.gerencia, true)" :class="[
           management.gerencia === selectedManagement ? 'bg-slate-700 text-white' : 'bg-white',
-          'flex cursor-pointer gap-2 rounded-xl border px-4 py-2 shadow-lg'
+          'flex cursor-pointer gap-2 rounded-xl border px-4 py-2 shadow-md'
         ]" aria-label="Ver detalles de la gerencia">
           <IconInfo class="h-6 w-6" />
         </button>
