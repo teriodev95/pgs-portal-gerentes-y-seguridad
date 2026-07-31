@@ -150,7 +150,7 @@ onMounted(async () => {
   team.checkTeamModule()
   await load()
   visits.loadPending()
-  scrollToNow()
+  scrollToNow(false)
 })
 
 watch(fecha, async () => {
@@ -165,14 +165,14 @@ watch(tab, (value) => {
 })
 
 /** Deja la línea del ahora a ~1/3 de la pantalla al abrir la vista. */
-async function scrollToNow() {
+async function scrollToNow(smooth = true) {
   await nextTick()
   const element = timeline.value?.nowElement
   if (!element) return
 
   const top = element.getBoundingClientRect().top + window.scrollY - window.innerHeight / 3
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion ? 'auto' : 'smooth' })
+  window.scrollTo({ top: Math.max(0, top), behavior: smooth && !reduceMotion ? 'smooth' : 'auto' })
 }
 
 function setFecha(value: string) {
@@ -404,7 +404,7 @@ function goBack() {
 
         <AgendaTimelineSkeleton v-else-if="loading" />
 
-        <template v-else>
+        <div v-else class="agenda-enter space-y-3">
           <EmptyCT
             v-if="isEmpty"
             compact
@@ -421,7 +421,7 @@ function goBack() {
             @register-visit="openRegisterVisit"
             @expand="(position) => (position === 'leading' ? expandLeading() : expandTrailing())"
           />
-        </template>
+        </div>
       </TabsContent>
 
       <!-- Mi equipo -->
@@ -536,9 +536,26 @@ function goBack() {
   transition: width 250ms ease;
 }
 
+.agenda-enter {
+  animation: agenda-enter 200ms ease-out;
+}
+
+@keyframes agenda-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .agenda-progress {
     transition: none;
+  }
+
+  .agenda-enter {
+    animation: none;
   }
 }
 </style>
