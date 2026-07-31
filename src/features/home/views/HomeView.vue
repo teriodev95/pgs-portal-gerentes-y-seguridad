@@ -72,8 +72,10 @@ onMounted(() => {
   <DrawerLeftMenu v-model:open="isDrawerOpen" />
 
   <MainCT>
-    <!-- Top Navigation Bar -->
-    <div class="sticky top-0 z-10 w-full bg-white p-2">
+    <!-- Top Navigation Bar. Comparte el gris de la hoja: en blanco se leía como
+         una tercera superficie contra la lista y contra la barra de abajo. La
+         separación la da la línea, no el color. -->
+    <div class="sticky top-0 z-10 w-full border-b border-slate-200 bg-slate-100 px-2 pb-2 pt-1">
       <!-- Gerency Selector Area -->
       <div class="flex items-center gap-2">
         <!-- Drawer button Menu -->
@@ -103,10 +105,12 @@ onMounted(() => {
 
     <!-- Main Content Area -->
     <template v-if="filteredCollections.length">
-      <div class="mt-4 px-2 pb-[10rem]">
+      <!-- El relleno de abajo libra la barra de agencias y la fila de FABs, que
+           flotan sobre la lista. -->
+      <div class="mt-4 px-2 pb-[11rem]">
         <PaymentWidget v-for="(collection, index) in filteredCollections"
           :key="`collection-${index}-${collection.prestamoId}`" :cobranza="collection"
-          class="cursor-pointer hover:bg-slate-100" @click="() => navigateToLoanDetails(collection.prestamoId)" />
+          class="cursor-pointer hover:bg-slate-200" @click="() => navigateToLoanDetails(collection.prestamoId)" />
       </div>
     </template>
 
@@ -124,9 +128,14 @@ onMounted(() => {
   <HomeMenu />
 
   <!-- Bottom Navigation -->
-  <div class="fixed bottom-0 z-10 w-full bg-white">
+  <div class="fixed bottom-0 z-10 w-full bg-slate-100">
+    <!-- La lista se disuelve al entrar bajo la barra. Sin esto el último
+         renglón visible quedaba partido a la mitad y se leía como un error de
+         dibujo, no como contenido que sigue abajo. -->
+    <div class="pointer-events-none absolute bottom-full h-6 w-full bg-gradient-to-t from-slate-100" aria-hidden="true" />
+
     <!-- Agency Selector -->
-    <div class="p-2">
+    <div class="px-2 py-1">
       <AgencySlider :agencies="agencies" :can-select="isAgencySelectEnabled" @select-agency="onAgencySelection" />
     </div>
 
@@ -136,16 +145,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-ul::-webkit-scrollbar {
-  display: none;
-}
-
-.element {
-  position: absolute;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-}
-</style>

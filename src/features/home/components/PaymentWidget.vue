@@ -28,7 +28,7 @@ const iconStyle = computed(() => {
 </script>
 
 <template>
-  <div class="flex gap-2 border-b-2 py-1">
+  <div class="flex gap-2 border-b border-slate-200 py-1">
     <!-- Icon -->
     <div class="flex-none">
       <CheckIcon class="h-6 w-6" :class="iconStyle" />
