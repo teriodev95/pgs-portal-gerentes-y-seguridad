@@ -64,12 +64,64 @@ export function useAssignmentForm() {
     const name = recipientUser.value.nombre;
 
     return `${name} tiene ${hasMultiple ? 'más de' : ''} una gerencia asignada. ${
-      hasMultiple ? 'Selecciona la gerencia con la que estás entregando la asignación.' : ''
+      hasMultiple ? 'Selecciona la gerencia en la que se registra lo que recibe.' : ''
     }`;
   });
 
   const shouldShowImpactSelector = computed<boolean>(
     () => senderUser.value?.tipo === 'Seguridad' && recipientUser.value?.tipo === 'Gerente'
+  );
+
+  /**
+   * Gerencias que el receptor tiene a cargo.
+   *
+   * Un auditor o un regional puede quedar como encargado de una gerencia
+   * cuando la cubre, y entonces aparece aqui igual que un gerente. Solo puede
+   * haber una persona a cargo de cada gerencia, nunca dos.
+   */
+  const recipientManagements = computed<string[]>(
+    () => recipientUser.value?.gerenciasACargo?.map((gerencia) => gerencia.gerenciaid) ?? []
+  );
+
+  /**
+   * ¿La entrega proviene de la propia gerencia del receptor?
+   *
+   * Solo es asi cuando quien entrega es un AGENTE de una agencia de esa
+   * gerencia. Si entrega un gerente, un auditor o un regional, viene de otra
+   * gerencia por definicion: la persona a cargo es una sola, de modo que
+   * quien entrega no puede pertenecer a la gerencia que el receptor cubre.
+   */
+  const isDeliveryFromRecipientManagement = computed<boolean>(() => {
+    const sender = senderUser.value;
+    if (!sender || sender.tipo !== 'Agente') return false;
+    if (!sender.gerencia) return false;
+    return recipientManagements.value.includes(sender.gerencia);
+  });
+
+  /**
+   * Gerencia a la que se carga lo recibido.
+   *
+   * Es el corazon del asunto: quien cubre una gerencia recoge dinero en dos
+   * calidades distintas y hasta ahora todo se cargaba a su gerencia.
+   *
+   *   - cobra de un agente de SU gerencia  -> se carga a esa gerencia
+   *   - recoge de otro gerente o auditor   -> lo recoge COMO AUDITOR, y no
+   *                                           debe tocar el cierre de su
+   *                                           gerencia: se registra sin ella
+   *
+   * No se le pregunta al usuario porque no hace falta: quien entrega ya dice
+   * de que gerencia viene el dinero, y preguntarlo abriria la puerta a
+   * cargarlo mal por descuido.
+   */
+  const recipientManagementToCharge = computed<string>(() => {
+    if (!recipientManagements.value.length) return '';
+    if (!isDeliveryFromRecipientManagement.value) return '';
+    return selectedManagementRecipient.value;
+  });
+
+  /** El receptor solo elige gerencia cuando la entrega es de las suyas. */
+  const shouldShowRecipientSelector = computed<boolean>(
+    () => recipientManagements.value.length > 0 && isDeliveryFromRecipientManagement.value
   );
 
   const isSlideUnlockDisabled = computed(() => {
@@ -80,7 +132,10 @@ export function useAssignmentForm() {
     const senderManagementValidation = hasSenderMultipleManagements.value &&
       !selectedManagementSender.value;
 
-    const recipientManagementValidation = hasRecipientMultipleManagements.value &&
+    // Solo se exige elegir gerencia cuando hay algo que elegir: si la entrega
+    // no viene de la gerencia del receptor, el selector ni se muestra.
+    const recipientManagementValidation = shouldShowRecipientSelector.value &&
+      hasRecipientMultipleManagements.value &&
       !selectedManagementRecipient.value;
 
     const impactSelectorValidation = shouldShowImpactSelector.value &&
@@ -186,7 +241,7 @@ export function useAssignmentForm() {
     return {
       anio: $store.currentDate.year,
       gerenciaEntrega: senderUser.value?.gerenciasACargo.length ? selectedManagementSender.value : '',
-      gerenciaRecibe: recipientUser.value?.gerenciasACargo.length ? selectedManagementRecipient.value : '',
+      gerenciaRecibe: recipientManagementToCharge.value,
       monto: amount.value,
       quienEntrego: senderUser.value?.usuarioid || 0,
       quienRecibio: recipientUser.value?.usuarioid || 0,
@@ -247,6 +302,9 @@ export function useAssignmentForm() {
     recipientSelectorText,
     isSlideUnlockDisabled,
     shouldShowImpactSelector,
+    shouldShowRecipientSelector,
+    isDeliveryFromRecipientManagement,
+    recipientManagements,
 
     // Methods - Validation
     validateSenderPin,

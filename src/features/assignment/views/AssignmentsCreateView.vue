@@ -44,6 +44,9 @@ const {
   recipientSelectorText,
   isSlideUnlockDisabled,
   shouldShowImpactSelector,
+  shouldShowRecipientSelector,
+  isDeliveryFromRecipientManagement,
+  recipientManagements,
 
   // Methods
   validateSenderPin,
@@ -111,10 +114,29 @@ function handleBack() {
           @validate="validateRecipientPin"
         />
 
-        <!-- Selector de gerencia para destinatario (si aplica) -->
-        <OptionSelector v-if="recipientUser && recipientUser.gerenciasACargo.length" type="recipient"
-          :options="recipientUser!.gerenciasACargo.map(gerencia => gerencia.gerenciaid)" :text="recipientSelectorText"
+        <!--
+          Selector de gerencia para quien recibe.
+
+          Solo aparece cuando el dinero viene de un agente de su propia
+          gerencia. Si lo entrega otro gerente o auditor, quien recibe lo esta
+          recogiendo COMO AUDITOR y la asignacion no debe cargarse a la
+          gerencia que cubre: antes se autoseleccionaba siempre y todo
+          terminaba en su cierre.
+        -->
+        <OptionSelector v-if="shouldShowRecipientSelector" type="recipient"
+          :options="recipientManagements" :text="recipientSelectorText"
           v-model:model-value="selectedManagementRecipient" />
+
+        <!-- Deja ver a que se va a cargar antes de guardar. -->
+        <div v-if="recipientUser && recipientManagements.length" class="px-5">
+          <p v-if="isDeliveryFromRecipientManagement" class="text-xs text-gray-500">
+            Se registra en <span class="font-semibold">{{ selectedManagementRecipient }}</span>.
+          </p>
+          <p v-else class="text-xs text-gray-500">
+            {{ recipientUser.nombre }} lo recibe <span class="font-semibold">como auditor</span>,
+            asi que no se carga a {{ recipientManagements.join(', ') }}.
+          </p>
+        </div>
 
         <!-- Selector de impacto en cierre (solo para Seguridad -> Gerente) -->
         <ImpactSelector
