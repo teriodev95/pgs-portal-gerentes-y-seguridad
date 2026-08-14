@@ -72,6 +72,29 @@ export function useAssignmentForm() {
     () => senderUser.value?.tipo === 'Seguridad' && recipientUser.value?.tipo === 'Gerente'
   );
 
+  /**
+   * A qué gerencia va a entrar el dinero, para mostrarlo antes de guardar.
+   *
+   * La decisión la toma el backend (FAX, resolver_gerencia_recibe): un auditor
+   * o un regional que cubre una gerencia sólo carga a ella lo que viene de un
+   * agente de esa misma gerencia o de administración. Lo que recoge de otro
+   * gerente o de otro auditor lo recoge COMO AUDITOR y no toca ese cierre.
+   *
+   * Aquí se repite el criterio únicamente para que quien captura vea la
+   * consecuencia; la fuente de verdad sigue siendo el backend.
+   */
+  const ADMINISTRACION = ['Administrativo', 'CallCenter', 'Oficina', 'Sistemas', 'Jefe de Admin'];
+
+  const recibeComoAuditor = computed<boolean>(() => {
+    const receptor = recipientUser.value;
+    const emisor = senderUser.value;
+    if (!receptor || !emisor) return false;
+    if (!['Seguridad', 'Regional'].includes(receptor.tipo)) return false;
+    if (!receptor.gerenciasACargo?.length) return false;
+    if (ADMINISTRACION.includes(emisor.tipo)) return false;
+    return !(emisor.tipo === 'Agente' && emisor.gerencia === selectedManagementRecipient.value);
+  });
+
   const isSlideUnlockDisabled = computed(() => {
     const basicValidation = senderStatus.value !== 'success' ||
       recipientStatus.value !== 'success' ||
@@ -247,6 +270,7 @@ export function useAssignmentForm() {
     recipientSelectorText,
     isSlideUnlockDisabled,
     shouldShowImpactSelector,
+    recibeComoAuditor,
 
     // Methods - Validation
     validateSenderPin,

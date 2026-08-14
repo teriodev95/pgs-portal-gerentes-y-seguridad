@@ -44,6 +44,7 @@ const {
   recipientSelectorText,
   isSlideUnlockDisabled,
   shouldShowImpactSelector,
+  recibeComoAuditor,
 
   // Methods
   validateSenderPin,
@@ -115,6 +116,12 @@ function handleBack() {
         <OptionSelector v-if="recipientUser && recipientUser.gerenciasACargo.length" type="recipient"
           :options="recipientUser!.gerenciasACargo.map(gerencia => gerencia.gerenciaid)" :text="recipientSelectorText"
           v-model:model-value="selectedManagementRecipient" />
+
+        <!-- Deja ver a qué cierre entra el dinero antes de deslizar Guardar. -->
+        <p v-if="recibeComoAuditor" class="px-5 text-xs text-gray-500">
+          {{ recipientUser?.nombre }} lo recibe <span class="font-semibold">como auditor</span>:
+          no se carga a {{ selectedManagementRecipient }}.
+        </p>
 
         <!-- Selector de impacto en cierre (solo para Seguridad -> Gerente) -->
         <ImpactSelector
