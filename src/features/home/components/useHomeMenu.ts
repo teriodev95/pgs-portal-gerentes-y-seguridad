@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { useStore } from '@/shared/stores'
 import { getDateTime2 } from '@/shared/utils'
 import { useAgendaAccess } from '@/features/security-agenda/composables/useAgendaAccess'
+import { AGENDA_RELEASED } from '@/features/security-agenda/constants'
 import { ROUTE_NAME } from '@/router'
 
 // Lucide Icons
@@ -223,7 +224,9 @@ export function useHomeMenu() {
       title: 'Agenda',
       icon: CalendarCheck,
       route: ROUTE_NAME.SECURITY_AGENDA,
-      disabled: !canUseAgenda.value,
+      // El permiso se conserva junto a la autorizacion pendiente: cuando la
+      // agenda se publique, la tarjeta vuelve a depender solo de quien mira.
+      disabled: !AGENDA_RELEASED || !canUseAgenda.value,
       description: 'Agenda del día'
     },
     {

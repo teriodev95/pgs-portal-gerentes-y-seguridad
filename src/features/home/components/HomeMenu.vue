@@ -8,6 +8,7 @@ import {
 
 // Components
 import AgendaFab from '@/features/security-agenda/components/AgendaFab.vue'
+import { AGENDA_RELEASED } from '@/features/security-agenda/constants'
 import FloatBtn from '@/shared/components/FloatBtn.vue'
 
 // Interface - Props - Emits
@@ -130,7 +131,11 @@ const {
   <div data-dial-init class="fixed bottom-[6rem] right-6 z-40 flex items-center gap-4">
     <FloatBtn v-if="!isLoading && agency" @click="openAgencyActions" type="secondary" :text="agency" />
 
-    <AgendaFab />
+    <!-- Se esconde desde aquí y no con un `v-if` dentro del propio botón: sin
+         montarse no corre su `watch`, que al abrir el Home consulta la agenda
+         del día. Un módulo que todavía no se ofrece tampoco debe estar
+         pegándole a su endpoint. -->
+    <AgendaFab v-if="AGENDA_RELEASED" />
 
     <FloatBtn v-if="!isLoading && agency" @click="openGeneralActions" type="primary" />
     <!-- Sin el primario hay que dejar su hueco: si no, la agenda se va a la esquina. -->

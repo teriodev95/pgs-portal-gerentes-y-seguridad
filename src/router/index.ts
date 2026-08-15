@@ -1,4 +1,4 @@
-import { AuthGuard, CashReportGuard } from './guard'
+import { AgendaGuard, AuthGuard, CashReportGuard } from './guard'
 import { createRouter, createWebHistory } from 'vue-router'
 import { ROUTE_NAME } from './names'
 // Pages
@@ -214,6 +214,7 @@ const router = createRouter({
         {
           path: 'agenda',
           name: ROUTE_NAME.SECURITY_AGENDA,
+          beforeEnter: AgendaGuard,
           component: () => import('@/features/security-agenda/views/SecurityAgendaView.vue')
         }
       ]

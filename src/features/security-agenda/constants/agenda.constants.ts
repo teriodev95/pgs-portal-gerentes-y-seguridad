@@ -70,6 +70,20 @@ export const DETAIL_MAX_LENGTH = 255
 /** Módulo que habilita la pestaña "Mi equipo". */
 export const TEAM_MODULE = 'agenda-equipo'
 
+/**
+ * La agenda todavía no está autorizada, así que PGS no la ofrece: se esconden
+ * sus dos entradas y la ruta no se puede alcanzar ni escribiéndola.
+ *
+ * Es una pregunta distinta de `canUseAgenda`, que responde si un usuario tiene
+ * permiso. Ésta responde si la agenda ya se publica, y no depende de quién
+ * mire. Van separadas a propósito: mezclarlas apagaría también el "Agendar
+ * visita" del call center, que usa la capacidad de la agenda sin ofrecer entrar
+ * a ella, y ése sigue funcionando.
+ *
+ * Cuando la autoricen, esto pasa a `true` y no hay nada más que tocar.
+ */
+export const AGENDA_RELEASED = false
+
 /** Tipo de actividad que se liga con una visita del call center. */
 export const VISIT_ACTIVITY_TYPE = 'VISITA_CALL_CENTER'
 
