@@ -43,6 +43,10 @@ const firstName = computed(() => {
  * monto suelto no dice dónde buscar, y con el reparto quien contesta ya sabe si
  * el bulto lo trae él o está repartido en calle. Sin nombre el saludo se queda
  * corto en vez de estampar "Responsable sin nombre".
+ *
+ * El reparto se le dice de tú —"traes"— porque el mensaje llega al teléfono del
+ * responsable de esa gerencia, que es quien carga ese efectivo. Decir "con el
+ * gerente" era hablarle de él en tercera persona.
  */
 const whatsappMessage = computed(() => {
   const contact = props.contact
@@ -52,10 +56,10 @@ const whatsappMessage = computed(() => {
   const desglose = contact.desglose
 
   const cifras = desglose
-    ? `Me salen ${formatCurrency(desglose.total)} en campo: ${formatCurrency(desglose.conGerente)} con el gerente y ${formatCurrency(desglose.conAgentes)} con los agentes.`
+    ? `Me salen ${formatCurrency(desglose.total)} en campo: traes ${formatCurrency(desglose.conGerente)} y los agentes ${formatCurrency(desglose.conAgentes)}.`
     : `Me salen ${formatCurrency(contact.monto)} en campo.`
 
-  return `${saludo}¿me ayudas a revisar el efectivo de ${contact.gerencia}? ${cifras}`
+  return `${saludo}¿me ayudas a revisar el flujo de efectivo de ${contact.gerencia}? ${cifras}`
 })
 </script>
 
