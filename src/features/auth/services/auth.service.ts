@@ -19,6 +19,8 @@ class AuthService {
       puedeCobrar: data.Puede_cobrar,
       puedeVerificarAsignaciones: data.Puede_verificar_asignaciones,
       status: data.Status,
+      sucursales: Array.isArray(data.sucursales) ? data.sucursales : [],
+      plataformas: data.plataformas ?? {},
       telegramId: data.Telegram_id,
       tipo: data.Tipo,
       updatedAt: data.Updated_at,

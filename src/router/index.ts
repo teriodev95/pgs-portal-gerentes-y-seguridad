@@ -1,4 +1,4 @@
-import { AuthGuard } from './guard'
+import { AuthGuard, CashReportGuard } from './guard'
 import { createRouter, createWebHistory } from 'vue-router'
 import { ROUTE_NAME } from './names'
 // Pages
@@ -147,6 +147,12 @@ const router = createRouter({
           path: 'cash-flow',
           name: ROUTE_NAME.DASHBOARD_CASH_FLOW,
           component: () => import('@/features/cash-flow/views/CashFlowView.vue')
+        },
+        {
+          path: 'reporte-efectivo',
+          name: ROUTE_NAME.CASH_REPORT,
+          beforeEnter: CashReportGuard,
+          component: () => import('@/features/cash-report/views/CashReportView.vue')
         },
         {
           path: 'incident',

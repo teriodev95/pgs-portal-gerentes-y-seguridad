@@ -30,7 +30,9 @@ import {
   Book,
   Calendar,
   CalendarCheck,
+  Banknote,
 } from 'lucide-vue-next'
+import { hasCashReportPermission } from '@/features/cash-report/cash-report.constants'
 
 /**
  * Tipos para el menú
@@ -143,6 +145,14 @@ export function useHomeMenu() {
       icon: TrendingUp,
       route: ROUTE_NAME.DASHBOARD_CASH_FLOW,
       description: 'Efectivo'
+    },
+    {
+      id: 'reporte-efectivo',
+      title: 'Efectivo general',
+      icon: Banknote,
+      route: ROUTE_NAME.CASH_REPORT,
+      disabled: !hasCashReportPermission($store.user),
+      description: 'Por sucursal'
     },
     {
       id: 'detalles',

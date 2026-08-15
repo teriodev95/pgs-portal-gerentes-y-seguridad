@@ -11,6 +11,8 @@ export interface IUser {
   puedeCobrar: boolean
   puedeVerificarAsignaciones: boolean
   status: boolean
+  sucursales: string[]
+  plataformas: Record<string, string[]>
   telegramId?: string
   tipo: IUserType
   updatedAt: string
@@ -32,6 +34,7 @@ export interface IUserElysia {
   Puede_verificar_asignaciones: boolean;
   Status: boolean;
   sucursales: string[];
+  plataformas?: Record<string, string[]>;
   Telegram_id: string;
   Tipo: string;
   token: string;
@@ -45,4 +48,4 @@ export interface IAuthLogin {
   pin: string
 }
 
-export type IUserType = 'Seguridad' | 'Regional' | 'Gerente' | string; 
+export type IUserType = 'Seguridad' | 'Regional' | 'Gerente' | string;

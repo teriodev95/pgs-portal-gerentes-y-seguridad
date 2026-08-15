@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { MessageCircle, Phone } from 'lucide-vue-next'
 import { securityAgendaService } from '../services/agenda.service'
-import { formatPhone, isDialable, telHref, whatsappHref } from '../utils/phone'
+import { formatPhone, isDialable, telHref, whatsappHref } from '@/shared/utils/phone'
 import type { AgendaAgencyContact } from '../types'
 
 interface Props {
