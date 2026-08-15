@@ -41,11 +41,14 @@ function alertCount(point: HourlyCashPoint) {
 }
 
 function contact(management: HourlyManagementCash, concept: string, amount: number) {
+  const { total, conGerente, conAgentes } = management.efectivo
+
   emit('contact', {
     gerencia: management.gerencia,
     responsable: management.responsable,
     concepto: concept,
-    monto: amount
+    monto: amount,
+    desglose: { total, conGerente, conAgentes }
   })
 }
 

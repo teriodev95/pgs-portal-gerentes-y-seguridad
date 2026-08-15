@@ -23,9 +23,39 @@ const phone = computed(() => props.contact?.responsable.telefono ?? null)
 const canContact = computed(() => isDialable(phone.value))
 const managerName = computed(() => props.contact?.responsable.nombre || 'Responsable sin nombre')
 const displayPhone = computed(() => formatPhone(phone.value) || 'Sin teléfono registrado')
+/**
+ * Sólo el primer nombre y con mayúscula inicial. En la base viven en altas, así
+ * que saludar con `nombre` tal cual gritaba el nombre completo y delataba que
+ * el texto lo armó un sistema. La hoja sigue mostrando el nombre entero: ahí sí
+ * hay que identificar bien a quién se va a marcar.
+ */
+const firstName = computed(() => {
+  const [first] = (props.contact?.responsable.nombre ?? '').trim().split(/\s+/)
+  if (!first) return ''
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase()
+})
+
+/**
+ * El mensaje va en primera persona y sin nombrar el reporte: quien lo recibe
+ * necesita saber qué revisar, no de dónde salió el dato.
+ *
+ * Las cifras son las de la gerencia, no las del aviso que abrió la hoja: un
+ * monto suelto no dice dónde buscar, y con el reparto quien contesta ya sabe si
+ * el bulto lo trae él o está repartido en calle. Sin nombre el saludo se queda
+ * corto en vez de estampar "Responsable sin nombre".
+ */
 const whatsappMessage = computed(() => {
-  if (!props.contact) return ''
-  return `Hola ${managerName.value}, el reporte de efectivo de ${props.contact.gerencia} muestra ${formatCurrency(props.contact.monto)} en ${props.contact.concepto.toLowerCase()}. ¿Nos ayudas a revisarlo?`
+  const contact = props.contact
+  if (!contact) return ''
+
+  const saludo = firstName.value ? `Hola ${firstName.value}, ` : 'Hola, '
+  const desglose = contact.desglose
+
+  const cifras = desglose
+    ? `Me salen ${formatCurrency(desglose.total)} en campo: ${formatCurrency(desglose.conGerente)} con el gerente y ${formatCurrency(desglose.conAgentes)} con los agentes.`
+    : `Me salen ${formatCurrency(contact.monto)} en campo.`
+
+  return `${saludo}¿me ayudas a revisar el efectivo de ${contact.gerencia}? ${cifras}`
 })
 </script>
 

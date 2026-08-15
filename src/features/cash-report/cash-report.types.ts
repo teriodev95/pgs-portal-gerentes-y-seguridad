@@ -161,4 +161,15 @@ export interface CashContactContext {
   responsable: CashResponsible
   concepto: string
   monto: number
+  /**
+   * Reparto del efectivo de la gerencia. Va aparte de `monto` porque ése es lo
+   * que disparó el aviso —puede ser una sola agencia— y el mensaje necesita el
+   * cuadro completo: sin él sólo se puede decir un número suelto, y quien lo
+   * recibe no sabe dónde buscarlo.
+   */
+  desglose?: {
+    total: number
+    conGerente: number
+    conAgentes: number
+  }
 }

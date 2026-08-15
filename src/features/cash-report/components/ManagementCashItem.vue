@@ -41,11 +41,14 @@ const cardAlert = computed(() => {
 })
 
 function contact(concept: string, amount: number) {
+  const { total, conGerente, conAgentes } = props.management.efectivo
+
   emit('contact', {
     gerencia: props.management.gerencia,
     responsable: props.management.responsable,
     concepto: concept,
-    monto: amount
+    monto: amount,
+    desglose: { total, conGerente, conAgentes }
   })
 }
 </script>
