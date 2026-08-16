@@ -72,7 +72,7 @@ function onSelectHour(hour: number) {
   <div class="space-y-4">
     <!-- Top Summary Metrics -->
     <section
-      class="grid grid-cols-2 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs sm:p-5"
+      class="grid grid-cols-2 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5"
       aria-label="Resumen de la evolución de hoy"
     >
       <div>
@@ -113,7 +113,7 @@ function onSelectHour(hour: number) {
         v-for="point in hoursNewestFirst"
         :id="`hour-snapshot-${point.hora}`"
         :key="point.hora"
-        class="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs"
+        class="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm"
         :open="point.hora === report.resumen.ultimaHora || isPeak(point) || point.hora === selectedHour"
       >
         <summary
@@ -177,7 +177,7 @@ function onSelectHour(hour: number) {
           <section
             v-for="management in point.gerencias"
             :key="management.gerencia"
-            class="rounded-xl border border-slate-200/70 bg-white p-3.5 shadow-2xs sm:p-4"
+            class="rounded-xl border border-slate-200/70 bg-white p-3.5 shadow-sm sm:p-4"
           >
             <div class="flex flex-wrap items-start justify-between gap-2">
               <div>
@@ -208,7 +208,7 @@ function onSelectHour(hour: number) {
                   <button
                     v-if="getCashLevel(management.efectivo.conGerente) === 'red'"
                     type="button"
-                    class="inline-flex items-center gap-1 rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-2xs transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600"
+                    class="inline-flex items-center gap-1 rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600"
                     @click="
                       contact(
                         management,
@@ -235,7 +235,7 @@ function onSelectHour(hour: number) {
                   <button
                     v-if="getCashLevel(management.efectivo.conAgentes) === 'red'"
                     type="button"
-                    class="inline-flex items-center gap-1 rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-2xs transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600"
+                    class="inline-flex items-center gap-1 rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600"
                     @click="
                       contact(
                         management,

@@ -96,7 +96,7 @@ const borderClasses = computed(() => {
       <button
         v-if="isContactAction"
         type="button"
-        class="inline-flex items-center gap-1 rounded-md bg-red-600 px-2 py-0.5 text-[11px] font-semibold text-white shadow-2xs transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1"
+        class="inline-flex items-center gap-1 rounded-md bg-red-600 px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1"
         :aria-label="`Contactar por ${agency} (${formatCurrency(amount)})`"
         @click="emit('contact')"
       >

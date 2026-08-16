@@ -58,7 +58,7 @@ const badgeClasses = computed(
     <div class="flex items-center justify-between gap-2">
       <span class="text-xs font-medium text-slate-600">{{ label }}</span>
       <span
-        class="inline-flex items-center gap-1 rounded-md bg-red-600 px-2 py-0.5 text-[11px] font-semibold text-white shadow-xs transition-colors hover:bg-red-700"
+        class="inline-flex items-center gap-1 rounded-md bg-red-600 px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-red-700"
       >
         <PhoneCall class="size-3" aria-hidden="true" />
         Contactar

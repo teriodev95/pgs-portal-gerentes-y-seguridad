@@ -171,7 +171,7 @@ onMounted(() => {
 
     <div class="mx-auto w-full max-w-4xl space-y-4 px-4 py-4 pb-12 sm:px-6">
       <!-- Control Bar -->
-      <section class="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs sm:p-5">
+      <section class="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <label class="block flex-1 text-xs font-semibold text-slate-700">
             Sucursal autorizada
@@ -187,7 +187,7 @@ onMounted(() => {
 
           <button
             type="button"
-            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
             :disabled="loadingCurrent || loadingToday || loadingHistory || !selectedBranch"
             @click="refresh"
           >
@@ -205,7 +205,7 @@ onMounted(() => {
             type="button"
             :aria-pressed="reportMode === 'current'"
             class="min-h-9 rounded-lg px-3 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-blue-600"
-            :class="reportMode === 'current' ? 'bg-white font-bold text-blue-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+            :class="reportMode === 'current' ? 'bg-white font-bold text-blue-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
             @click="changeMode('current')"
           >
             Actual
@@ -214,7 +214,7 @@ onMounted(() => {
             type="button"
             :aria-pressed="reportMode === 'today'"
             class="min-h-9 rounded-lg px-2 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-blue-600"
-            :class="reportMode === 'today' ? 'bg-white font-bold text-blue-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+            :class="reportMode === 'today' ? 'bg-white font-bold text-blue-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
             @click="changeMode('today')"
           >
             Evolución hoy
@@ -223,7 +223,7 @@ onMounted(() => {
             type="button"
             :aria-pressed="reportMode === 'history'"
             class="min-h-9 rounded-lg px-3 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-blue-600"
-            :class="reportMode === 'history' ? 'bg-white font-bold text-blue-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+            :class="reportMode === 'history' ? 'bg-white font-bold text-blue-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
             @click="changeMode('history')"
           >
             Semanas
@@ -232,7 +232,7 @@ onMounted(() => {
       </section>
 
       <!-- Semáforo Legend -->
-      <section class="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs sm:px-5" aria-label="Leyenda del semáforo">
+      <section class="rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-sm sm:px-5" aria-label="Leyenda del semáforo">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <span class="text-xs font-semibold text-slate-700">Semáforo de efectivo</span>
           <span class="text-[11px] text-slate-400">Saldos negativos se señalan en rojo</span>
@@ -275,12 +275,12 @@ onMounted(() => {
           <div v-for="item in 4" :key="item" class="h-36 animate-pulse rounded-2xl bg-slate-200/70" />
         </div>
 
-        <section v-else-if="currentError" class="rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-xs" role="alert">
+        <section v-else-if="currentError" class="rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-sm" role="alert">
           <h2 class="text-base font-bold text-slate-900">No pudimos abrir el reporte</h2>
           <p class="mx-auto mt-1.5 max-w-md text-xs text-slate-500">{{ currentError }}</p>
           <button
             type="button"
-            class="mt-4 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            class="mt-4 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
             @click="loadCurrent"
           >
             Intentar de nuevo
@@ -289,7 +289,7 @@ onMounted(() => {
 
         <template v-else-if="currentReport">
           <!-- Totals Card -->
-          <section class="grid grid-cols-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs sm:p-5" aria-label="Totales de la sucursal">
+          <section class="grid grid-cols-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5" aria-label="Totales de la sucursal">
             <div class="text-center">
               <span class="block text-xs font-medium text-slate-500">Con gerentes</span>
               <strong class="mt-1 block text-base font-bold tracking-tight text-slate-900 sm:text-xl">
@@ -330,12 +330,12 @@ onMounted(() => {
           <div v-for="item in 4" :key="item" class="h-28 animate-pulse rounded-2xl bg-slate-200/70" />
         </div>
 
-        <section v-else-if="todayError" class="rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-xs" role="alert">
+        <section v-else-if="todayError" class="rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-sm" role="alert">
           <h2 class="text-base font-bold text-slate-900">No pudimos abrir la evolución de hoy</h2>
           <p class="mx-auto mt-1.5 max-w-md text-xs text-slate-500">{{ todayError }}</p>
           <button
             type="button"
-            class="mt-4 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            class="mt-4 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
             @click="loadToday"
           >
             Intentar de nuevo
@@ -347,7 +347,7 @@ onMounted(() => {
 
       <template v-else>
         <!-- History Day Selector -->
-        <section class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs sm:p-5">
+        <section class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <label class="block text-xs font-semibold text-slate-700">Reporte al término del día</label>
@@ -369,12 +369,12 @@ onMounted(() => {
           <div v-for="item in 3" :key="item" class="h-32 animate-pulse rounded-2xl bg-slate-200/70" />
         </div>
 
-        <section v-else-if="historyError" class="rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-xs" role="alert">
+        <section v-else-if="historyError" class="rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-sm" role="alert">
           <h2 class="text-base font-bold text-slate-900">No pudimos abrir el histórico</h2>
           <p class="mx-auto mt-1.5 max-w-md text-xs text-slate-500">{{ historyError }}</p>
           <button
             type="button"
-            class="mt-4 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            class="mt-4 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
             @click="loadHistory"
           >
             Intentar de nuevo
@@ -385,7 +385,7 @@ onMounted(() => {
           <details
             v-for="(week, index) in historyReport.semanas"
             :key="`${week.periodo.anio}-${week.periodo.semana}`"
-            class="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs"
+            class="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm"
             :open="index === historyReport.semanas.length - 1"
           >
             <summary
@@ -422,7 +422,7 @@ onMounted(() => {
               <section
                 v-for="management in week.gerencias"
                 :key="management.gerencia"
-                class="rounded-xl border border-slate-200/70 bg-white p-3.5 shadow-2xs sm:p-4"
+                class="rounded-xl border border-slate-200/70 bg-white p-3.5 shadow-sm sm:p-4"
               >
                 <div class="flex flex-wrap items-baseline justify-between gap-2">
                   <div>

@@ -54,7 +54,7 @@ function contact(concept: string, amount: number) {
 </script>
 
 <template>
-  <section class="space-y-3.5 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs sm:p-5">
+  <section class="space-y-3.5 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0 flex-1">
         <h2 class="text-base font-bold leading-snug text-slate-900">{{ management.gerencia }}</h2>
@@ -111,7 +111,7 @@ function contact(concept: string, amount: number) {
       </p>
       <button
         type="button"
-        class="inline-flex shrink-0 items-center gap-1 rounded-md bg-red-600 px-2.5 py-1 text-[11px] font-semibold text-white shadow-2xs transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1"
+        class="inline-flex shrink-0 items-center gap-1 rounded-md bg-red-600 px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1"
         :aria-label="`Contactar a ${management.gerencia} por ${cardAlert.concepto} (${formatCurrency(cardAlert.monto)})`"
         @click="contact(cardAlert.concepto, cardAlert.monto)"
       >

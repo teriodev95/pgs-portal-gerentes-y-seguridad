@@ -61,7 +61,7 @@ function getBarColor(point: HourlyCashPoint): string {
 <template>
   <section
     v-if="hours.length"
-    class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs sm:p-5"
+    class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5"
     aria-label="Gráfica de evolución horaria"
   >
     <div class="flex flex-wrap items-center justify-between gap-2">
@@ -121,7 +121,7 @@ function getBarColor(point: HourlyCashPoint): string {
           <span class="flex h-4 shrink-0 items-center">
             <span
               v-if="isPeak(point)"
-              class="rounded-full bg-blue-700 px-1.5 py-0.5 text-[9px] font-bold leading-none text-white shadow-2xs"
+              class="rounded-full bg-blue-700 px-1.5 py-0.5 text-[9px] font-bold leading-none text-white shadow-sm"
             >
               Pico
             </span>
