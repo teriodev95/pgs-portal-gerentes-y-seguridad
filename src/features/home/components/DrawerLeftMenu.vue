@@ -1,53 +1,58 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ROUTE_NAME } from '@/router'
-import { APP_VERSION } from '@/shared/constants'
-import { useStore } from '@/shared/stores'
-import { commonService } from '@/shared/services/modules'
-import { useNotification } from '@/shared/composables/useNotification'
+import {
+  Building2,
+  Check,
+  ChevronRight,
+  LogOut,
+  Phone,
+  User as UserIcon,
+  X
+} from 'lucide-vue-next'
+import {
+  DrawerRoot,
+  DrawerContent as VaulDrawerContent,
+  DrawerOverlay as VaulDrawerOverlay,
+  DrawerPortal as VaulDrawerPortal
+} from 'vaul-vue'
 import {
   Drawer,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
-  DrawerTitle,
-  DrawerPortal,
-  DrawerOverlay
+  DrawerTitle
 } from '@/components/ui/drawer'
+import { ROUTE_NAME } from '@/router'
+import { APP_VERSION } from '@/shared/constants'
+import { useStore } from '@/shared/stores'
+import { commonService } from '@/shared/services/modules'
+import { useNotification } from '@/shared/composables/useNotification'
+import { formatPhone } from '@/shared/utils/phone'
 
-// Components
-import IconUser from '@/shared/components/icons/UserCircle.vue'
-import IconLogout from '@/shared/components/icons/UserLogout.vue'
-import IconBankNotes from '@/shared/components/icons/BankNotesIcon.vue'
-import BtnComponent from '@/shared/components/BtnComponent.vue'
-
-// Services, Composables and Stores initialization
-const $router = useRouter()
-const $store = useStore()
-const { showError } = useNotification()
-
-// Props
 interface Props {
   open: boolean
 }
 
 const props = defineProps<Props>()
-
-// Emits
 const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
 
-// Constants
-const version = APP_VERSION
+const $router = useRouter()
+const $store = useStore()
+const { showError } = useNotification()
 
-// State definitions
+const version = APP_VERSION
 const sucursales = computed(() => $store.sucursales)
 const user = computed(() => $store.user)
 const isLogoutModalOpen = ref(false)
 
-// Methods
+const userInitial = computed(() => {
+  const name = user.value?.nombre?.trim()
+  return name ? name.charAt(0).toUpperCase() : 'U'
+})
+
 function closeDrawer() {
   emit('update:open', false)
 }
@@ -136,98 +141,163 @@ function logout() {
 </script>
 
 <template>
-  <!-- Main Menu Drawer (Left Side) -->
-  <Drawer :open="props.open" direction="left" @update:open="(value: boolean) => emit('update:open', value)">
-    <DrawerPortal>
-      <DrawerOverlay class="!bg-black/20" />
-      <DrawerContent class="fixed !inset-y-0 left-0 !top-0 !bottom-0 z-50 !h-screen !min-h-screen w-64 flex flex-col border-r bg-white shadow-xl !rounded-none">
-        <!-- User Info Header -->
-        <div class="p-4 border-b">
-          <div class="flex items-center gap-3">
-            <IconUser class="h-12 w-12 text-slate-600" />
-            <div class="text-left flex-1">
-              <h1 class="text-lg font-semibold text-slate-800">{{ user?.nombre }}</h1>
-              <h2 class="text-xs text-slate-600">{{ user?.tipo }}</h2>
-              <p class="text-xs text-slate-500">{{ user?.numeroCelular }}</p>
+  <!-- Main Sidebar Drawer (Slides cleanly from Left) -->
+  <DrawerRoot
+    :open="props.open"
+    direction="left"
+    @update:open="(value: boolean) => emit('update:open', value)"
+  >
+    <VaulDrawerPortal>
+      <VaulDrawerOverlay class="fixed inset-0 z-50 bg-slate-950/30 backdrop-blur-sm transition-opacity duration-300" />
+      <VaulDrawerContent
+        class="fixed inset-y-0 left-0 z-50 flex h-full w-[280px] sm:w-[320px] max-w-[85vw] flex-col border-r border-slate-200/80 bg-white shadow-2xl outline-none"
+      >
+        <!-- Header Profile -->
+        <div class="border-b border-slate-100 p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div
+                class="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-blue-100 bg-blue-50 text-base font-bold text-blue-700 shadow-sm"
+              >
+                {{ userInitial }}
+              </div>
+              <div class="min-w-0 flex-1">
+                <h1 class="truncate text-sm font-bold leading-tight text-slate-900">
+                  {{ user?.nombre || 'Usuario' }}
+                </h1>
+                <div class="mt-0.5 flex flex-wrap items-center gap-1.5">
+                  <span
+                    v-if="user?.tipo"
+                    class="inline-flex items-center rounded-md border border-blue-100/80 bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700"
+                  >
+                    {{ user?.tipo }}
+                  </span>
+                </div>
+                <p
+                  v-if="user?.numeroCelular"
+                  class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-slate-400"
+                >
+                  <Phone class="size-3 text-slate-400" aria-hidden="true" />
+                  {{ formatPhone(user.numeroCelular) || user.numeroCelular }}
+                </p>
+              </div>
             </div>
+
+            <button
+              type="button"
+              class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              aria-label="Cerrar menú lateral"
+              @click="closeDrawer"
+            >
+              <X class="size-4" aria-hidden="true" />
+            </button>
           </div>
         </div>
 
-        <!-- Scrollable Content -->
-        <div class="flex-1 overflow-y-auto p-4">
+        <!-- Scrollable Navigation Area -->
+        <div class="flex-1 space-y-5 overflow-y-auto px-3 py-4">
           <!-- Sucursales Section -->
-          <div v-if="sucursales.length" class="mb-4">
-            <div class="rounded-lg p-2 text-center text-sm font-medium text-gray-700 bg-gray-50 mb-2">
+          <div v-if="sucursales.length" class="space-y-1">
+            <span class="block px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Sucursales
-            </div>
-
-            <ul class="space-y-1">
-              <li
+            </span>
+            <div class="space-y-1 pt-1">
+              <button
                 v-for="(sucursal, key) in sucursales"
                 :key="`sucursal-${key}`"
+                type="button"
+                class="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-blue-600"
+                :class="
+                  $store.sucursal === sucursal
+                    ? 'border border-blue-200/80 bg-blue-50/90 text-blue-900 shadow-sm'
+                    : 'border border-transparent text-slate-700 hover:bg-slate-50'
+                "
                 @click="() => preloadData(sucursal)"
-                :class="[
-                  $store.sucursal === sucursal ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100',
-                  'flex items-center gap-3 rounded-lg p-3 cursor-pointer transition-colors'
-                ]"
               >
-                <IconBankNotes class="h-5 w-5" />
-                <span class="text-sm font-medium">{{ sucursal }}</span>
-              </li>
-            </ul>
+                <div class="flex items-center gap-2.5 truncate">
+                  <Building2
+                    class="size-4 shrink-0"
+                    :class="$store.sucursal === sucursal ? 'text-blue-700' : 'text-slate-400'"
+                    aria-hidden="true"
+                  />
+                  <span class="truncate">{{ sucursal }}</span>
+                </div>
+                <Check
+                  v-if="$store.sucursal === sucursal"
+                  class="size-4 shrink-0 text-blue-700"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
           </div>
 
-          <!-- Divider -->
-          <div class="my-4 border-t border-gray-200"></div>
+          <!-- Account Section -->
+          <div class="space-y-1">
+            <span class="block px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Mi cuenta
+            </span>
+            <div class="space-y-1 pt-1">
+              <button
+                type="button"
+                class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                @click="navigateToPersonalInfo"
+              >
+                <div class="flex items-center gap-2.5">
+                  <UserIcon class="size-4 text-slate-400" aria-hidden="true" />
+                  <span>Datos personales</span>
+                </div>
+                <ChevronRight class="size-4 text-slate-300" aria-hidden="true" />
+              </button>
 
-          <!-- Actions Section -->
-          <ul class="space-y-1">
-            <li
-              class="flex items-center gap-3 rounded-lg p-3 text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
-              @click="navigateToPersonalInfo"
-            >
-              <IconUser class="h-5 w-5" />
-              <span class="text-sm font-medium">Datos Personales</span>
-            </li>
-            <li
-              class="flex items-center gap-3 rounded-lg p-3 text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
-              @click="openLogoutModal"
-            >
-              <IconLogout class="h-5 w-5" />
-              <span class="text-sm font-medium">Cerrar Sesión</span>
-            </li>
-          </ul>
+              <button
+                type="button"
+                class="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-600"
+                @click="openLogoutModal"
+              >
+                <LogOut class="size-4 text-red-500" aria-hidden="true" />
+                <span>Cerrar sesión</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <!-- Footer with Version -->
-        <div class="p-4 border-t text-center">
-          <p class="text-xs text-slate-500">Versión {{ version }}</p>
+        <!-- Footer -->
+        <div class="border-t border-slate-100 px-4 py-3 text-center">
+          <p class="text-[11px] font-medium text-slate-400">Versión {{ version }}</p>
         </div>
-      </DrawerContent>
-    </DrawerPortal>
-  </Drawer>
+      </VaulDrawerContent>
+    </VaulDrawerPortal>
+  </DrawerRoot>
 
   <!-- Logout Confirmation Drawer -->
   <Drawer :open="isLogoutModalOpen" @update:open="(value: boolean) => value ? null : closeLogoutModal()">
     <DrawerContent>
-      <div class="mx-auto w-full max-w-lg">
-        <DrawerHeader>
-          <DrawerTitle>¿Estás seguro de que quieres cerrar sesión?</DrawerTitle>
-          <DrawerDescription>
-            Esta acción cerrará tu sesión actual
+      <div class="mx-auto w-full max-w-sm px-4 pb-6 pt-2 text-center">
+        <div class="mx-auto mb-2 flex size-11 items-center justify-center rounded-2xl border border-red-100 bg-red-50 text-red-600">
+          <LogOut class="size-5" aria-hidden="true" />
+        </div>
+        <DrawerHeader class="px-0 pt-1 text-center">
+          <DrawerTitle class="text-base font-bold text-slate-900">¿Cerrar sesión?</DrawerTitle>
+          <DrawerDescription class="text-xs text-slate-500">
+            Se cerrará tu sesión actual en este dispositivo.
           </DrawerDescription>
         </DrawerHeader>
 
-        <div class="p-4 pb-6">
-          <div class="flex gap-4">
-            <BtnComponent variant="secondary" full-width @click="logout">
-              Sí, cerrar sesión
-            </BtnComponent>
-
-            <BtnComponent variant="secondary" outline full-width @click="closeLogoutModal">
-              No, mantener sesión
-            </BtnComponent>
-          </div>
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            class="min-h-11 rounded-xl bg-red-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600"
+            @click="logout"
+          >
+            Sí, salir
+          </button>
+          <button
+            type="button"
+            class="min-h-11 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            @click="closeLogoutModal"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
     </DrawerContent>
