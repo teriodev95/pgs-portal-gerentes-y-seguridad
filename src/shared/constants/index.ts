@@ -4,5 +4,5 @@ export enum ELEMENT_ID {
   CONFIRM = 'confirm',
 }
 
-export const APP_VERSION = '5.4.7'
+export const APP_VERSION = '5.5.0'
 
