@@ -29,7 +29,13 @@ const displaySubtitles = computed(() => {
 </script>
 
 <template>
-  <div class="sticky top-0 z-20 w-full bg-white p-2">
+  <!--
+    La barra queda fija y el contenido corre por debajo. Sin una linea que las
+    separe, blanco sobre blanco, la fila que va pasando se ve cortada a la mitad
+    y parece un error de dibujo en vez de scroll. El borde -y la sombra corta-
+    dicen que hay una superficie encima de otra.
+  -->
+  <div class="sticky top-0 z-20 w-full border-b border-slate-200/80 bg-white p-2 pb-3 shadow-sm">
     <nav class="flex items-center gap-3 px-4 py-2">
       <button
         v-if="showBackButton"
@@ -41,10 +47,16 @@ const displaySubtitles = computed(() => {
         <ArrowLeftIcon class="text-white" />
       </button>
 
-      <div class="flex flex-col opacity-95">
-        <h1 class="text-lg font-semibold text-gray-900">
-          {{ title }}
-        </h1>
+      <div class="flex min-w-0 flex-col opacity-95">
+        <div class="flex items-center gap-2">
+          <h1 class="flex-shrink-0 text-lg font-semibold text-gray-900">
+            {{ title }}
+          </h1>
+          <!-- Ranura para un estado junto al titulo. Es un slot y no una prop
+               con forma de cierre porque este navbar lo usan muchas pantallas;
+               cada una sabe que estado tiene sentido mostrar. -->
+          <slot name="estado" />
+        </div>
 
         <p
           v-for="(text, index) in displaySubtitles"
