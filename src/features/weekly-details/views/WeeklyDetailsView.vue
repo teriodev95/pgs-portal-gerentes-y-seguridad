@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { onBeforeMount, ref } from 'vue';
 import { ROUTE_NAME } from '@/router';
-import { usePdfGenerator } from '@/features/weekly-details/composables/usePdfGenerator';
 import { useStore } from '@/shared/stores';
 import { useWeeklyClosingData } from '@/features/weekly-details/composables/useWeeklyClosingData';
-import { useWeeklyClosingTemplate } from '@/features/weekly-details/composables/useWeeklyClosingTemplate';
+import { weeklyDetailsService } from '@/features/weekly-details/services/weekly-details.service';
 import type { userPDF } from '@/interfaces';
 import { XPRESS_ENDPOINTS } from '@/shared/config/endpoints';
 
@@ -26,9 +25,7 @@ import { useRouter } from 'vue-router';
  */
 const $store = useStore();
 const router = useRouter();
-const { tabulation, weeklyClosingDetails, generalBalance, managementNumbers, fetchWeeklyClosingDetails,  /*fetchPdfData*/ } = useWeeklyClosingData()
-const { generateHTMLTemplate } = useWeeklyClosingTemplate()
-const { generatePDF, downloadPDF } = usePdfGenerator()
+const { weeklyClosingDetails, fetchWeeklyClosingDetails } = useWeeklyClosingData()
 
 /**
  * ------------------------------------------
@@ -62,19 +59,38 @@ const handleGeneratePDF = async (user: userPDF) => {
   try {
     if (!$store.gerenciaSelected) return;
 
-    // await fetchPdfData({
-    //   userID: $store.user?.usuarioId,
-    //   managment: $store.gerenciaSelected,
-    //   year: $store.currentDate.year,
-    //   week: $store.currentDate.week,
-    // })
+    // El documento ya no se arma aqui. Antes esta vista generaba 848 lineas de
+    // HTML y las mandaba a PDFShift —un SaaS externo, con la llave escrita en el
+    // bundle— asi que el mismo cierre existia en tres versiones distintas: esta,
+    // la de mox y la del libro de Excel. Ahora las tres piden el mismo PDF.
+    //
+    // Se pasa por Elysia y no por el servicio de reportes directo para que la
+    // llave se quede en el servidor: PGS es una SPA y todo lo que toca acaba
+    // siendo legible en el navegador.
+    const variante = user === 'managment' ? 'gerente' : 'oficina'
+    const { data } = await weeklyDetailsService.getWeeklyClosingPdf(
+      $store.gerenciaSelected as string,
+      $store.currentDate.year,
+      $store.currentDate.week,
+      variante,
+    )
 
-    if (!weeklyClosingDetails.value || !generalBalance.value || !managementNumbers.value) return;
-
-    const htmlTemplate = generateHTMLTemplate(generalBalance.value, weeklyClosingDetails.value, managementNumbers.value, user, tabulation.value)
-    const pdfUrl = await generatePDF(htmlTemplate)
     const pdfName = user === 'managment' ? 'Balance_Gerente' : 'Balance_Administración';
-    downloadPDF(pdfUrl, `${pdfName}_${$store.gerenciaSelected}_${new Date().toISOString().split('T')[0]}.pdf`);
+    const url = URL.createObjectURL(new Blob([data], { type: 'application/pdf' }))
+    try {
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${pdfName}_${$store.gerenciaSelected}_${new Date().toISOString().split('T')[0]}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } finally {
+      // Sin esto el blob se queda en memoria toda la sesion, y aqui se bajan
+      // varios cierres seguidos.
+      URL.revokeObjectURL(url)
+    }
+  } catch (error) {
+    console.error('Error generando PDF del cierre:', error)
   } finally {
     isLoadingAdmin.value = false
     isLoadingManagement.value = false
