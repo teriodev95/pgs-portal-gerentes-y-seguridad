@@ -18,7 +18,7 @@ const { flujo, barras, loading, gerencia, semana, anio, esSemanaActual, semanaAn
   <MainCT>
     <NavbarCT
       title="Flujo de efectivo"
-      :subtitles="[gerencia.toUpperCase(), `Semana ${semana} · ${anio}`]"
+      :subtitles="[gerencia.toUpperCase()]"
       show-back-button
       @back="router.back()"
     />

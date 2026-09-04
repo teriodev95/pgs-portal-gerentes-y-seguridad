@@ -10,8 +10,13 @@ const { formatMoney } = useCashFlowFormatters()
 type Filtro = 'todas' | 'con_efectivo'
 const filtro = ref<Filtro>('todas')
 
+// Una cadena sin cobranza ni entregas (p. ej. "SIN AGENCIA") no dice nada.
+const conMovimiento = computed(() =>
+  props.cadenas.filter((c) => c.cobranza > 0 || c.entregado > 0 || c.en_campo > 0),
+)
+
 const visibles = computed(() =>
-  filtro.value === 'todas' ? props.cadenas : props.cadenas.filter((c) => c.en_campo > 0),
+  filtro.value === 'todas' ? conMovimiento.value : conMovimiento.value.filter((c) => c.en_campo > 0),
 )
 
 /** Lo que de esta agencia sigue en custodia (Seguridad/Regional) sin regresar. */
