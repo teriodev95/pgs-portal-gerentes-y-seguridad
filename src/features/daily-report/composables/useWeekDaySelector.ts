@@ -142,6 +142,11 @@ export function useWeekDaySelector() {
     return selectedDay.value.label.toUpperCase()
   })
 
+  /** Fecha real del día seleccionado dentro de la semana elegida (para el texto al compartir). */
+  const selectedDate = computed(() =>
+    selectedDay.value ? getDateForBusinessDay(selectedDay.value, selectedWeek.value, selectedYear.value) : null
+  )
+
   function syncStore(): void {
     $store.currentDate.week = selectedWeek.value
     $store.currentDate.year = selectedYear.value
@@ -157,6 +162,7 @@ export function useWeekDaySelector() {
     selectedDay,
     selectedDayKey,
     selectedDaySpanish,
+    selectedDate,
     canGoNext,
     isDaySelectable,
     nextWeek,

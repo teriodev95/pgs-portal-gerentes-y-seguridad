@@ -6,6 +6,12 @@ export interface ReportParams {
   year: number
 }
 
+/** Día para el que se generó el reporte; va en el texto al compartir. */
+export interface ReportDay {
+  name: string // JUEVES
+  date: Date
+}
+
 export interface ShareResult {
   success: boolean
   method?: 'native' | 'download'

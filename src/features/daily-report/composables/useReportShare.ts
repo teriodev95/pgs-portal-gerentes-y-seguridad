@@ -2,7 +2,21 @@ import { REPORT_CONFIG, REPORT_MESSAGES } from '../constants'
 import { reportService } from '../services/report.service'
 import { useNotification } from '@/shared/composables/useNotification'
 import { useShareData } from '@/shared/composables/useShareData'
-import type { ReportParams, ReportType, ShareResult } from '../types'
+import type { ReportDay, ReportParams, ReportType, ShareResult } from '../types'
+
+/**
+ * Texto que acompaña la imagen en WhatsApp/Telegram. En un grupo con decenas
+ * de reportes al día, "Reporte generado" no dice de quién es ni de cuándo.
+ * Ej.: "Reporte Gerencia · GERD007 · jueves 03/09 · sem 36"
+ */
+export function buildShareCaption(type: ReportType, params: ReportParams, day?: ReportDay): string {
+  const etiqueta = type === 'gerencia' ? 'Reporte Gerencia' : 'Reporte de agencias'
+  const fecha = day?.date ?? new Date()
+  const nombreDia = (day?.name ?? fecha.toLocaleDateString('es-MX', { weekday: 'long' })).toLowerCase()
+  const dd = String(fecha.getDate()).padStart(2, '0')
+  const mm = String(fecha.getMonth() + 1).padStart(2, '0')
+  return `${etiqueta} · ${params.managementId} · ${nombreDia} ${dd}/${mm} · sem ${params.week}`
+}
 
 export function useReportShare() {
   const { showError, showSuccess } = useNotification()
@@ -31,7 +45,8 @@ export function useReportShare() {
     params: ReportParams,
     imageBlob: Blob | null,
     imageUrl: string,
-    customFilename?: string
+    customFilename?: string,
+    reportDay?: ReportDay
   ): Promise<ShareResult> {
     if (!imageBlob) {
       const errorMsg = 'No image available to share. Please generate a report first.'
@@ -52,7 +67,7 @@ export function useReportShare() {
       // Try native sharing first
       const shareResult = await shareData({
         title: `Reporte ${file.name}`,
-        text: `Reporte generado`,
+        text: buildShareCaption(type, params, reportDay),
         files: [file],
       })
 

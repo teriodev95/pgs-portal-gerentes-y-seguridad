@@ -27,6 +27,21 @@ class CommonService {
     )
   }
 
+  /**
+   * Qué gerencias de la lista ya cerraron la semana.
+   *
+   * Una sola petición para todo el riel: preguntar por gerencia haría N llamadas
+   * cada vez que el auditor entra.
+   */
+  async getEstadoCierres(gerencias: string[], anio: number, semana: number) {
+    return this.elysiaClient.get<{
+      success: boolean
+      data: { gerencia: string; cerrada: boolean; cerradoEn: string | null }[]
+    }>('/cierres-gerencias/estado', {
+      params: { gerencias: gerencias.join(','), anio, semana }
+    })
+  }
+
   async getGerenciesCopy(user: string) {
     return this.faxClient.get<GetGerenciasUsuario>(`/gerencias/por-sucursal?usuario=${user}`)
   }

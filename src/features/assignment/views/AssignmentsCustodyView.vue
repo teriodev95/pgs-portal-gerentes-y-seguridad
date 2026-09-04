@@ -34,6 +34,8 @@ const recipientUser = ref<IUserVerificationPin>()
 const selectionNotice = ref('')
 const selectedDestination = ref<Destination>('gerente')
 const selectedIds = ref<string[]>([])
+// monto a retornar por partida seleccionada; arranca en el saldo y se puede bajar (parcial)
+const returnAmounts = ref<Record<string, number>>({})
 const week = ref(0)
 const year = ref(0)
 
@@ -56,7 +58,10 @@ const selectedAssignments = computed(() =>
 )
 const selectedAssignment = computed(() => selectedAssignments.value[0])
 const selectedTotal = computed(() =>
-  selectedAssignments.value.reduce((total, assignment) => total + assignment.amount, 0)
+  selectedAssignments.value.reduce((total, assignment) => total + amountToReturn(assignment), 0)
+)
+const hasInvalidAmount = computed(() =>
+  selectedAssignments.value.some((assignment) => amountError(assignment) !== '')
 )
 const isManagerDestination = computed(() => selectedDestination.value === 'gerente')
 const isSelectionReadyForDestination = computed(() =>
@@ -65,6 +70,7 @@ const isSelectionReadyForDestination = computed(() =>
 const canSave = computed(
   () =>
     isSelectionReadyForDestination.value &&
+    !hasInvalidAmount.value &&
     recipientStatus.value === 'success' &&
     !isSaving.value
 )
@@ -149,17 +155,43 @@ function isSelected(id: string) {
   return selectedIds.value.includes(id)
 }
 
-function toggleAssignment(id: string) {
+function amountToReturn(assignment: ICustodyAssignment) {
+  return returnAmounts.value[assignment.originAssignmentId] ?? assignment.amount
+}
+
+function setReturnAmount(assignment: ICustodyAssignment, value: string) {
+  returnAmounts.value[assignment.originAssignmentId] = Number(value)
+}
+
+function remainingAfterReturn(assignment: ICustodyAssignment) {
+  return assignment.amount - amountToReturn(assignment)
+}
+
+function amountError(assignment: ICustodyAssignment) {
+  const amount = amountToReturn(assignment)
+  if (!Number.isFinite(amount) || amount <= 0) return 'Ingresa un monto mayor a 0.'
+  if (amount > assignment.amount) return `No puede exceder el saldo de ${formatMoney(assignment.amount)}.`
+  return ''
+}
+
+function toggleAssignment(assignment: ICustodyAssignment) {
+  const id = assignment.originAssignmentId
   selectionNotice.value = ''
 
-  if (isManagerDestination.value) {
-    selectedIds.value = isSelected(id) ? [] : [id]
+  if (isSelected(id)) {
+    selectedIds.value = selectedIds.value.filter((selectedId) => selectedId !== id)
+    delete returnAmounts.value[id]
     return
   }
 
-  selectedIds.value = isSelected(id)
-    ? selectedIds.value.filter((selectedId) => selectedId !== id)
-    : [...selectedIds.value, id]
+  returnAmounts.value[id] = assignment.amount
+  if (isManagerDestination.value) {
+    selectedIds.value.forEach((selectedId) => delete returnAmounts.value[selectedId])
+    selectedIds.value = [id]
+    return
+  }
+
+  selectedIds.value = [...selectedIds.value, id]
 }
 
 function selectDestination(destination: Destination) {
@@ -269,10 +301,14 @@ async function saveCustodyReturn() {
     isSaving.value = true
     await assignmentService.returnCustodyAssignments({
       destino: selectedDestination.value,
-      origen_asignacion_ids: selectedIds.value,
+      origen_asignacion_ids: selectedAssignments.value.map((assignment) => ({
+        id: assignment.originAssignmentId,
+        monto: amountToReturn(assignment),
+      })),
       quien_recibio: recipientUser.value.usuarioid,
     })
     selectedIds.value = []
+    returnAmounts.value = {}
     resetRecipientValidation()
     await loadCustody()
   } catch (error) {
@@ -287,6 +323,7 @@ watch(selectedDestination, (destination) => {
   resetRecipientValidation()
 
   if (destination === 'gerente' && selectedIds.value.length > 1) {
+    selectedIds.value.slice(1).forEach((id) => delete returnAmounts.value[id])
     selectedIds.value = [selectedIds.value[0]]
     selectionNotice.value = 'Para devolver al gerente se permite una sola asignación. Conservamos la primera selección.'
   } else {
@@ -346,15 +383,17 @@ onMounted(async () => {
       />
 
       <div v-else class="space-y-2 pb-72">
-        <button
+        <div
           v-for="assignment in assignments"
           :key="assignment.originAssignmentId"
-          type="button"
-          class="w-full rounded-lg border bg-white p-3 text-left transition-colors"
+          role="button"
+          tabindex="0"
+          class="w-full cursor-pointer rounded-lg border bg-white p-3 text-left transition-colors"
           :class="isSelected(assignment.originAssignmentId)
             ? 'border-blue-500 bg-blue-50'
             : 'border-gray-200 hover:bg-gray-50'"
-          @click="toggleAssignment(assignment.originAssignmentId)"
+          @click="toggleAssignment(assignment)"
+          @keyup.enter="toggleAssignment(assignment)"
         >
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
@@ -376,8 +415,35 @@ onMounted(async () => {
             </div>
             <div class="text-right">
               <p class="text-base font-semibold text-gray-950">{{ formatMoney(assignment.amount) }}</p>
+              <p v-if="assignment.originalAmount > assignment.amount" class="text-[11px] text-amber-700">
+                saldo de {{ formatMoney(assignment.originalAmount) }}
+              </p>
               <p class="text-xs text-gray-500">{{ formatDate(assignment.createdAt) }}</p>
             </div>
+          </div>
+
+          <div
+            v-if="isSelected(assignment.originAssignmentId)"
+            class="mt-3 rounded-md border border-blue-200 bg-white p-2"
+            @click.stop
+          >
+            <label class="block text-[11px] font-medium text-gray-600">Monto a retornar</label>
+            <input
+              type="number"
+              inputmode="decimal"
+              min="0.01"
+              :max="assignment.amount"
+              step="0.01"
+              class="mt-1 w-full rounded-md border border-gray-300 px-2 py-1.5 text-sm font-semibold text-gray-950 focus:border-blue-500 focus:outline-none"
+              :value="amountToReturn(assignment)"
+              @input="setReturnAmount(assignment, ($event.target as HTMLInputElement).value)"
+            />
+            <p v-if="amountError(assignment)" class="mt-1 text-[11px] font-medium text-red-700">
+              {{ amountError(assignment) }}
+            </p>
+            <p v-else-if="remainingAfterReturn(assignment) > 0" class="mt-1 text-[11px] font-medium text-amber-700">
+              Retorno parcial: quedan {{ formatMoney(remainingAfterReturn(assignment)) }} en custodia.
+            </p>
           </div>
 
           <div class="mt-3 flex items-center justify-between gap-2">
@@ -395,7 +461,7 @@ onMounted(async () => {
               <Check class="size-4" :stroke-width="2" />
             </span>
           </div>
-        </button>
+        </div>
       </div>
     </SectionContainer>
 
