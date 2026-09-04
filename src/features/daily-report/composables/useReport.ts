@@ -2,8 +2,8 @@ import { ref, readonly, computed } from 'vue'
 import { useStore } from '@/shared/stores'
 import { reportService } from '../services/report.service'
 import { useReportShare } from './useReportShare'
-import { REPORT_MESSAGES } from '../constants'
-import type { ReportParams, ReportType } from '../types'
+import { REPORT_MESSAGES, SPANISH_DAYS } from '../constants'
+import type { ReportDay, ReportParams, ReportType } from '../types'
 import { useNotification } from '@/shared/composables/useNotification'
 
 export function useReport() {
@@ -18,6 +18,7 @@ export function useReport() {
   const error = ref('')
   const imageUrl = ref('')
   const imageBlob = ref<Blob | null>(null)
+  const reportDay = ref<ReportDay | null>(null)
 
   // Computed properties
   const isLoading = computed(() => isGenerating.value)
@@ -38,11 +39,13 @@ export function useReport() {
     imageBlob.value = null
   }
 
-  async function generateReport(type: ReportType, dayName?: string): Promise<void> {
+  async function generateReport(type: ReportType, dayName?: string, date?: Date): Promise<void> {
     console.log(`Generating ${type} report...`)
 
     isGenerating.value = true
     resetState()
+    // Se guarda para el texto al compartir; sin selección es hoy.
+    reportDay.value = { name: dayName || SPANISH_DAYS[new Date().getDay()], date: date || new Date() }
 
     try {
       const blob = await reportService.generateReport(type, currentReportParams.value, dayName)
@@ -67,7 +70,8 @@ export function useReport() {
         currentReportParams.value,
         imageBlob.value,
         imageUrl.value,
-        filename.value || undefined
+        filename.value || undefined,
+        reportDay.value || undefined
       )
     } catch (err) {
       console.error('Report sharing error:', err)

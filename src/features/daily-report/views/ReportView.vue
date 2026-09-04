@@ -15,12 +15,12 @@ import WeekDaySelector from '../components/WeekDaySelector.vue'
 const router = useRouter()
 const { generateReport, shareReport, cleanup, isLoading, imageUrl, isSharing } = useReport()
 const { isOpen, reportType, openDialog, closeDialog } = useReportDialog()
-const { selectedDaySpanish, selectedDayKey } = useWeekDaySelector()
+const { selectedDaySpanish, selectedDayKey, selectedDate } = useWeekDaySelector()
 
 async function handleGenerateReport(type: ReportType): Promise<void> {
   try {
     openDialog(type)
-    await generateReport(type, selectedDaySpanish.value || undefined)
+    await generateReport(type, selectedDaySpanish.value || undefined, selectedDate.value || undefined)
   } catch (error) {
     console.error('Error generating report:', error)
   }
