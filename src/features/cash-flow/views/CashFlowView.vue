@@ -1,110 +1,64 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
-import SummaryCard from '../components/SummaryCard.vue'
-import MovementsList from '../components/MovementsList.vue'
-import { useCashFlow, useCashFlowFormatters, useCountUp } from '../composables'
+import SemaforoCard from '../components/SemaforoCard.vue'
+import BarraConservacion from '../components/BarraConservacion.vue'
+import EgresosLista from '../components/EgresosLista.vue'
+import AgenciasLista from '../components/AgenciasLista.vue'
+import { useCashFlow } from '../composables'
 
 const router = useRouter()
-
-const {
-  resumen,
-  loading,
-  gerenciaSelected,
-  currentDate,
-  ingresos,
-  egresos,
-  enCampo,
-} = useCashFlow()
-
-const { formatMoney } = useCashFlowFormatters()
-
-const animIngresos = useCountUp(computed(() => resumen.value.total_ingresos))
-const animEgresos = useCountUp(computed(() => resumen.value.total_egresos))
-const animEnCampo = useCountUp(computed(() => resumen.value.total_en_campo))
-const animBalance = useCountUp(computed(() => resumen.value.balance))
+const { flujo, barras, loading, gerencia, semana, anio, esSemanaActual, semanaAnterior, semanaSiguiente } =
+  useCashFlow()
 </script>
 
 <template>
   <MainCT>
     <NavbarCT
-      title="Flujo de Efectivo"
-      :subtitles="[
-        gerenciaSelected?.toUpperCase() ?? '',
-        `Semana ${currentDate.week} · ${currentDate.year}`,
-      ]"
+      title="Flujo de efectivo"
+      :subtitles="[gerencia.toUpperCase()]"
       show-back-button
       @back="router.back()"
     />
 
-    <div class="px-4 pb-6 pt-2 space-y-4">
-      <!-- Loading -->
-      <div v-if="loading" class="flex flex-col items-center justify-center py-20 gap-3">
-        <div class="w-8 h-8 border-[3px] border-slate-200 border-t-blue-600 rounded-full animate-spin" />
-        <span class="text-xs text-slate-400 font-medium">Cargando movimientos...</span>
+    <div class="space-y-3 px-4 pb-6 pt-2">
+      <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-2 py-1.5">
+        <button
+          type="button"
+          class="inline-flex size-8 items-center justify-center rounded-md text-gray-700 hover:bg-gray-50"
+          :disabled="loading"
+          @click="semanaAnterior"
+        >
+          <ChevronLeft class="size-4" :stroke-width="2" />
+        </button>
+        <p class="text-sm font-semibold text-gray-900">Semana {{ semana }} · {{ anio }}</p>
+        <button
+          type="button"
+          class="inline-flex size-8 items-center justify-center rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-30"
+          :disabled="loading || esSemanaActual"
+          @click="semanaSiguiente"
+        >
+          <ChevronRight class="size-4" :stroke-width="2" />
+        </button>
       </div>
 
+      <div v-if="loading" class="flex flex-col items-center justify-center gap-3 py-20">
+        <div class="size-8 animate-spin rounded-full border-[3px] border-gray-200 border-t-blue-600" />
+        <span class="text-xs font-medium text-gray-400">Cargando flujo...</span>
+      </div>
+
+      <p v-else-if="!flujo || !barras" class="rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+        Sin datos para esta semana.
+      </p>
+
       <template v-else>
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-2 gap-3">
-          <SummaryCard
-            label="Ingresos"
-            :value="formatMoney(animIngresos)"
-            variant="ingreso"
-            :animation-delay="0"
-          />
-
-          <SummaryCard
-            label="Egresos"
-            :value="formatMoney(animEgresos)"
-            variant="egreso"
-            :animation-delay="60"
-          />
-
-          <SummaryCard
-            label="En Campo"
-            :value="formatMoney(animEnCampo)"
-            variant="enCampo"
-            :animation-delay="120"
-          />
-
-          <SummaryCard
-            label="Balance"
-            :value="formatMoney(animBalance)"
-            variant="balance"
-            :balance="resumen.balance"
-            :animation-delay="180"
-          />
-        </div>
-
-        <!-- Movements Lists -->
-        <MovementsList
-          title="Ingresos"
-          :movements="ingresos"
-          variant="ingreso"
-          :animation-delay="250"
-          :format-money="formatMoney"
-        />
-
-        <MovementsList
-          title="Egresos"
-          :movements="egresos"
-          variant="egreso"
-          :animation-delay="320"
-          :format-money="formatMoney"
-        />
-
-        <MovementsList
-          title="En Campo"
-          :movements="enCampo"
-          variant="enCampo"
-          :animation-delay="390"
-          :format-money="formatMoney"
-        />
+        <SemaforoCard :cubos="flujo.cubos" />
+        <BarraConservacion :barras="barras" />
+        <EgresosLista :egresos="flujo.egresos" />
+        <AgenciasLista :cadenas="flujo.cadenas" />
       </template>
     </div>
   </MainCT>
 </template>
-
