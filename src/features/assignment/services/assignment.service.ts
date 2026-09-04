@@ -16,6 +16,8 @@ interface ApiSuccess<T> {
 interface CustodyAssignmentApi {
   origen_asignacion_id: string
   monto: number
+  /** lo que sigue en custodia tras retornos parciales; ausente en API vieja */
+  saldo?: number
   agencia: string | null
   gerencia_derivada: string
   nivel: 'agente' | 'gerencia'
@@ -41,7 +43,8 @@ function mapCustodyAssignments(data: CustodyAssignmentsApiResponse): ICustodyAss
     total: data.total,
     assignments: data.asignaciones.map((assignment) => ({
       originAssignmentId: assignment.origen_asignacion_id,
-      amount: assignment.monto,
+      amount: assignment.saldo ?? assignment.monto,
+      originalAmount: assignment.monto,
       agency: assignment.agencia,
       derivedManagement: assignment.gerencia_derivada,
       level: assignment.nivel ?? 'agente',

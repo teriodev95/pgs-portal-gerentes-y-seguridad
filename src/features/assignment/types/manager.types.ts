@@ -61,7 +61,10 @@ export interface IAssignmentParticipant {
 
 export interface ICustodyAssignment {
   originAssignmentId: string;
+  /** saldo que sigue en custodia (monto original menos retornos parciales) */
   amount: number;
+  /** monto de la asignación de origen */
+  originalAmount: number;
   /** null cuando la custodia es a nivel gerencia (Gerente -> Seguridad/Regional) */
   agency: string | null;
   derivedManagement: string;
@@ -86,5 +89,6 @@ export interface IReturnCustodyPayload {
   /** custodio = relevo a otro Seguridad/Regional; la custodia sigue abierta en él */
   destino: 'gerente' | 'admin' | 'custodio';
   quien_recibio: number;
-  origen_asignacion_ids: string[];
+  /** string = saldo completo; { id, monto } = retorno parcial (0 < monto <= saldo) */
+  origen_asignacion_ids: Array<string | { id: string; monto?: number }>;
 }
