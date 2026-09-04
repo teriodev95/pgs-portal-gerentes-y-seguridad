@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Check } from 'lucide-vue-next'
-import type { Cadena } from '../types/cashFlow.types'
+import type { Cadena, Tramo } from '../types/cashFlow.types'
 import { useCashFlowFormatters } from '../composables/useCashFlowFormatters'
 
 const props = defineProps<{ cadenas: Cadena[] }>()
@@ -30,9 +30,21 @@ function avanceDe(c: Cadena): number {
   return Math.min(100, Math.round((c.entregado / c.cobranza) * 100))
 }
 
-/** Lo que de esta agencia sigue en custodia (Seguridad/Regional) sin regresar. */
-function custodiaDe(c: Cadena): number {
-  return c.tramos.filter((t) => t.abierto && t.a.rol === 'Custodio').reduce((total, t) => total + t.monto, 0)
+/** Entregas de esta agencia que siguen en custodia (Seguridad/Regional) sin regresar. */
+function custodiasDe(c: Cadena): Tramo[] {
+  return c.tramos.filter((t) => t.abierto && t.a.rol === 'Custodio')
+}
+
+function totalCustodia(c: Cadena): number {
+  return custodiasDe(c).reduce((total, t) => total + t.monto, 0)
+}
+
+/** "02/09 11:02" a partir del ISO local que manda Elysia. */
+function horaCorta(iso: string): string {
+  const [fecha, hora] = iso.split('T')
+  if (!fecha || !hora) return iso
+  const [, mes, dia] = fecha.split('-')
+  return `${dia}/${mes} ${hora.slice(0, 5)}`
 }
 </script>
 
@@ -97,9 +109,12 @@ function custodiaDe(c: Cadena): number {
                 {{ formatMoney(c.en_campo) }}
               </p>
             </template>
-            <p v-if="custodiaDe(c) > 0" class="text-[11px] font-medium text-amber-700">
-              Custodia {{ formatMoney(custodiaDe(c)) }}
-            </p>
+            <template v-if="custodiasDe(c).length">
+              <p class="text-[11px] font-semibold text-amber-700">Custodia {{ formatMoney(totalCustodia(c)) }}</p>
+              <p v-for="t in custodiasDe(c)" :key="t.asignacion_id" class="text-[10px] text-amber-700">
+                {{ t.a.nombre }} · {{ horaCorta(t.hora) }}
+              </p>
+            </template>
           </div>
         </div>
 
