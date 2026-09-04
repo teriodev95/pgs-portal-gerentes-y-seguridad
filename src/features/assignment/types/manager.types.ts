@@ -62,8 +62,11 @@ export interface IAssignmentParticipant {
 export interface ICustodyAssignment {
   originAssignmentId: string;
   amount: number;
-  agency: string;
+  /** null cuando la custodia es a nivel gerencia (Gerente -> Seguridad/Regional) */
+  agency: string | null;
   derivedManagement: string;
+  /** agente: nació en un agente; gerencia: nació en el gerente */
+  level: 'agente' | 'gerencia';
   week: number;
   year: number;
   status: 'pendiente' | 'retornado';
@@ -80,7 +83,8 @@ export interface ICustodyAssignmentsResponse {
 }
 
 export interface IReturnCustodyPayload {
-  destino: 'gerente' | 'admin';
+  /** custodio = relevo a otro Seguridad/Regional; la custodia sigue abierta en él */
+  destino: 'gerente' | 'admin' | 'custodio';
   quien_recibio: number;
   origen_asignacion_ids: string[];
 }
