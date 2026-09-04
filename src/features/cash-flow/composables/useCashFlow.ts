@@ -1,47 +1,24 @@
-import { ref, computed, watch, onBeforeMount } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useStore } from '@/shared/stores/app'
 import { cashFlowService } from '../services/cashFlow.service'
 import { segmentosDe } from '../utils/segmentos'
 import type { FlujoEfectivo } from '../types/cashFlow.types'
 
-const SEMANAS_POR_ANIO = 52
-
+// Siempre la semana en curso: el flujo se revisa en vivo, no se navega.
 export function useCashFlow() {
   const $store = useStore()
 
   const flujo = ref<FlujoEfectivo | null>(null)
   const loading = ref(false)
-  // Semana que se consulta; arranca en la actual y se puede ir hacia atrás.
-  const semana = ref($store.currentDate.week)
-  const anio = ref($store.currentDate.year)
 
   const gerencia = computed(() => $store.gerenciaSelected ?? '')
+  const semana = computed(() => $store.currentDate.week)
+  const anio = computed(() => $store.currentDate.year)
   const barras = computed(() => (flujo.value ? segmentosDe(flujo.value.cubos) : null))
-  const esSemanaActual = computed(
-    () => semana.value === $store.currentDate.week && anio.value === $store.currentDate.year,
-  )
-
-  function semanaAnterior(): void {
-    if (semana.value > 1) {
-      semana.value -= 1
-      return
-    }
-    semana.value = SEMANAS_POR_ANIO
-    anio.value -= 1
-  }
-
-  function semanaSiguiente(): void {
-    if (esSemanaActual.value) return
-    if (semana.value < SEMANAS_POR_ANIO) {
-      semana.value += 1
-      return
-    }
-    semana.value = 1
-    anio.value += 1
-  }
 
   async function fetchFlujo(): Promise<void> {
-    if (!gerencia.value) return
+    // La semana llega del store un instante después de entrar; se espera a tenerla.
+    if (!gerencia.value || !semana.value || !anio.value) return
     loading.value = true
     try {
       const { data } = await cashFlowService.getFlujo(gerencia.value, anio.value, semana.value)
@@ -54,19 +31,7 @@ export function useCashFlow() {
     }
   }
 
-  watch([semana, anio], fetchFlujo)
-  onBeforeMount(fetchFlujo)
+  watch([gerencia, semana, anio], fetchFlujo, { immediate: true })
 
-  return {
-    flujo,
-    barras,
-    loading,
-    gerencia,
-    semana,
-    anio,
-    esSemanaActual,
-    semanaAnterior,
-    semanaSiguiente,
-    fetchFlujo,
-  }
+  return { flujo, barras, loading, gerencia, semana, anio, fetchFlujo }
 }
