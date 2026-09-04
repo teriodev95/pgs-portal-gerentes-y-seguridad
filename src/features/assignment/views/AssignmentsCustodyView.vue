@@ -15,7 +15,8 @@ import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import ValidationPin from '@/features/assignment/components/ValidationPin.vue'
 
-type Destination = 'gerente' | 'admin'
+// custodio = relevo a otro Seguridad/Regional; la custodia sigue abierta con él
+type Destination = 'gerente' | 'admin' | 'custodio'
 type ValidationStatus = 'default' | 'success' | 'error'
 
 const router = useRouter()
@@ -37,6 +38,7 @@ const week = ref(0)
 const year = ref(0)
 
 const adminRoles = ['Administrativo', 'Oficina', 'Jefe de Admin', 'Sistemas']
+const custodyRoles = ['Seguridad', 'Regional']
 const moneyFormatter = new Intl.NumberFormat('es-MX', {
   currency: 'MXN',
   maximumFractionDigits: 2,
@@ -84,6 +86,13 @@ const destinationHelpText = computed(() => {
       : 'Selecciona una asignación para devolverla al gerente.'
   }
 
+  if (selectedDestination.value === 'custodio') {
+    if (selectedIds.value.length === 0) {
+      return 'Selecciona una o varias asignaciones para pasarlas a otro custodio (Seguridad o Regional).'
+    }
+    return `Otro custodio recibirá ${selectedCountLabel.value}; la custodia sigue abierta con él.`
+  }
+
   if (selectedIds.value.length === 0) {
     return 'Selecciona una o varias asignaciones para entregarlas a Administración.'
   }
@@ -103,11 +112,15 @@ const recipientPinInstruction = computed(() => {
   if (!isSelectionReadyForDestination.value) {
     return isManagerDestination.value
       ? 'Selecciona una asignación para validar el PIN del gerente'
-      : 'Selecciona al menos una asignación para validar el PIN de Administración'
+      : 'Selecciona al menos una asignación para validar el PIN de quien recibe'
   }
 
   if (isManagerDestination.value) {
     return 'Ingresa el PIN del gerente que recibe esta asignación'
+  }
+
+  if (selectedDestination.value === 'custodio') {
+    return 'Ingresa el PIN del Seguridad o Regional que recibe la custodia'
   }
 
   return selectedIds.value.length === 1
@@ -196,7 +209,7 @@ async function validateRecipientPin() {
     recipientStatus.value = 'error'
     recipientErrorMessage.value = isManagerDestination.value
       ? 'Selecciona una sola asignación antes de validar el PIN del gerente.'
-      : 'Selecciona al menos una asignación antes de validar el PIN de Administración.'
+      : 'Selecciona al menos una asignación antes de validar el PIN de quien recibe.'
     return
   }
 
@@ -213,14 +226,18 @@ async function validateRecipientPin() {
     const isValidRecipient =
       selectedDestination.value === 'admin'
         ? adminRoles.includes(user.tipo)
-        : user.tipo === 'Gerente'
+        : selectedDestination.value === 'custodio'
+          ? custodyRoles.includes(user.tipo)
+          : user.tipo === 'Gerente'
 
     if (!isValidRecipient) {
       recipientStatus.value = 'error'
       recipientErrorMessage.value =
         selectedDestination.value === 'admin'
           ? 'Para entregar a Administración, valida el PIN de un usuario administrativo.'
-          : 'Para devolver al gerente, valida el PIN de un usuario Gerente.'
+          : selectedDestination.value === 'custodio'
+            ? 'Para pasar la custodia, valida el PIN de un usuario Seguridad o Regional.'
+            : 'Para devolver al gerente, valida el PIN de un usuario Gerente.'
       recipientUser.value = undefined
       return
     }
@@ -344,11 +361,17 @@ onMounted(async () => {
               <div class="flex items-center gap-2">
                 <WalletCards class="size-4 shrink-0 text-blue-700" :stroke-width="1.8" />
                 <p class="truncate text-sm font-semibold text-gray-950">
-                  {{ assignment.agency }}
+                  {{ assignment.agency ?? assignment.derivedManagement }}
                 </p>
+                <span
+                  v-if="assignment.level === 'gerencia'"
+                  class="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800"
+                >
+                  del gerente
+                </span>
               </div>
               <p class="mt-1 text-xs text-gray-500">
-                {{ assignment.agent?.nombre || assignment.agent?.usuario || 'Agente' }}
+                {{ assignment.agent?.nombre || assignment.agent?.usuario || (assignment.level === 'gerencia' ? 'Gerente' : 'Agente') }}
               </p>
             </div>
             <div class="text-right">
@@ -364,7 +387,7 @@ onMounted(async () => {
             </span>
             <span
               class="inline-flex size-6 items-center justify-center border"
-              :title="isManagerDestination ? 'Selección única para gerente' : 'Selección múltiple para Administración'"
+              :title="isManagerDestination ? 'Selección única para gerente' : 'Selección múltiple'"
               :class="isSelected(assignment.originAssignmentId)
                 ? `border-blue-600 bg-blue-600 text-white ${isManagerDestination ? 'rounded-full' : 'rounded-md'}`
                 : `border-gray-300 text-transparent ${isManagerDestination ? 'rounded-full' : 'rounded-md'}`"
@@ -381,10 +404,10 @@ onMounted(async () => {
       class="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white p-3 shadow-[0_-8px_24px_rgba(15,23,42,0.12)]"
     >
       <div class="mx-auto max-w-lg space-y-3">
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-3 gap-2">
           <button
             type="button"
-            class="rounded-lg border px-3 py-2 text-sm font-medium"
+            class="rounded-lg border px-2 py-2 text-sm font-medium"
             :class="selectedDestination === 'gerente'
               ? 'border-blue-600 bg-blue-600 text-white'
               : 'border-gray-200 text-gray-700'"
@@ -395,14 +418,25 @@ onMounted(async () => {
           </button>
           <button
             type="button"
-            class="rounded-lg border px-3 py-2 text-sm font-medium"
+            class="rounded-lg border px-2 py-2 text-sm font-medium"
             :class="selectedDestination === 'admin'
               ? 'border-blue-600 bg-blue-600 text-white'
               : 'border-gray-200 text-gray-700'"
             @click="selectDestination('admin')"
           >
             <span class="block">Administración</span>
-            <span class="block text-[11px] font-medium opacity-80">varias asignaciones</span>
+            <span class="block text-[11px] font-medium opacity-80">varias</span>
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border px-2 py-2 text-sm font-medium"
+            :class="selectedDestination === 'custodio'
+              ? 'border-blue-600 bg-blue-600 text-white'
+              : 'border-gray-200 text-gray-700'"
+            @click="selectDestination('custodio')"
+          >
+            <span class="block">Otro custodio</span>
+            <span class="block text-[11px] font-medium opacity-80">Seguridad / Regional</span>
           </button>
         </div>
 

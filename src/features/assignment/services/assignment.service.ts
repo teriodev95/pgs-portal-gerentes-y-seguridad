@@ -16,8 +16,9 @@ interface ApiSuccess<T> {
 interface CustodyAssignmentApi {
   origen_asignacion_id: string
   monto: number
-  agencia: string
+  agencia: string | null
   gerencia_derivada: string
+  nivel: 'agente' | 'gerencia'
   semana: number
   anio: number
   estado: 'pendiente' | 'retornado'
@@ -43,6 +44,7 @@ function mapCustodyAssignments(data: CustodyAssignmentsApiResponse): ICustodyAss
       amount: assignment.monto,
       agency: assignment.agencia,
       derivedManagement: assignment.gerencia_derivada,
+      level: assignment.nivel ?? 'agente',
       week: assignment.semana,
       year: assignment.anio,
       status: assignment.estado,
