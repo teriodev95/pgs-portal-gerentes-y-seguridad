@@ -15,68 +15,98 @@ const conMovimiento = computed(() =>
   props.cadenas.filter((c) => c.cobranza > 0 || c.entregado > 0 || c.en_campo > 0),
 )
 
-const visibles = computed(() =>
-  filtro.value === 'todas' ? conMovimiento.value : conMovimiento.value.filter((c) => c.en_campo > 0),
-)
+// Primero las que aún tienen efectivo en campo, de mayor a menor.
+const visibles = computed(() => {
+  const base = filtro.value === 'todas' ? conMovimiento.value : conMovimiento.value.filter((c) => c.en_campo > 0)
+  return [...base].sort((a, b) => b.en_campo - a.en_campo)
+})
+
+const totalEnCampo = computed(() => conMovimiento.value.reduce((t, c) => t + c.en_campo, 0))
+const conEfectivo = computed(() => conMovimiento.value.filter((c) => c.en_campo > 0).length)
+
+/** Porcentaje de la cobranza que ya se entregó, para la barra. */
+function avanceDe(c: Cadena): number {
+  if (c.cobranza <= 0) return c.entregado > 0 ? 100 : 0
+  return Math.min(100, Math.round((c.entregado / c.cobranza) * 100))
+}
 
 /** Lo que de esta agencia sigue en custodia (Seguridad/Regional) sin regresar. */
-function custodiaDe(cadena: Cadena): number {
-  return cadena.tramos
-    .filter((t) => t.abierto && t.a.rol === 'Custodio')
-    .reduce((total, t) => total + t.monto, 0)
+function custodiaDe(c: Cadena): number {
+  return c.tramos.filter((t) => t.abierto && t.a.rol === 'Custodio').reduce((total, t) => total + t.monto, 0)
 }
 </script>
 
 <template>
-  <section class="space-y-2">
-    <div class="flex items-center justify-between px-1">
-      <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Agencias</p>
+  <section class="rounded-xl border border-gray-200 bg-white">
+    <div class="flex items-center justify-between px-4 pt-4">
+      <div>
+        <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Agencias</p>
+        <p class="text-xs text-gray-600">
+          En campo <b :class="totalEnCampo > 0 ? 'text-rose-700' : 'text-gray-900'">{{ formatMoney(totalEnCampo) }}</b>
+        </p>
+      </div>
       <div class="flex gap-1">
         <button
-          v-for="f in ([['todas', 'Todas'], ['con_efectivo', 'Con efectivo']] as const)"
-          :key="f[0]"
           type="button"
           class="rounded-full border px-2.5 py-1 text-[11px] font-semibold"
-          :class="filtro === f[0] ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 text-gray-600'"
-          @click="filtro = f[0]"
+          :class="filtro === 'todas' ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 text-gray-600'"
+          @click="filtro = 'todas'"
         >
-          {{ f[1] }}
+          Todas {{ conMovimiento.length }}
+        </button>
+        <button
+          type="button"
+          class="rounded-full border px-2.5 py-1 text-[11px] font-semibold"
+          :class="filtro === 'con_efectivo' ? 'border-rose-600 bg-rose-600 text-white' : 'border-gray-200 text-gray-600'"
+          @click="filtro = 'con_efectivo'"
+        >
+          Con efectivo {{ conEfectivo }}
         </button>
       </div>
     </div>
 
-    <p v-if="visibles.length === 0" class="rounded-xl border border-gray-200 bg-white p-4 text-center text-xs text-gray-500">
-      Sin agencias con efectivo en campo.
+    <p v-if="visibles.length === 0" class="p-4 text-center text-xs text-gray-500">
+      Ninguna agencia con efectivo en campo.
     </p>
 
-    <article
-      v-for="c in visibles"
-      :key="c.agencia"
-      class="rounded-xl border border-gray-200 bg-white p-3"
-    >
-      <div class="flex items-center justify-between gap-2">
-        <p class="truncate text-sm font-semibold text-gray-950">
-          {{ c.agencia }}
-          <span class="ml-1 font-normal" :class="c.vacante ? 'text-amber-700' : 'text-gray-600'">
-            {{ c.vacante ? 'VACANTE' : c.agente }}
-          </span>
-        </p>
-        <span
-          v-if="c.cerrada"
-          class="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"
-        >
-          <Check class="size-3" :stroke-width="2.5" /> Cerrada
-        </span>
-      </div>
+    <ul v-else class="mt-2 divide-y divide-gray-100">
+      <li v-for="c in visibles" :key="c.agencia" class="px-4 py-3">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-semibold text-gray-950">
+              {{ c.agencia }}
+              <span v-if="c.vacante" class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">VACANTE</span>
+              <span v-else-if="c.agente" class="ml-1 font-normal text-gray-600">{{ c.agente }}</span>
+            </p>
+            <p class="mt-0.5 text-xs text-gray-500">
+              Cobranza <span class="font-semibold text-gray-800">{{ formatMoney(c.cobranza) }}</span>
+              · Entregado <span class="font-semibold text-gray-800">{{ formatMoney(c.entregado) }}</span>
+            </p>
+          </div>
 
-      <p class="mt-1.5 text-xs text-gray-600">
-        Cobranza <b class="text-gray-900">{{ formatMoney(c.cobranza) }}</b>
-        · Entregado <b class="text-gray-900">{{ formatMoney(c.entregado) }}</b>
-      </p>
-      <p class="mt-0.5 flex items-center justify-between text-xs text-gray-600">
-        <span>En campo <b :class="c.en_campo > 0 ? 'text-rose-700' : 'text-gray-900'">{{ formatMoney(c.en_campo) }}</b></span>
-        <span v-if="custodiaDe(c) > 0" class="text-amber-700">Custodia <b>{{ formatMoney(custodiaDe(c)) }}</b></span>
-      </p>
-    </article>
+          <div class="shrink-0 text-right">
+            <span
+              v-if="c.cerrada"
+              class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700"
+            >
+              <Check class="size-3" :stroke-width="2.5" /> Cerrada
+            </span>
+            <template v-else>
+              <p class="text-[10px] font-semibold uppercase tracking-wide text-gray-500">En campo</p>
+              <p class="text-base font-bold" :class="c.en_campo > 0 ? 'text-rose-700' : 'text-gray-900'">
+                {{ formatMoney(c.en_campo) }}
+              </p>
+            </template>
+            <p v-if="custodiaDe(c) > 0" class="text-[11px] font-medium text-amber-700">
+              Custodia {{ formatMoney(custodiaDe(c)) }}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-2 h-1.5 w-full overflow-hidden rounded bg-gray-100">
+          <div class="h-full rounded" :class="c.cerrada ? 'bg-emerald-500' : 'bg-blue-500'" :style="{ width: `${avanceDe(c)}%` }" />
+        </div>
+      </li>
+    </ul>
   </section>
 </template>
