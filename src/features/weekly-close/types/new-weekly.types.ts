@@ -133,5 +133,7 @@ export interface CreateNewWeeklyClose {
   efectivo_restante_cierre: number;
   uid_verificacion_agente: string;
   uid_verificacion_gerente: string;
+  /** UsuarioID de quien hace el cierre (gerente o Seguridad/Regional) */
+  cerrado_por: number;
   observaciones: string;
 }
