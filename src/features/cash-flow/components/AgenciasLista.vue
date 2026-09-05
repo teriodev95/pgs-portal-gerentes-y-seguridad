@@ -97,13 +97,15 @@ function horaCorta(iso: string): string {
           </div>
 
           <div class="shrink-0 text-right">
+            <!-- Una agencia cerrada puede traer pagos capturados despues del cierre:
+                 se ve Cerrada y, si hay, su En campo. -->
             <span
               v-if="c.cerrada"
               class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700"
             >
               <Check class="size-3" :stroke-width="2.5" /> Cerrada
             </span>
-            <template v-else>
+            <template v-if="!c.cerrada || c.en_campo > 0">
               <p class="text-[10px] font-semibold uppercase tracking-wide text-gray-500">En campo</p>
               <p class="text-base font-bold" :class="c.en_campo > 0 ? 'text-rose-700' : 'text-gray-900'">
                 {{ formatMoney(c.en_campo) }}
