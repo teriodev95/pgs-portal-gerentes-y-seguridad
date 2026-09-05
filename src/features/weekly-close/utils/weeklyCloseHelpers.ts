@@ -8,6 +8,7 @@ export const transformToNewCreateCierre = (
   weeklyClose: IWeeklyCloseWithIncome,
   uidVerificacionAgente: string,
   uidVerificacionGerente: string,
+  cerradoPor: number,
   observaciones: string = ''
 ): CreateNewWeeklyClose => {
   return {
@@ -37,6 +38,7 @@ export const transformToNewCreateCierre = (
     efectivo_restante_cierre: weeklyClose.egresosGerente.efectivoRestanteCierre,
     uid_verificacion_agente: uidVerificacionAgente,
     uid_verificacion_gerente: uidVerificacionGerente,
+    cerrado_por: cerradoPor,
     observaciones
   }
 }

@@ -235,6 +235,7 @@ export const useWeeklyClose = () => {
         store.weeklyClose,
         signStore.agentVerificationVideoUrl || '',
         signStore.managerVerificationVideoUrl || '',
+        globalStore.user?.usuarioId ?? 0, // quien cierra: gerente o Seguridad/Regional con sesión
         '' // observaciones - vacío por defecto
       )
 
