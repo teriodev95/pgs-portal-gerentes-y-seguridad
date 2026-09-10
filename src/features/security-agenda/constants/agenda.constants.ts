@@ -82,7 +82,7 @@ export const TEAM_MODULE = 'agenda-equipo'
  *
  * Cuando la autoricen, esto pasa a `true` y no hay nada más que tocar.
  */
-export const AGENDA_RELEASED = false
+export const AGENDA_RELEASED = true
 
 /** Tipo de actividad que se liga con una visita del call center. */
 export const VISIT_ACTIVITY_TYPE = 'VISITA_CALL_CENTER'
