@@ -7,6 +7,7 @@ import {
 import CardContainer from '@/shared/components/CardContainer.vue'
 import DocumentViewer from './DocumentViewer.vue'
 import DetailSection from './DetailSection.vue'
+import ClienteHistorialDisclosure from './ClienteHistorialDisclosure.vue'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type {
   ActivosData,
@@ -518,6 +519,17 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
     </TabsContent>
 
     <TabsContent value="credito" class="space-y-4">
+      <!--
+        Primero el historial, arriba del plan. El regional abre esta pestaña
+        para responder "¿cabe el aumento?" antes que "¿cómo queda el plan?", y
+        en móvil el orden vertical es el orden de lectura. Vivía sólo en el
+        modal de aprobación, colapsado: desde el detalle no se veía.
+      -->
+      <ClienteHistorialDisclosure
+        :persona-id="request.cliente_persona_id"
+        :monto-solicitado="request.monto_solicitado"
+      />
+
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
         <CardContainer class-name="rounded-3xl"><DetailSection title="Plan solicitado" :items="creditInfo" /></CardContainer>
         <CardContainer class-name="rounded-3xl">

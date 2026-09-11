@@ -308,11 +308,40 @@ export interface HistorialPrestamo {
   cumple_sin_reducidos_graves: 0 | 1
   cumple_minimo_reducido: 0 | 1
   score: number
+  /** Nivel normalizado; Elysia cae al identificador del crédito cuando `Tipo_de_Cliente` viene vacío. */
+  nivel: string | null
+  /** "Nueva venta" | "Renovación", ya normalizado por Elysia. */
+  tipo_credito: string | null
+}
+
+/**
+ * Lo que la política de renovación permite, calculado en Elysia sobre el mismo
+ * historial. Viaja en cada respuesta de `/filtrado-clientes/historial` desde
+ * julio; PGS lo recibía y lo tiraba por no declararlo.
+ *
+ * `monto_referencia` es el máximo otorgado entre los completados —no el último—
+ * y `monto_maximo` es ése más el incremento de renovación. Con activo en última
+ * semana el tope baja a "sólo mantener" el monto del activo.
+ */
+export interface Elegibilidad {
+  tipo_credito_real: 'nuevo' | 'renovacion'
+  esta_en_ultima_semana: boolean
+  score_final: number | null
+  nivel_maximo: string | null
+  nivel_referencia: string | null
+  usa_referencia_activa: boolean
+  monto_referencia: number | null
+  monto_exacto: number | null
+  monto_maximo: number | null
+  /** Frase lista para mostrar, en español: el porqué del tope. */
+  mensaje: string
+  advertencia: string | null
 }
 
 export interface HistorialData {
   score_final: number
   prestamos: HistorialPrestamo[]
+  elegibilidad?: Elegibilidad | null
 }
 
 export interface HistorialResponse {
