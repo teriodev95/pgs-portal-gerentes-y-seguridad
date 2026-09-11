@@ -22,6 +22,8 @@ interface Props {
   currentPlanId?: number | null
   isLoading?: boolean
   clientePersonaId?: string | null
+  /** Para que el historial compare contra lo pedido también aquí, que es donde se aprueba. */
+  montoSolicitado?: number | null
 }
 
 interface Emits {
@@ -199,7 +201,10 @@ function selectMonto(value: number) {
       </DrawerHeader>
 
       <div class="flex-1 space-y-6 overflow-y-auto px-6 pb-4 overscroll-contain">
-        <ClienteHistorialDisclosure :persona-id="clientePersonaId" />
+        <ClienteHistorialDisclosure
+          :persona-id="clientePersonaId"
+          :monto-solicitado="montoSolicitado"
+        />
 
         <section class="grid gap-5 md:grid-cols-2">
           <div class="space-y-2">

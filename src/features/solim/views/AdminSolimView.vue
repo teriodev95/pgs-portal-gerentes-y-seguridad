@@ -188,6 +188,7 @@ function handleNextWeek(): void {
     :tabla-cargos-options="tablaCargosOptions"
     :current-plan-id="selectedLoanRequest?.revision?.tabla_cargos_id_sugerido ?? selectedLoanRequest?.tabla_cargos_id ?? null"
     :cliente-persona-id="dialogPersonaId ?? selectedLoanRequest?.cliente_persona_id ?? null"
+    :monto-solicitado="selectedLoanRequest?.monto_solicitado ?? null"
     :is-loading="isProcessingAction"
     @update:form="handleUpdateForm"
     @confirm="handleConfirmAction"
