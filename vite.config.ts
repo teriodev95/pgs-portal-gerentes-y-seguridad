@@ -51,7 +51,13 @@ export default defineConfig({
 
 	// viteCompression(),
 	VitePWA({
-		registerType: "autoUpdate",
+		// `prompt` y no `autoUpdate`. Con autoUpdate el SW nuevo se activa solo, borra
+		// el caché viejo y toma control de las pestañas abiertas SIN recargarlas: la
+		// página sigue corriendo el JS viejo, pide sus chunks viejos, ya no existen,
+		// y el import dinámico truena. Con prompt el SW viejo sigue sirviendo hasta
+		// que el usuario acepte, y el aviso de PwaPrompt —que con autoUpdate nunca
+		// llegaba a dispararse— es quien pide la recarga.
+		registerType: "prompt",
 		injectRegister: "auto",
 		includeAssets: ["img/*.png", "img/*.svg", "icons/*.svg"],
 		workbox: {
