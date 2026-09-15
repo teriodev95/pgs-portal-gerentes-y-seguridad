@@ -1,8 +1,8 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
-import type { GetBaseProps } from '@/interfaces'
+import type { GetBaseProps,  } from '@/interfaces'
 import type {
   IAgencyFinancialSummary,
-  ISalidasSemana,
+  ILoansAboutToEnd,
   IManagementDashboard,
   IManagementDebts,
 } from '../types'
@@ -10,7 +10,6 @@ import type {
 class EntityService {
   private apiJavalin = createApiClientFromPreset('javalin')
   private apiFastApi = createApiClientFromPreset('fastApi')
-  private apiElysia = createApiClientFromPreset('elysia')
 
   async getAgencyDashboard(agency: string, date: string) {
     return this.apiFastApi.get<IAgencyFinancialSummary>(`/dashboard-agencia-v3/dashboard/fecha?fecha=${date}&agencia=${agency}`, {
@@ -39,16 +38,12 @@ class EntityService {
     )
   }
 
-  /**
-   * Quiénes salieron de cartera esta semana y por qué. Sustituye al
-   * "por finalizar" de FAX; volver a FAX es cambiar esta llamada.
-   */
-  async getSalidasSemana(agency: string) {
-    return this.apiElysia.get<ISalidasSemana>(`/pwa/salidas/${agency}`, {
+  async getLoansAboutToEnd({ agency, week, year }: GetBaseProps) {
+    return this.apiFastApi.get<ILoansAboutToEnd>(`/prestamos/por_finalizar_by_agencia/?agencia=${agency}&anio=${year}&semana=${week}`, {
       meta: {
         errorNotification: {
-          title: 'Error al cargar las salidas de la semana',
-          message: 'No se pudieron cargar los clientes que salieron esta semana. Por favor, intenta nuevamente.',
+          title: 'Error al cargar préstamos por finalizar',
+          message: 'No se pudieron cargar los préstamos próximos a finalizar. Por favor, intenta nuevamente.',
           type: 'error'
         }
       }

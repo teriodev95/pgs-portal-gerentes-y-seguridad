@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ROUTE_NAME } from '@/router'
 
 // Components
 import CardContainer from '@/shared/components/CardContainer.vue'
-import AgencyExitRow from '@/features/entity/components/AgencyExitRow.vue'
+import LoanCard from '@/features/entity/components/LoanCard.vue'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
@@ -17,7 +16,7 @@ import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
 // Composables
 import { useAgencyDetails } from '../composables'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
-import TextCT from '@/shared/components/ui/TextCT.vue'
+import DataField from '@/shared/components/DataField.vue'
 
 const router = useRouter()
 
@@ -26,27 +25,14 @@ const {
   dashboardData,
   dateSelector,
   isDatePickerVisible,
-  salidas,
+  loansAboutToEnd,
   agency,
-  hasSalidas,
+  hasLoansToFinish,
   isLoading,
   navigateToHome,
-  navigateToLoanDetails,
   toggleDatePicker,
   fetchDashboardByDate
 } = useAgencyDetails()
-
-// Solo se nombran los grupos que tienen gente: un "0 especiales" es ruido.
-const resumenSalidas = computed(() => {
-  const r = salidas.value?.resumen
-  if (!r) return ''
-  const partes = [
-    r.terminaron ? `${r.terminaron} ${r.terminaron === 1 ? 'terminó' : 'terminaron'} de pagar` : '',
-    r.conDescuento ? `${r.conDescuento} con descuento` : '',
-    r.especiales ? `${r.especiales} ${r.especiales === 1 ? 'especial' : 'especiales'}` : ''
-  ].filter(Boolean)
-  return partes.join(' · ')
-})
 
 // Methods
 function handleBack() {
@@ -94,37 +80,25 @@ function handleBack() {
         />
       </CardContainer>
 
-      <!-- Salidas de cartera de la semana en curso -->
-      <CardContainer title="Salen esta semana">
-        <template v-if="hasSalidas">
-          <TextCT v-if="resumenSalidas" variant="secondary">{{ resumenSalidas }}</TextCT>
+      <!-- Cash in Field Card -->
+      <CardContainer title="Resumen">
+        <!--
+          <DataField   
+            label="Efectivo en campo" 
+            :value="toCurrency(agency.efectivoEnCampo)"
+          />
+        -->
 
-          <div v-if="salidas?.salidas.length">
-            <AgencyExitRow
-              v-for="salida in salidas.salidas"
-              :key="`salida-${salida.prestamoId}`"
-              :salida="salida"
-              @select="navigateToLoanDetails"
-            />
-          </div>
-
-          <template v-if="salidas?.porTerminar.length">
-            <TextCT variant="tertiary" class="mt-4">
-              Por terminar esta semana: {{ salidas.porTerminar.length }}
-            </TextCT>
-            <div>
-              <AgencyExitRow
-                v-for="pendiente in salidas.porTerminar"
-                :key="`por-terminar-${pendiente.prestamoId}`"
-                :por-terminar="pendiente"
-                @select="navigateToLoanDetails"
-              />
-            </div>
-          </template>
-        </template>
-
-        <TextCT v-else variant="tertiary">Nadie ha salido de cartera esta semana.</TextCT>
+        <DataField 
+          label="Prestamos a finalizar"
+          :value="loansAboutToEnd?.porFinalizar ?? 0"
+        />
       </CardContainer>
+
+      <!-- Loans About To End List -->
+      <div v-if="hasLoansToFinish" class="space-y-6">
+        <LoanCard v-for="loan in loansAboutToEnd?.prestamos" :key="loan.prestamoId" :loan="loan" />
+      </div>
     </SectionContainer>
   </MainCT>
 </template>

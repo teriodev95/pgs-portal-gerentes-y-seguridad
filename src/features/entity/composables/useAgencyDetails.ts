@@ -2,7 +2,7 @@ import { computed, onBeforeMount, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/shared/stores'
 import { ROUTE_NAME } from '@/router'
-import type { IAgencyFinancialSummary, ISalidasSemana } from '../types/agency.types'
+import type { IAgencyFinancialSummary, ILoansAboutToEnd } from '../types/agency.types'
 import { entityService } from '../services/entity.service'
 
 export function useAgencyDetails() {
@@ -14,11 +14,12 @@ export function useAgencyDetails() {
   const dashboardData = ref<IAgencyFinancialSummary>()
   const dateSelector = ref<string>()
   const isDatePickerVisible = ref(false)
-  const salidas = ref<ISalidasSemana>()
+  const loansAboutToEnd = ref<ILoansAboutToEnd>()
 
   // Computed properties
   const agency = computed(() => $store.agencyData)
-  const hasSalidas = computed(() => (salidas.value?.salidas.length ?? 0) > 0 || (salidas.value?.porTerminar.length ?? 0) > 0)
+  const currentDate = computed(() => $store.currentDate)
+  const hasLoansToFinish = computed(() => (loansAboutToEnd.value?.prestamos.length ?? 0) > 0)
   const isLoading = ref(false)
 
   // Methods
@@ -60,23 +61,24 @@ export function useAgencyDetails() {
     }
   }
 
-  function navigateToLoanDetails(prestamoId: string): void {
-    void $router.push({
-      name: ROUTE_NAME.DASHBOARD_PRESTAMO,
-      query: { prestamo: prestamoId }
-    })
-  }
-
-  async function fetchSalidasSemana(): Promise<void> {
+  async function fetchLoansAboutToEnd(): Promise<void> {
     if (!agency.value?.agencia) return
 
     isLoading.value = true
 
     try {
-      const { data } = await entityService.getSalidasSemana(agency.value.agencia)
-      salidas.value = data
+      const { data } = await entityService.getLoansAboutToEnd({
+        agency: agency.value.agencia,
+        week: currentDate.value.week,
+        year: currentDate.value.year
+      })
+
+
+      console.log('Loans About to End Data:', data);
+
+      loansAboutToEnd.value = data
     } catch (error) {
-      console.error('Error fetching salidas de la semana:', error)
+      console.error('Error fetching loans about to end:', error)
     } finally {
       isLoading.value = false
     }
@@ -84,7 +86,7 @@ export function useAgencyDetails() {
 
   // Lifecycle hooks
   onBeforeMount(async () => {
-    await fetchSalidasSemana()
+    await fetchLoansAboutToEnd()
   })
 
   return {
@@ -92,18 +94,18 @@ export function useAgencyDetails() {
     dashboardData,
     dateSelector,
     isDatePickerVisible,
-    salidas,
+    loansAboutToEnd,
     isLoading,
-
+    
     // Computed
     agency,
-    hasSalidas,
-
+    currentDate,
+    hasLoansToFinish,
+    
     // Methods
     navigateToHome,
-    navigateToLoanDetails,
     toggleDatePicker,
     fetchDashboardByDate,
-    fetchSalidasSemana
+    fetchLoansAboutToEnd
   }
 }
