@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { useStorage } from '../composables'
 import type { IAgencyBasicInfo, IGerencia } from '@/interfaces'
 import type { IAgencyDashboard } from '@/shared/types'
-import type { ICobranza } from '@/interfaces'
+import type { ICobranza, ICobranzaV2 } from '@/interfaces'
 import type { IUser } from '@/features/auth/types'
 
 interface DataStore {
@@ -20,6 +20,8 @@ export const useStore = defineStore(STORE_NAME, () => {
   const agencySelected = ref<string>()
   const agencyData = ref<IAgencyDashboard>()
   const cobranzas = ref<ICobranza[]>([])
+  /** Lista que pinta el inicio (v2). Va aparte de `cobranzas` para no pisar a Pagos ni al layout. */
+  const cobranzasInicio = ref<ICobranzaV2[]>([])
   const cobranzasWithCrtp = computed<ICobranza[]>(() =>
     cobranzas.value.filter((cobranza) => cobranza.crtp === 0)
   )
@@ -60,6 +62,7 @@ export const useStore = defineStore(STORE_NAME, () => {
     agencySelected.value = undefined
     agencyData.value = undefined
     cobranzas.value = []
+    cobranzasInicio.value = []
     cobranzaSelected.value = undefined
     gerencias.value = []
     gerenciaSelected.value = undefined
@@ -91,6 +94,7 @@ export const useStore = defineStore(STORE_NAME, () => {
     agencyData.value = undefined
     cobranzaSelected.value = undefined
     cobranzas.value = []
+    cobranzasInicio.value = []
   }
 
   /**
@@ -111,6 +115,7 @@ export const useStore = defineStore(STORE_NAME, () => {
     authPin,
     elysiaToken,
     cobranzas,
+    cobranzasInicio,
     cobranzaSelected,
     cobranzasWithCrtp,
     currentDate,

@@ -5,6 +5,7 @@ import type {
   GetGerenciasUsuario,
   IAgencyBasicInfo,
   ICobranza,
+  ICobranzaV2,
 } from '@/interfaces'
 
 class CommonService {
@@ -24,6 +25,16 @@ class CommonService {
   async getCobranza(params: GetBaseProps) {
     return this.elysiaClient.get<{ cobranza: ICobranza[] }>(
       `/pwa/cobranza/${params.agency}/${params.year}/${params.week}`
+    )
+  }
+
+  /**
+   * Lista del inicio con el avance y saldo vivo de cada préstamo.
+   * Endpoint aparte de la v1 para poder regresar a getCobranza sin tocar Elysia.
+   */
+  async getCobranzaV2(params: GetBaseProps) {
+    return this.elysiaClient.get<{ cobranza: ICobranzaV2[] }>(
+      `/pwa/cobranza/v2/${params.agency}/${params.year}/${params.week}`
     )
   }
 

@@ -27,9 +27,9 @@ export function useCollections() {
    * Filtered collections based on search and filter options
    */
   const filteredCollections = computed(() => {
-    if (!$store.cobranzas) return []
+    if (!$store.cobranzasInicio) return []
 
-    return $store.cobranzas
+    return $store.cobranzasInicio
       .filter(collection => {
         // Apply status filters
         if (!filterOptions.value.completed && collection.status === 'Completado') return false
@@ -71,15 +71,15 @@ export function useCollections() {
 
     try {
       // Clear existing collection data first to avoid showing stale data
-      $store.cobranzas = []
+      $store.cobranzasInicio = []
 
-      const { data } = await commonService.getCobranza({
+      const { data } = await commonService.getCobranzaV2({
         agency: agencySelected.value as string,
         week: currentDate.value.week,
         year: currentDate.value.year
       })
 
-      $store.cobranzas = data.cobranza
+      $store.cobranzasInicio = data.cobranza
       return true
     } catch (error) {
       console.error('Error fetching collection data:', error)
@@ -101,6 +101,7 @@ export function useCollections() {
     
     // Computed
     isLoading,
+    agencySelected,
     filteredCollections,
     
     // Methods

@@ -12,7 +12,7 @@ import FilterButton from '@/shared/components/FilterButton.vue'
 import GerencySlider from '@/features/home/components/GerencySlider.vue'
 import HomeMenu from '@/features/home/components/HomeMenu.vue'
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
-import PaymentWidget from '@/features/home/components/PaymentWidget.vue'
+import LoanProgressRow from '@/features/home/components/LoanProgressRow.vue'
 import SearchForm from '@/shared/components/forms/SearchForm.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
@@ -36,6 +36,7 @@ const {
   searchTerm,
   filterOptions,
   isLoading,
+  agencySelected,
   filteredCollections,
   navigateToLoanDetails,
   fetchCollectionData,
@@ -64,6 +65,12 @@ setupSucursalesWatcher(sucursales)
 // Lifecycle hooks
 onMounted(() => {
   handleMount(sucursales.value)
+
+  // Al volver de Pagos o del detalle la lista se vuelve a pedir: el saldo de
+  // cada barra tiene que traer los pagos que se acaban de registrar.
+  if (agencySelected.value) {
+    handleAgencySelection(fetchCollectionData)
+  }
 })
 </script>
 
@@ -108,9 +115,9 @@ onMounted(() => {
       <!-- El relleno de abajo libra la barra de agencias y la fila de FABs, que
            flotan sobre la lista. -->
       <div class="mt-4 px-2 pb-[11rem]">
-        <PaymentWidget v-for="(collection, index) in filteredCollections"
-          :key="`collection-${index}-${collection.prestamoId}`" :cobranza="collection"
-          class="cursor-pointer hover:bg-slate-200" @click="() => navigateToLoanDetails(collection.prestamoId)" />
+        <LoanProgressRow v-for="collection in filteredCollections"
+          :key="`collection-${collection.prestamoId}`" :cobranza="collection"
+          @select="navigateToLoanDetails" />
       </div>
     </template>
 
