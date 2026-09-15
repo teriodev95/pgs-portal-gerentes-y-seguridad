@@ -17,18 +17,19 @@ const emit = defineEmits<{
   (event: 'select', prestamoId: string): void
 }>()
 
-// El color lo decide el estado de la semana; la barra lo hereda para que
-// fila, ícono y avance cuenten la misma historia.
-const tone = computed(() => {
+// El ícono habla de la semana (¿ya pagó?). La barra habla del préstamo
+// (¿cuánto lleva?). Son dos cosas distintas, por eso la barra no toma el color
+// del estado: un préstamo al 30 % en verde diría algo que no es.
+const iconTone = computed(() => {
   switch ($props.cobranza.status) {
     case 'Completado':
-      return { icon: 'text-green-500 dark:text-green-400', bar: 'bg-green-500' }
+      return 'text-green-500 dark:text-green-400'
     case 'Desfase':
-      return { icon: 'text-red-500 dark:text-red-400', bar: 'bg-red-500' }
+      return 'text-red-500 dark:text-red-400'
     case 'Pendiente':
-      return { icon: 'text-gray-500 dark:text-gray-400', bar: 'bg-gray-400' }
+      return 'text-gray-500 dark:text-gray-400'
     default:
-      return { icon: 'text-amber-500 dark:text-amber-400', bar: 'bg-amber-500' }
+      return 'text-amber-500 dark:text-amber-400'
   }
 })
 
@@ -52,7 +53,7 @@ onMounted(() => {
   >
     <!-- Icon -->
     <div class="flex-none">
-      <CheckIcon class="h-6 w-6" :class="tone.icon" />
+      <CheckIcon class="h-6 w-6" :class="iconTone" />
     </div>
 
     <!-- Content -->
@@ -69,25 +70,25 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Avance del préstamo -->
-      <div
-        class="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-slate-200"
-        role="progressbar"
-        :aria-valuenow="avance"
-        aria-valuemin="0"
-        aria-valuemax="100"
-      >
+      <!-- Avance del préstamo: la barra dice cuánto lleva, el número cuánto falta.
+           "Pagado X de Y" no va: es lo mismo que ya dibuja la barra. -->
+      <div class="mt-1.5 flex items-center gap-2">
         <div
-          class="h-full rounded-full transition-[width] duration-500 ease-out"
-          :class="tone.bar"
-          :style="{ width: `${barWidth}%` }"
-        />
+          class="h-1 flex-1 overflow-hidden rounded-full bg-slate-200"
+          role="progressbar"
+          :aria-valuenow="avance"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <div
+            class="h-full rounded-full bg-blue-700 transition-[width] duration-500 ease-out"
+            :style="{ width: `${barWidth}%` }"
+          />
+        </div>
+        <p class="flex-none text-xs text-slate-500">
+          Saldo <span class="font-semibold text-slate-700">{{ toCurrency(cobranza.prestamo.saldo) }}</span>
+        </p>
       </div>
-
-      <p class="mt-1 text-xs text-slate-500">
-        Pagado {{ toCurrency(cobranza.prestamo.pagado) }} de {{ toCurrency(cobranza.prestamo.total) }}
-        · Saldo <span class="font-semibold text-slate-700">{{ toCurrency(cobranza.prestamo.saldo) }}</span>
-      </p>
     </div>
 
     <!-- Affordance: la fila lleva al detalle -->
