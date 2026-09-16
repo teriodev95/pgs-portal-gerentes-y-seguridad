@@ -1,6 +1,9 @@
+export type SaleOrigin = 'agente' | 'gerente'
+
 export interface SaleFormData {
   agencia: string 
   fecha: string // formato YYYY-MM-DD
+  generadaPor: SaleOrigin | '' // '' = aún sin elegir
   monto: number
   nivel: 'DIAMANTE' | 'NUEVO' | 'PREMIUM' | 'LEAL' | 'NOBEL' | 'VIP'
   nombreCliente: string

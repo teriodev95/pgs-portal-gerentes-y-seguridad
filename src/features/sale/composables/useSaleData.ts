@@ -20,6 +20,10 @@ function validateSaleData(sale: SaleDetails): { isValid: boolean; errors: string
     errors.push('El nombre del cliente es requerido')
   }
   
+  if (!sale.generadaPor) {
+    errors.push('Debes indicar quién generó la venta')
+  }
+  
   if (!sale.tipo) {
     errors.push('El tipo es requerido')
   }

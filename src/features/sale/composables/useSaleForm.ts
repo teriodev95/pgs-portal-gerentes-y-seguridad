@@ -11,6 +11,7 @@ const defaultSaleForm: SaleFormData = {
   fecha: "",
   agencia: "",
   nombreCliente: "",
+  generadaPor: "",
   tipo: "Nuevo",
   nivel: "NUEVO",
   plazo: "12",
@@ -91,6 +92,7 @@ export function useSaleForm(
       saleForm.value.fecha,
       saleForm.value.agencia,
       saleForm.value.nombreCliente,
+      saleForm.value.generadaPor,
       saleForm.value.tipo,
       saleForm.value.nivel,
       saleForm.value.plazo
