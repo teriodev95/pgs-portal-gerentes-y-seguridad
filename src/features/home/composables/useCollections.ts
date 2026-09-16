@@ -70,16 +70,29 @@ export function useCollections() {
     }
 
     try {
-      // Clear existing collection data first to avoid showing stale data
+      // Se vacian las dos antes de pedir, para no pintar la agencia anterior.
       $store.cobranzasInicio = []
+      $store.cobranzas = []
 
-      const { data } = await commonService.getCobranzaV2({
+      const params = {
         agency: agencySelected.value as string,
         week: currentDate.value.week,
         year: currentDate.value.year
-      })
+      }
 
-      $store.cobranzasInicio = data.cobranza
+      // Dos llamadas y no una: la v2 pinta el inicio, pero no trae `crtp`, y
+      // de `cobranzas` (v1) cuelgan la compuerta del cierre y las pantallas de
+      // Pagos. Cuando el inicio dejo de escribirla, al cambiar de agencia se
+      // quedo con la anterior: el cierre bloqueaba agencias al 100% y mostraba
+      // clientes ajenos. Mientras la v2 no traiga `crtp`, las dos listas tienen
+      // que seguir a la misma agencia.
+      const [{ data: v2 }, { data: v1 }] = await Promise.all([
+        commonService.getCobranzaV2(params),
+        commonService.getCobranza(params)
+      ])
+
+      $store.cobranzasInicio = v2.cobranza
+      $store.cobranzas = v1.cobranza
       return true
     } catch (error) {
       console.error('Error fetching collection data:', error)
