@@ -74,10 +74,12 @@ function handleBack() {
 }
 
 // Lifecycle hooks
+// Se recarga siempre. Viniendo del error de cierre se saltaba la peticion y se
+// confiaba en lo que hubiera en el store; ese fue el ultimo eslabon que dejo
+// llegar a pantalla una lista de otra agencia. Una lista que esta a punto de
+// recibir un pago nunca se toma cacheada.
 onMounted(async () => {
-  if (!isFromWeeklyClosureError.value) {
-    await loadPayments()
-  }
+  await loadPayments()
 })
 </script>
 
