@@ -15,8 +15,17 @@ import type { IAgencyBasicInfo } from '@/interfaces'
 
 const ROLE_MAP: Record<string, SolimRole> = {
   gerente: 'gerente',
-  regional: 'gerente',
+  regional: 'regional',
   seguridad: 'seguridad'
+}
+
+const APPROVAL_LABELS: Record<ApprovalType, string> = {
+  gerente: 'Gerente',
+  oficina: 'Oficina',
+  garantias: 'Garantías',
+  seguridad: 'Seguridad',
+  regional: 'Regional',
+  direccion: 'Dirección'
 }
 
 const numberFromInput = (value: string): number | null => {
@@ -52,9 +61,7 @@ export function useSolimData() {
     return ROLE_MAP[role] ?? 'gerente'
   })
 
-  const currentRoleLabel = computed(() =>
-    currentApprovalType.value === 'seguridad' ? 'Seguridad' : 'Gerente'
-  )
+  const currentRoleLabel = computed(() => APPROVAL_LABELS[currentApprovalType.value])
 
   const filteredLoanRequests = computed(() => loanRequests.value)
 
@@ -221,9 +228,8 @@ export function useSolimData() {
     try {
       isProcessingAction.value = true
       const tipo = approvalType ?? currentApprovalType.value
-      const LABELS: Record<string, string> = { gerente: 'gerente', oficina: 'oficina', garantias: 'garantías', seguridad: 'seguridad', direccion: 'dirección' }
       await solimService.updateLoanApplicationCheck(id, tipo, payload)
-      showSuccess(`Revisión de ${LABELS[tipo] ?? tipo} guardada.`)
+      showSuccess(`Revisión de ${APPROVAL_LABELS[tipo].toLowerCase()} guardada.`)
       await fetchLoanRequests()
       await fetchLoanRequestDetail(id)
     } catch (error) {

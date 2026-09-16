@@ -244,6 +244,7 @@ const APPROVAL_TYPE_LABELS: Record<string, string> = {
   oficina: 'Oficina',
   garantias: 'Garantías',
   seguridad: 'Seguridad',
+  regional: 'Regional',
   direccion: 'Dirección'
 }
 
@@ -267,7 +268,7 @@ const isApprovalAlreadyDecided = computed(() => {
 })
 
 const extraReviewType = computed<ApprovalType | null>(() => {
-  if (props.approvalType !== 'seguridad') return null
+  if (props.approvalType !== 'seguridad' && props.approvalType !== 'regional') return null
   const g = garantiasApproval.value
   if (!g || g.requerido !== 1) return null
   const d = g.decision

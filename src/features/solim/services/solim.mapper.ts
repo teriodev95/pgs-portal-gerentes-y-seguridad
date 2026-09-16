@@ -21,7 +21,7 @@ import type {
 
 type AnyRecord = Record<string, any>
 
-const APPROVAL_TYPES: ApprovalType[] = ['gerente', 'oficina', 'garantias', 'seguridad', 'direccion']
+const APPROVAL_TYPES: ApprovalType[] = ['gerente', 'oficina', 'garantias', 'seguridad', 'regional', 'direccion']
 const APPROVAL_DECISIONS: ApprovalDecision[] = [
   'pendiente',
   'aprobado',
@@ -101,6 +101,7 @@ function normalizeApprovalRequirements(value: unknown): ApprovalRequirements | n
     oficina: Boolean(record.oficina),
     garantias: Boolean(record.garantias),
     seguridad: Boolean(record.seguridad),
+    regional: Boolean(record.regional),
     direccion: Boolean(record.direccion)
   }
 }
@@ -128,6 +129,7 @@ function normalizeTablaSnapshot(value: unknown): TablaCargosSnapshot | null {
           oficina: Boolean(requiere.oficina),
           garantias: Boolean(requiere.garantias),
           seguridad: Boolean(requiere.seguridad),
+          regional: Boolean(requiere.regional),
           direccion: Boolean(requiere.direccion)
         }
       : undefined
