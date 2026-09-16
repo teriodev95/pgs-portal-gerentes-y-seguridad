@@ -16,6 +16,8 @@ interface Props {
   isOpen: boolean
   form: ApprovalDialogForm
   roleLabel: string
+  /** Rol de quien firma cuando cubre un check ajeno (p. ej. Regional firmando Seguridad). */
+  signerLabel?: string | null
   tablaCargosOptions: TablaCargosOption[]
   currentPlanId?: number | null
   isLoading?: boolean
@@ -190,6 +192,12 @@ function selectMonto(value: number) {
         <DrawerDescription class="mt-1 text-sm leading-relaxed text-slate-500">
           Registra la decisión y desliza para confirmar. Si hace falta, sugiere un plan alternativo.
         </DrawerDescription>
+        <p
+          v-if="signerLabel"
+          class="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800"
+        >
+          Firmas como {{ signerLabel.toLowerCase() }}, a falta de {{ roleLabel.toLowerCase() }} en la sucursal
+        </p>
       </DrawerHeader>
 
       <div class="flex-1 space-y-6 overflow-y-auto px-6 pb-4 overscroll-contain">

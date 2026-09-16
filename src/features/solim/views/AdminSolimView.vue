@@ -6,7 +6,8 @@ import { ROUTE_NAME } from '@/router'
 import { useApprovalDialog } from '../composables/useApprovalDialog'
 import { useSolim } from '../composables/useSolim'
 import { useStore } from '@/shared/stores'
-import type { RevisionApproval } from '../types'
+import type { ApprovalType, RevisionApproval } from '../types'
+import { APPROVAL_LABELS } from '../constants/approvals'
 
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
@@ -77,19 +78,28 @@ function findRequest(id: string) {
     : loanRequests.value.find((item) => item.id === id)) ?? null
 }
 
-function handleOpenDialog(id: string): void {
+function handleOpenDialog(id: string, approvalType: ApprovalType = currentApprovalType.value): void {
   const request = findRequest(id)
   dialogPersonaId.value = request?.cliente_persona_id ?? null
   openDialog({
     requestId: id,
+    approvalType,
     currentApproval:
-      request?.revision_aprobaciones?.find((approval) => approval.tipo === currentApprovalType.value) ??
-      request?.revision?.aprobaciones?.find((approval) => approval.tipo === currentApprovalType.value) ??
-      currentApproval.value ??
+      request?.revision_aprobaciones?.find((approval) => approval.tipo === approvalType) ??
+      request?.revision?.aprobaciones?.find((approval) => approval.tipo === approvalType) ??
+      (approvalType === currentApprovalType.value ? currentApproval.value : null) ??
       null,
     currentPlanId: request?.revision?.tabla_cargos_id_sugerido ?? request?.tabla_cargos_id ?? null
   })
 }
+
+/** Título del diálogo: el check que se firma. Si es ajeno, se aclara quién firma. */
+const dialogRoleLabel = computed(() => APPROVAL_LABELS[dialogApprovalType.value ?? currentApprovalType.value])
+const dialogSignerLabel = computed(() =>
+  dialogApprovalType.value && dialogApprovalType.value !== currentApprovalType.value
+    ? currentRoleLabel.value
+    : null
+)
 
 function handleOpenGarantiasDialog(id: string): void {
   const request = findRequest(id)
@@ -173,7 +183,8 @@ function handleNextWeek(): void {
   <ActionDialog
     :is-open="isDialogOpen"
     :form="loanApprovalForm"
-    :role-label="dialogApprovalType === 'garantias' ? 'Garantías' : currentRoleLabel"
+    :role-label="dialogRoleLabel"
+    :signer-label="dialogSignerLabel"
     :tabla-cargos-options="tablaCargosOptions"
     :current-plan-id="selectedLoanRequest?.revision?.tabla_cargos_id_sugerido ?? selectedLoanRequest?.tabla_cargos_id ?? null"
     :cliente-persona-id="dialogPersonaId ?? selectedLoanRequest?.cliente_persona_id ?? null"
@@ -267,7 +278,7 @@ function handleNextWeek(): void {
         :role-label="currentRoleLabel"
         :can-register-decision="canApproveSelected"
         :is-loading-action="isProcessingAction"
-        @open:review="(type) => type === 'garantias' ? handleOpenGarantiasDialog(selectedLoanRequest!.id) : handleOpenDialog(selectedLoanRequest!.id)"
+        @open:review="(type) => type === 'garantias' ? handleOpenGarantiasDialog(selectedLoanRequest!.id) : handleOpenDialog(selectedLoanRequest!.id, type)"
       />
 
       <div v-else class="space-y-4">
@@ -283,7 +294,7 @@ function handleNextWeek(): void {
           :solicitud="loanRequest"
           :approval-type="currentApprovalType"
           @action:details="handleShowDetails"
-          @action:review="handleOpenDialog"
+          @action:review="(id) => handleOpenDialog(id)"
         />
       </div>
     </div>
