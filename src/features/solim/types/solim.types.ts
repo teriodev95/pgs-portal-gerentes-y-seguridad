@@ -1,5 +1,5 @@
-export type ApprovalType = 'gerente' | 'oficina' | 'garantias' | 'seguridad' | 'direccion'
-export type SolimRole = 'gerente' | 'seguridad'
+export type ApprovalType = 'gerente' | 'oficina' | 'garantias' | 'seguridad' | 'regional' | 'direccion'
+export type SolimRole = 'gerente' | 'seguridad' | 'regional'
 export type ApprovalDecision =
   | 'pendiente'
   | 'aprobado'
@@ -43,6 +43,7 @@ export interface ApprovalRequirements {
   oficina: boolean
   garantias: boolean
   seguridad: boolean
+  regional: boolean
   direccion: boolean
 }
 

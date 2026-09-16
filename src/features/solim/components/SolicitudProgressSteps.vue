@@ -33,6 +33,7 @@ const APPROVAL_LABELS: Record<ApprovalType, string> = {
   oficina: 'Administración',
   garantias: 'Garantías',
   seguridad: 'Seguridad',
+  regional: 'Regional',
   direccion: 'Dirección general'
 }
 
