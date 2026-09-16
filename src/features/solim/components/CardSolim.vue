@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-vue-next'
 import { toCurrency } from '@/shared/utils'
 import SolicitudProgressSteps from './SolicitudProgressSteps.vue'
 import { isNarrativeEmpty } from '@/features/solim/constants/filtradoCopy'
+import { APPROVAL_LABELS, getPendingReviews } from '@/features/solim/constants/approvals'
 
 interface Props {
   solicitud: Solicitud
@@ -60,6 +61,12 @@ const statusLabel = computed(() => {
 const isDecided = computed(() => {
   const d = currentApproval.value?.decision
   return d === 'aprobado' || d === 'aprobado_con_ajuste' || d === 'rechazado'
+})
+
+/** Firmas de otro rol que este usuario cubre y siguen pendientes (se registran desde el detalle). */
+const coveredPendingLabel = computed(() => {
+  const covered = getPendingReviews(props.solicitud, props.approvalType).filter((t) => t !== props.approvalType)
+  return covered.length ? covered.map((t) => APPROVAL_LABELS[t]).join(' y ') : null
 })
 
 const solicitudStatusLabel = computed(() => {
@@ -183,6 +190,13 @@ const diagnosticoText = computed(() => {
               @click="$emit('action:review', solicitud.id)"
             >
               Registrar decisión
+            </button>
+            <button
+              v-else-if="coveredPendingLabel"
+              class="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-blue-700 px-3 text-sm font-semibold text-white transition hover:bg-blue-800"
+              @click="$emit('action:details', solicitud.id)"
+            >
+              Firmar {{ coveredPendingLabel.toLowerCase() }}
             </button>
             <button
               v-else-if="isDecided"

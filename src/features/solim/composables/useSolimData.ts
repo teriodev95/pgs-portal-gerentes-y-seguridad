@@ -12,20 +12,12 @@ import type {
 } from '../types'
 import { useStore } from '@/shared/stores'
 import type { IAgencyBasicInfo } from '@/interfaces'
+import { APPROVAL_LABELS, getPendingReviews } from '../constants/approvals'
 
 const ROLE_MAP: Record<string, SolimRole> = {
   gerente: 'gerente',
   regional: 'regional',
   seguridad: 'seguridad'
-}
-
-const APPROVAL_LABELS: Record<ApprovalType, string> = {
-  gerente: 'Gerente',
-  oficina: 'Oficina',
-  garantias: 'Garantías',
-  seguridad: 'Seguridad',
-  regional: 'Regional',
-  direccion: 'Dirección'
 }
 
 const numberFromInput = (value: string): number | null => {
@@ -94,8 +86,14 @@ export function useSolimData() {
   })
 
   const canApproveSelected = computed(() => {
-    const requirements = selectedLoanRequest.value?.approval_requirements ?? selectedLoanRequest.value?.revision?.approval_requirements
-    return Boolean(currentApproval.value?.requerido) || Boolean(requirements?.[currentApprovalType.value])
+    const request = selectedLoanRequest.value
+    if (!request) return false
+    const requirements = request.approval_requirements ?? request.revision?.approval_requirements
+    return (
+      Boolean(currentApproval.value?.requerido) ||
+      Boolean(requirements?.[currentApprovalType.value]) ||
+      getPendingReviews(request, currentApprovalType.value).length > 0
+    )
   })
 
   async function fetchLoanRequests(): Promise<void> {

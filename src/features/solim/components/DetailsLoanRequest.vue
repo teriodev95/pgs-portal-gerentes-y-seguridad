@@ -16,6 +16,7 @@ import type {
   Solicitud
 } from '../types'
 import { getFiltradoHeading, isNarrativeEmpty, NEUTRAL_CLOSE } from '../constants/filtradoCopy'
+import { APPROVAL_LABELS, getPendingReviews, isDecided } from '../constants/approvals'
 
 interface Props {
   request: Solicitud
@@ -38,10 +39,6 @@ const approvals = computed<RevisionApproval[]>(
 
 const currentApproval = computed(
   () => approvals.value.find((approval) => approval.tipo === props.approvalType) ?? null
-)
-
-const garantiasApproval = computed(
-  () => approvals.value.find((a) => a.tipo === 'garantias') ?? null
 )
 
 const planSnapshot = computed(() => props.request.tabla_cargos_snapshot ?? props.request.revision?.tabla_cargos_snapshot ?? null)
@@ -239,15 +236,6 @@ const openStreetMapUrl = computed(() => {
   return `https://www.openstreetmap.org/?mlat=${props.request.gps_lat}&mlon=${props.request.gps_lng}#map=16/${props.request.gps_lat}/${props.request.gps_lng}`
 })
 
-const APPROVAL_TYPE_LABELS: Record<string, string> = {
-  gerente: 'Gerente',
-  oficina: 'Oficina',
-  garantias: 'Garantías',
-  seguridad: 'Seguridad',
-  regional: 'Regional',
-  direccion: 'Dirección'
-}
-
 function approvalDotClass(decision?: ApprovalDecision): string {
   switch (decision) {
     case 'aprobado':
@@ -262,19 +250,22 @@ function approvalDotClass(decision?: ApprovalDecision): string {
   }
 }
 
-const isApprovalAlreadyDecided = computed(() => {
-  const decision = currentApproval.value?.decision
-  return decision === 'aprobado' || decision === 'aprobado_con_ajuste' || decision === 'rechazado'
-})
+const isApprovalAlreadyDecided = computed(() => isDecided(currentApproval.value))
 
-const extraReviewType = computed<ApprovalType | null>(() => {
-  if (props.approvalType !== 'seguridad' && props.approvalType !== 'regional') return null
-  const g = garantiasApproval.value
-  if (!g || g.requerido !== 1) return null
-  const d = g.decision
-  if (d === 'aprobado' || d === 'aprobado_con_ajuste' || d === 'rechazado') return null
-  return 'garantias'
-})
+/** Firmas requeridas y sin decisión que este rol puede registrar (la propia primero). */
+const pendingReviews = computed(() => getPendingReviews(props.request, props.approvalType))
+
+const ownCheckApplies = computed(() => currentApproval.value?.requerido === 1)
+
+const pendingLabel = computed(() =>
+  pendingReviews.value.map((tipo) => APPROVAL_LABELS[tipo]).join(', ')
+)
+
+function reviewButtonLabel(tipo: ApprovalType): string {
+  if (tipo === props.approvalType) return 'Registrar decisión'
+  if (tipo === 'garantias') return 'Validar garantías'
+  return `Firmar ${APPROVAL_LABELS[tipo].toLowerCase()}`
+}
 
 function formatMoney(value?: number | null) {
   return value != null
@@ -340,7 +331,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 </script>
 
 <template>
-  <div class="relative" :class="canRegisterDecision ? 'pb-28' : 'pb-4'">
+  <div class="relative" :class="canRegisterDecision ? 'pb-40' : 'pb-4'">
   <Tabs default-value="revision" class="space-y-4">
     <TabsList class="grid h-auto w-full grid-cols-4 rounded-3xl bg-white p-2 shadow-sm">
       <TabsTrigger value="revision" class="rounded-2xl py-3 text-sm font-semibold">Revisión</TabsTrigger>
@@ -429,7 +420,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
                     aria-hidden="true"
                   />
                   <p class="truncate text-sm font-semibold text-slate-900">
-                    {{ APPROVAL_TYPE_LABELS[approval.tipo] || approval.tipo }}
+                    {{ APPROVAL_LABELS[approval.tipo] || approval.tipo }}
                   </p>
                 </div>
                 <span
@@ -603,43 +594,42 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
     v-if="canRegisterDecision"
     class="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur-md"
   >
-    <div class="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
-      <div class="min-w-0 flex-1">
+    <div class="mx-auto max-w-2xl space-y-2.5 px-4 py-3">
+      <div class="min-w-0">
         <p class="text-sm font-semibold text-slate-900">
-          Revisión de {{ roleLabel.toLowerCase() }}
+          {{ ownCheckApplies ? `Revisión de ${roleLabel.toLowerCase()}` : 'Firmas a tu cargo' }}
         </p>
         <p class="mt-0.5 truncate text-xs text-slate-500">
-          {{ isApprovalAlreadyDecided
-            ? (currentApproval?.usuario_nombre ?? 'Decisión ya registrada')
-            : 'Pendiente de decisión del personal autorizado' }}
+          <template v-if="pendingReviews.length">Pendiente: {{ pendingLabel }}</template>
+          <template v-else-if="isApprovalAlreadyDecided">{{ currentApproval?.usuario_nombre ?? 'Decisión ya registrada' }}</template>
+          <template v-else>Pendiente de decisión del personal autorizado</template>
         </p>
       </div>
 
-      <button
-        v-if="extraReviewType"
-        class="shrink-0 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
-        :disabled="isLoadingAction"
-        @click="$emit('open:review', extraReviewType)"
-      >
-        Validar garantías
-      </button>
+      <!-- Un botón por firma pendiente: la propia en azul, las que cubre por otro rol en blanco -->
+      <div class="flex flex-wrap gap-2">
+        <button
+          v-for="tipo in pendingReviews"
+          :key="tipo"
+          class="inline-flex h-11 min-w-[9rem] flex-1 items-center justify-center rounded-xl px-4 text-sm font-semibold transition disabled:opacity-60"
+          :class="tipo === approvalType
+            ? 'bg-blue-700 text-white hover:bg-blue-800'
+            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'"
+          :disabled="isLoadingAction"
+          @click="$emit('open:review', tipo)"
+        >
+          {{ reviewButtonLabel(tipo) }}
+        </button>
 
-      <button
-        v-if="!isApprovalAlreadyDecided"
-        class="shrink-0 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-800 disabled:opacity-60"
-        :disabled="isLoadingAction"
-        @click="$emit('open:review', approvalType)"
-      >
-        Registrar decisión
-      </button>
-      <button
-        v-else
-        class="shrink-0 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
-        :disabled="isLoadingAction"
-        @click="$emit('open:review', approvalType)"
-      >
-        Modificar
-      </button>
+        <button
+          v-if="isApprovalAlreadyDecided"
+          class="inline-flex h-11 min-w-[9rem] flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+          :disabled="isLoadingAction"
+          @click="$emit('open:review', approvalType)"
+        >
+          Modificar
+        </button>
+      </div>
     </div>
   </div>
   </div>
