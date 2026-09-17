@@ -42,22 +42,6 @@ const clientName = computed(() =>
     .join(' ')
 )
 
-const statusLabel = computed(() => {
-  const decision = currentApproval.value?.decision ?? 'pendiente'
-  switch (decision) {
-    case 'aprobado':
-      return 'Aprobado'
-    case 'aprobado_con_ajuste':
-      return 'Con ajuste'
-    case 'rechazado':
-      return 'Rechazado'
-    case 'no_aplica':
-      return 'No aplica'
-    default:
-      return null
-  }
-})
-
 const isDecided = computed(() => {
   const d = currentApproval.value?.decision
   return d === 'aprobado' || d === 'aprobado_con_ajuste' || d === 'rechazado'
@@ -128,20 +112,12 @@ const diagnosticoText = computed(() => {
           <span class="text-slate-300">·</span>
           <span>{{ solicitud.plazo_semanas ?? '-' }} sem</span>
         </div>
-        <div class="flex items-center gap-2">
-          <span
-            class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600"
-          >
-            {{ solicitudStatusLabel }}
-          </span>
-          <span
-            v-if="statusLabel"
-            class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700"
-          >
-            <span class="inline-block size-1.5 rounded-full" :class="stripClass" aria-hidden="true" />
-            {{ statusLabel }}
-          </span>
-        </div>
+        <!-- Una sola etiqueta: la etapa. La firma propia vive en la franja y en el detalle. -->
+        <span
+          class="inline-block rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600"
+        >
+          {{ solicitudStatusLabel }}
+        </span>
       </div>
 
       <ChevronDown
