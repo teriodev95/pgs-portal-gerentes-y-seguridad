@@ -154,7 +154,8 @@ function handleOpenChange(open: boolean) {
 
           <!-- Paso 1: origen -->
           <SaleOriginStep v-if="step === 'origin'" :disbursement-count="saleStore.disbursementsCount"
-            :is-loading="saleStore.isLoadingDisbursements" @select="handleOriginSelect" />
+            :is-loading="saleStore.isLoadingDisbursements" :has-gerencia="Boolean(gerenciaSelected)"
+            @select="handleOriginSelect" />
 
           <!-- Paso 2: elegir desembolso -->
           <DisbursementPicker v-else-if="step === 'pick'" :disbursements="saleStore.disbursements"

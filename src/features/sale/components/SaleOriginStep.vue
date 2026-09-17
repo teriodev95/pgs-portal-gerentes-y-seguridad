@@ -11,6 +11,8 @@ import LoadingIcon from '@/shared/components/icons/LoadingIcon.vue'
 interface Props {
   disbursementCount: number
   isLoading: boolean
+  /** Sin gerencia activa no hay de donde leer los desembolsos; se dice, no se oculta. */
+  hasGerencia: boolean
 }
 
 const props = defineProps<Props>()
@@ -21,7 +23,7 @@ interface Emits {
 
 const emit = defineEmits<Emits>()
 
-const hasDisbursements = () => !props.isLoading && props.disbursementCount > 0
+const hasDisbursements = () => props.hasGerencia && !props.isLoading && props.disbursementCount > 0
 </script>
 
 <template>
@@ -47,17 +49,20 @@ const hasDisbursements = () => !props.isLoading && props.disbursementCount > 0
       <span class="min-w-0 flex-1">
         <span class="block font-semibold text-slate-900">Desde un desembolso</span>
         <span class="mt-0.5 block text-sm leading-5 text-slate-500">
-          <template v-if="isLoading">Buscando desembolsos de la semana...</template>
+          <template v-if="!hasGerencia">
+            Elige primero una gerencia en el menú.
+          </template>
+          <template v-else-if="isLoading">Buscando desembolsos de la semana...</template>
           <template v-else-if="disbursementCount > 0">
             Los datos del crédito se llenan solos.
           </template>
           <template v-else>
-            Esta semana no hay desembolsos sin venta.
+            Esta semana esta gerencia no tiene desembolsos sin venta.
           </template>
         </span>
       </span>
 
-      <span v-if="!isLoading && disbursementCount > 0"
+      <span v-if="hasGerencia && !isLoading && disbursementCount > 0"
         class="shrink-0 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-bold text-white">
         {{ disbursementCount }}
       </span>
