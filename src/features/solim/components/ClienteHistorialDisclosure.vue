@@ -20,6 +20,8 @@ interface Props {
    * renovación; sin él sólo enseña las cifras del historial.
    */
   montoSolicitado?: number | null
+  /** Abierto de entrada: para la pestaña Historial, donde la lista es lo que se vino a ver. */
+  defaultExpanded?: boolean
 }
 
 const props = defineProps<Props>()
@@ -27,7 +29,7 @@ const props = defineProps<Props>()
 const historial = ref<HistorialData | null>(null)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const isExpanded = ref(false)
+const isExpanded = ref(props.defaultExpanded ?? false)
 
 async function loadHistorial(): Promise<void> {
   if (!props.personaId) return
@@ -53,7 +55,7 @@ watch(
     if (next === prev) return
     historial.value = null
     error.value = null
-    isExpanded.value = false
+    isExpanded.value = props.defaultExpanded ?? false
     if (next) {
       loadHistorial()
     }
