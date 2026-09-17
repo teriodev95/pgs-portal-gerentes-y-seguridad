@@ -1,7 +1,7 @@
 import { computed, ref, watch, onBeforeMount } from 'vue'
 import { useCsvLoaderStore } from '@/shared/stores'
 import { useStore } from '@/shared/stores'
-import type { SaleFormData } from '../types'
+import type { Disbursement, SaleFormData } from '../types'
 import { useCreditFilter, type CreditFilters } from '@/shared/composables/useCreditFilter'
 
 /**
@@ -17,6 +17,8 @@ const defaultSaleForm: SaleFormData = {
   plazo: "12",
   monto: 0,
   primerPago: 0,
+  prestamoId: null,
+  solicitudId: null,
 }
 
 /**
@@ -34,6 +36,9 @@ export function useSaleForm(
 
   // Estado del formulario
   const saleForm = ref<SaleFormData>({ ...defaultSaleForm })
+
+  /** Con datos del desembolso, el plan es el que autorizo oficina: el CSV no lo recalcula. */
+  const isFromDisbursement = computed(() => Boolean(saleForm.value.prestamoId))
 
   // Inicializar filtro de créditos
   const csvData = computed(() => $csvLoaderStore.csvData)
@@ -68,6 +73,7 @@ export function useSaleForm(
   watch(
     filteredCreditOptions,
     newValue => {
+      if (isFromDisbursement.value) return
       saleForm.value.primerPago = newValue.length > 0 
         ? Number(newValue[0].primerPago) 
         : 0
@@ -78,6 +84,7 @@ export function useSaleForm(
   watch(
     () => saleForm.value.nivel,
     () => {
+      if (isFromDisbursement.value) return
       saleForm.value.monto = 0
       saleForm.value.primerPago = 0
     }
@@ -137,6 +144,26 @@ export function useSaleForm(
   }
 
   /**
+   * Llena el formulario con el desembolso que ya autorizo oficina.
+   * La fecha y quien genero la venta siguen siendo del gerente.
+   */
+  const applyDisbursement = (disbursement: Disbursement) => {
+    saleForm.value = {
+      ...defaultSaleForm,
+      fecha: saleForm.value.fecha,
+      agencia: disbursement.agencia,
+      nombreCliente: disbursement.nombreCliente,
+      tipo: disbursement.tipo,
+      nivel: disbursement.nivel as SaleFormData['nivel'],
+      plazo: String(disbursement.plazo),
+      monto: disbursement.monto,
+      primerPago: disbursement.primerPago,
+      prestamoId: disbursement.prestamoId,
+      solicitudId: disbursement.solicitudId,
+    }
+  }
+
+  /**
    * Limpia el formulario a su estado inicial
    */
   const clearForm = () => {
@@ -160,9 +187,9 @@ export function useSaleForm(
    */
   const availableAgencies = computed(() => $store.agencies)
 
-  // Inicializar formulario al montar
+  // Inicializar formulario al montar, sin borrar un desembolso ya aplicado
   onBeforeMount(() => {
-    clearForm()
+    if (!isFromDisbursement.value) clearForm()
   })
 
   return {
@@ -172,10 +199,12 @@ export function useSaleForm(
     filteredCreditOptions,
     isAmountSelectDisabled,
     availableAgencies,
-    
+    isFromDisbursement,
+
     // Métodos
     submitForm,
     clearForm,
+    applyDisbursement,
     updateField,
     validateForm
   }
