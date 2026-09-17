@@ -20,8 +20,12 @@ interface Props {
    * renovación; sin él sólo enseña las cifras del historial.
    */
   montoSolicitado?: number | null
-  /** Abierto de entrada: para la pestaña Historial, donde la lista es lo que se vino a ver. */
-  defaultExpanded?: boolean
+  /**
+   * Vista completa: abierta de entrada y con todos los préstamos. Es la
+   * pestaña Historial, donde la lista es lo que se vino a ver. Sin ella
+   * (diálogo de aprobación) se muestra colapsada y sólo los tres últimos.
+   */
+  full?: boolean
 }
 
 const props = defineProps<Props>()
@@ -29,7 +33,7 @@ const props = defineProps<Props>()
 const historial = ref<HistorialData | null>(null)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const isExpanded = ref(props.defaultExpanded ?? false)
+const isExpanded = ref(props.full ?? false)
 
 async function loadHistorial(): Promise<void> {
   if (!props.personaId) return
@@ -55,7 +59,7 @@ watch(
     if (next === prev) return
     historial.value = null
     error.value = null
-    isExpanded.value = props.defaultExpanded ?? false
+    isExpanded.value = props.full ?? false
     if (next) {
       loadHistorial()
     }
@@ -69,7 +73,10 @@ const sortedPrestamos = computed<HistorialPrestamo[]>(() => {
 })
 
 const totalPrestamos = computed(() => sortedPrestamos.value.length)
-const topPrestamos = computed(() => sortedPrestamos.value.slice(0, 3))
+const visiblePrestamos = computed(() =>
+  props.full ? sortedPrestamos.value : sortedPrestamos.value.slice(0, 3)
+)
+const hiddenPrestamos = computed(() => totalPrestamos.value - visiblePrestamos.value.length)
 const ultimoPrestamo = computed<HistorialPrestamo | null>(() => sortedPrestamos.value[0] ?? null)
 
 const elegibilidad = computed<Elegibilidad | null>(() => historial.value?.elegibilidad ?? null)
@@ -321,7 +328,7 @@ function toggle() {
 
           <ul class="mt-2 divide-y divide-slate-100 border-t border-slate-100">
             <li
-              v-for="p in topPrestamos"
+              v-for="p in visiblePrestamos"
               :key="p.PrestamoID"
               class="flex items-center gap-3 px-4 py-3"
             >
@@ -354,10 +361,10 @@ function toggle() {
           </ul>
 
           <p
-            v-if="totalPrestamos > 3"
+            v-if="hiddenPrestamos > 0"
             class="border-t border-slate-100 px-4 py-2 text-xs text-slate-500"
           >
-            + {{ totalPrestamos - 3 }} préstamo{{ totalPrestamos - 3 === 1 ? '' : 's' }} más en el historial
+            + {{ hiddenPrestamos }} préstamo{{ hiddenPrestamos === 1 ? '' : 's' }} más en el historial
           </p>
         </template>
       </div>
