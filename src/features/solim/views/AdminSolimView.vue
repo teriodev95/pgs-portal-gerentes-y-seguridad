@@ -57,6 +57,11 @@ const garantiasDialogRequestId = ref<string>()
 const garantiasCurrentApproval = ref<RevisionApproval | null>(null)
 
 const isDetailVisible = computed(() => Boolean(selectedRequestId.value))
+
+/** Lleva a Ventas con la solicitud lista para confirmar; los datos ya no se recapturan. */
+function handleRegisterSale(id: string) {
+  router.push({ name: ROUTE_NAME.SALES, query: { solicitud: id } })
+}
 const selectedAgencyLabel = computed(() =>
   selectedAgency.value === 'all' ? 'Todas las agencias' : selectedAgency.value
 )
@@ -283,6 +288,7 @@ function handleNextWeek(): void {
         :can-register-decision="canApproveSelected"
         :is-loading-action="isProcessingAction"
         @open:review="(type) => type === 'garantias' ? handleOpenGarantiasDialog(selectedLoanRequest!.id) : handleOpenDialog(selectedLoanRequest!.id, type)"
+        @register:sale="handleRegisterSale(selectedLoanRequest!.id)"
       />
 
       <div v-else class="space-y-4">

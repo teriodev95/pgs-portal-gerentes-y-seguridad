@@ -1,10 +1,9 @@
 export type SaleOrigin = 'agente' | 'gerente'
 
-/** Desembolso (borrador de credito) de la gerencia y semana que todavia no tiene venta. */
-export interface Disbursement {
-  prestamoId: string
-  solicitudId: string | null
-  estadoBorrador: string
+/** Solicitud con todos los vistos buenos que aun no se registro como venta. */
+export interface ApprovedRequest {
+  solicitudId: string
+  status: string
   nombreCliente: string
   agencia: string
   gerencia: string
@@ -27,10 +26,10 @@ export interface SaleFormData {
   plazo: string
   primerPago: number
   tipo: 'Nuevo' | 'Renovación'
-  /** Desembolso del que salio la venta. Vacio = captura manual. */
-  prestamoId?: string | null
-  /** Solicitud de la app de la que salio la venta. */
+  /** Solicitud de la app de la que salio la venta. Vacio = captura manual. */
   solicitudId?: string | null
+  /** Credito ligado cuando oficina ya creo el borrador. */
+  prestamoId?: string | null
 }
 
 export interface SaleDetails extends SaleFormData {

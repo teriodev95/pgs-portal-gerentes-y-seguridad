@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Disbursement, SaleDetails } from '../types'
+import type { ApprovedRequest, SaleDetails } from '../types'
 
 const STORE_NAME = 'sale'
 
@@ -19,16 +19,16 @@ export const useSaleStore = defineStore(STORE_NAME, () => {
   const isLoadingSales = ref(false)
   const isSavingSale = ref(false)
 
-  // Desembolsos de la semana que todavia no tienen venta
-  const disbursements = ref<Disbursement[]>([])
-  const isLoadingDisbursements = ref(false)
+  // Solicitudes aprobadas de la semana que todavia no tienen venta
+  const approvedRequests = ref<ApprovedRequest[]>([])
+  const isLoadingRequests = ref(false)
 
   // ============================================
   // Computed Properties
   // ============================================
   const hasSales = computed(() => sales.value.length > 0)
   const salesCount = computed(() => sales.value.length)
-  const disbursementsCount = computed(() => disbursements.value.length)
+  const approvedRequestsCount = computed(() => approvedRequests.value.length)
 
   // ============================================
   // Métodos - Lista de Ventas
@@ -80,17 +80,17 @@ export const useSaleStore = defineStore(STORE_NAME, () => {
   }
 
   /**
-   * Establece los desembolsos disponibles de la semana
+   * Establece las solicitudes aprobadas disponibles de la semana
    */
-  function setDisbursements(items: Disbursement[]) {
-    disbursements.value = items
+  function setApprovedRequests(items: ApprovedRequest[]) {
+    approvedRequests.value = items
   }
 
   /**
-   * Establece el estado de carga de desembolsos
+   * Establece el estado de carga de solicitudes aprobadas
    */
-  function setLoadingDisbursements(loading: boolean) {
-    isLoadingDisbursements.value = loading
+  function setLoadingRequests(loading: boolean) {
+    isLoadingRequests.value = loading
   }
 
   // ============================================
@@ -104,8 +104,8 @@ export const useSaleStore = defineStore(STORE_NAME, () => {
     sales.value = []
     isLoadingSales.value = false
     isSavingSale.value = false
-    disbursements.value = []
-    isLoadingDisbursements.value = false
+    approvedRequests.value = []
+    isLoadingRequests.value = false
   }
 
   return {
@@ -113,13 +113,13 @@ export const useSaleStore = defineStore(STORE_NAME, () => {
     sales,
     isLoadingSales,
     isSavingSale,
-    disbursements,
-    isLoadingDisbursements,
+    approvedRequests,
+    isLoadingRequests,
 
     // Computed
     hasSales,
     salesCount,
-    disbursementsCount,
+    approvedRequestsCount,
 
     // Métodos
     setSales,
@@ -128,8 +128,8 @@ export const useSaleStore = defineStore(STORE_NAME, () => {
     clearSales,
     setLoadingSales,
     setSavingSale,
-    setDisbursements,
-    setLoadingDisbursements,
+    setApprovedRequests,
+    setLoadingRequests,
 
     // Reset
     $reset,

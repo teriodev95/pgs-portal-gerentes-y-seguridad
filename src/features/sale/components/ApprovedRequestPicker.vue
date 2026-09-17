@@ -1,24 +1,24 @@
 <script setup lang="ts">
 /**
- * Paso 2: elegir el desembolso. Cada tarjeta es el credito completo, tocable.
+ * Paso 2: elegir la solicitud aprobada. Cada tarjeta es el credito completo, tocable.
  * El buscador aparece solo cuando la lista es larga para no cargar la pantalla.
  */
 import { computed, ref } from 'vue'
 import { toCurrency } from '@/shared/utils'
-import type { Disbursement } from '../types'
+import type { ApprovedRequest } from '../types'
 
 import AngleRight from '@/shared/components/icons/AngleRight.vue'
 import SearchIcon from '@/shared/components/icons/SearchIcon.vue'
 import BankNotesIcon from '@/shared/components/icons/BankNotesIcon.vue'
 
 interface Props {
-  disbursements: Disbursement[]
+  requests: ApprovedRequest[]
 }
 
 const props = defineProps<Props>()
 
 interface Emits {
-  (event: 'select', disbursement: Disbursement): void
+  (event: 'select', request: ApprovedRequest): void
 }
 
 const emit = defineEmits<Emits>()
@@ -26,15 +26,15 @@ const emit = defineEmits<Emits>()
 const search = ref('')
 
 const SEARCH_THRESHOLD = 6
-const showSearch = computed(() => props.disbursements.length > SEARCH_THRESHOLD)
+const showSearch = computed(() => props.requests.length > SEARCH_THRESHOLD)
 
 const plain = (value: string) =>
   value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 const filtered = computed(() => {
   const query = plain(search.value).trim()
-  if (!query) return props.disbursements
-  return props.disbursements.filter((item) => plain(item.nombreCliente).includes(query))
+  if (!query) return props.requests
+  return props.requests.filter((item) => plain(item.nombreCliente).includes(query))
 })
 </script>
 
@@ -55,7 +55,7 @@ const filtered = computed(() => {
     <!-- Lista de desembolsos -->
     <button
       v-for="item in filtered"
-      :key="item.prestamoId"
+      :key="item.solicitudId"
       type="button"
       class="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3.5 text-left transition-all hover:border-blue-400 hover:bg-blue-50/40 active:scale-[0.99]"
       @click="emit('select', item)"
@@ -81,13 +81,13 @@ const filtered = computed(() => {
 
     <!-- Sin coincidencias de la búsqueda -->
     <p v-if="filtered.length === 0 && search" class="py-8 text-center text-sm text-slate-500">
-      Ningún desembolso se llama “{{ search.trim() }}”.
+      Ninguna solicitud se llama “{{ search.trim() }}”.
     </p>
 
     <!-- Lista vacía -->
     <div v-else-if="filtered.length === 0" class="space-y-2 py-8 text-center">
       <BankNotesIcon class="mx-auto size-8 text-slate-300" />
-      <p class="text-sm text-slate-500">Todos los desembolsos de la semana ya tienen venta.</p>
+      <p class="text-sm text-slate-500">Todas las solicitudes aprobadas de la semana ya tienen venta.</p>
     </div>
   </div>
 </template>

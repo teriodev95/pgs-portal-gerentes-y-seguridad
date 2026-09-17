@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useDrawer } from '@/shared/composables'
 import { useSaleData } from '../composables'
 import { useSaleStore } from '../stores'
-import type { Disbursement, SaleDetails, SaleFormData } from '../types'
+import type { ApprovedRequest, SaleDetails, SaleFormData } from '../types'
 import { formatToHumanDate, toCurrency } from '@/shared/utils'
 
 // Components
@@ -18,29 +18,37 @@ import {
 import { Button } from '@/components/ui/button'
 import SaleForm from './SaleForm.vue'
 import SaleOriginStep from './SaleOriginStep.vue'
-import DisbursementPicker from './DisbursementPicker.vue'
+import ApprovedRequestPicker from './ApprovedRequestPicker.vue'
 import AlertMsg from '@/shared/components/AlertMsg.vue'
 import DataField from '@/shared/components/DataField.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
 import ArrowLeftIcon from '@/shared/components/icons/ArrowLeftIcon.vue'
 
-/** Pasos de la captura: de donde sale, cual desembolso y confirmar. */
+/** Pasos de la captura: de donde sale, cual solicitud y confirmar. */
 type Step = 'origin' | 'pick' | 'form'
 
 const STEP_COPY: Record<Step, { title: string; description: string }> = {
   origin: { title: 'Nueva venta', description: '¿De dónde sale esta venta?' },
-  pick: { title: 'Elige el desembolso', description: 'Toca el crédito que vas a registrar como venta' },
+  pick: { title: 'Elige la solicitud', description: 'Toca el crédito que vas a registrar como venta' },
   form: { title: 'Confirma la venta', description: 'Revisa los datos y registra la venta' },
 }
+
+interface Props {
+  /** Llega desde el detalle de la solicitud: abre el paso de confirmar con ella puesta. */
+  preselectSolicitudId?: string | null
+}
+
+const props = withDefaults(defineProps<Props>(), { preselectSolicitudId: null })
 
 // Stores & Composables
 const saleStore = useSaleStore()
 const saleDrawer = useDrawer<SaleDetails>('sale')
-const { gerenciaSelected, saveSale, fetchDisbursements } = useSaleData()
+const { gerenciaSelected, saveSale, fetchApprovedRequests } = useSaleData()
 
 // Estado del stepper
 const step = ref<Step>('origin')
-const selectedDisbursement = ref<Disbursement | null>(null)
+const selectedRequest = ref<ApprovedRequest | null>(null)
+const preselectFailed = ref(false)
 
 // Computed
 const isViewingDetails = computed(() => !!saleDrawer.selectedData.value)
@@ -55,39 +63,62 @@ const drawerDescription = computed(() =>
 const stepNumber = computed(() => (step.value === 'origin' ? 1 : step.value === 'pick' ? 2 : 3))
 const canGoBack = computed(() => !isViewingDetails.value && step.value !== 'origin')
 
-// Al abrir en modo creación, buscar los desembolsos de la semana
+// Al abrir en modo creación, buscar las solicitudes aprobadas de la semana
 watch(
   () => saleDrawer.isOpen.value,
   (isOpen) => {
     if (!isOpen || isViewingDetails.value) return
     resetStepper()
-    void fetchDisbursements()
+    void fetchApprovedRequests()
   }
+)
+
+// Si se pidió una solicitud concreta, se coloca en cuanto la lista llega
+watch(
+  () => [saleStore.approvedRequests, saleStore.isLoadingRequests] as const,
+  () => {
+    if (!props.preselectSolicitudId || selectedRequest.value || saleStore.isLoadingRequests) return
+
+    const match = saleStore.approvedRequests.find(
+      (item) => item.solicitudId === props.preselectSolicitudId
+    )
+
+    if (match) {
+      selectedRequest.value = match
+      step.value = 'form'
+      preselectFailed.value = false
+      return
+    }
+
+    preselectFailed.value = true
+  },
+  { deep: true }
 )
 
 // Methods
 function resetStepper() {
   step.value = 'origin'
-  selectedDisbursement.value = null
+  selectedRequest.value = null
+  preselectFailed.value = false
 }
 
-function handleOriginSelect(origin: 'disbursement' | 'manual') {
-  step.value = origin === 'disbursement' ? 'pick' : 'form'
+function handleOriginSelect(origin: 'request' | 'manual') {
+  step.value = origin === 'request' ? 'pick' : 'form'
 }
 
-function handleDisbursementSelect(disbursement: Disbursement) {
-  selectedDisbursement.value = disbursement
+function handleRequestSelect(request: ApprovedRequest) {
+  selectedRequest.value = request
   step.value = 'form'
 }
 
 function handleBack() {
-  if (step.value === 'form' && selectedDisbursement.value) {
-    selectedDisbursement.value = null
+  if (step.value === 'form' && selectedRequest.value) {
+    selectedRequest.value = null
     step.value = 'pick'
     return
   }
   step.value = 'origin'
-  selectedDisbursement.value = null
+  selectedRequest.value = null
 }
 
 async function handleSubmit(formData: SaleFormData) {
@@ -143,8 +174,7 @@ function handleOpenChange(open: boolean) {
           <DataField label="Plazo" :value="saleDrawer.selectedData.value.plazo" />
           <DataField label="Monto" :value="toCurrency(saleDrawer.selectedData.value.monto)" />
           <DataField label="1er Pago" :value="toCurrency(saleDrawer.selectedData.value.primerPago)" />
-          <DataField v-if="saleDrawer.selectedData.value.prestamoId" label="Desembolso"
-            :value="saleDrawer.selectedData.value.prestamoId" />
+          <DataField v-if="saleDrawer.selectedData.value.solicitudId" label="Origen" value="Solicitud de la app" />
         </SectionContainer>
 
         <!-- Create Mode -->
@@ -152,18 +182,23 @@ function handleOpenChange(open: boolean) {
           <AlertMsg v-if="gerenciaSelected && step === 'origin'" type="info" label="Estás creando una venta"
             :message="`en la gerencia ${gerenciaSelected}`" />
 
+          <!-- La solicitud pedida desde su detalle ya no está disponible -->
+          <AlertMsg v-if="preselectFailed && step === 'origin'" type="warning"
+            label="Esa solicitud ya no está disponible"
+            message="Puede que ya tenga venta o que sea de otra semana. Elige otra o captura a mano." />
+
           <!-- Paso 1: origen -->
-          <SaleOriginStep v-if="step === 'origin'" :disbursement-count="saleStore.disbursementsCount"
-            :is-loading="saleStore.isLoadingDisbursements" :has-gerencia="Boolean(gerenciaSelected)"
+          <SaleOriginStep v-if="step === 'origin'" :request-count="saleStore.approvedRequestsCount"
+            :is-loading="saleStore.isLoadingRequests" :has-gerencia="Boolean(gerenciaSelected)"
             @select="handleOriginSelect" />
 
-          <!-- Paso 2: elegir desembolso -->
-          <DisbursementPicker v-else-if="step === 'pick'" :disbursements="saleStore.disbursements"
-            @select="handleDisbursementSelect" />
+          <!-- Paso 2: elegir solicitud -->
+          <ApprovedRequestPicker v-else-if="step === 'pick'" :requests="saleStore.approvedRequests"
+            @select="handleRequestSelect" />
 
           <!-- Paso 3: confirmar -->
-          <SaleForm v-else :is-saving="saleStore.isSavingSale" :disbursement="selectedDisbursement"
-            @submit="handleSubmit" @change-disbursement="handleBack" />
+          <SaleForm v-else :is-saving="saleStore.isSavingSale" :request="selectedRequest"
+            @submit="handleSubmit" @change-request="handleBack" />
         </SectionContainer>
 
         <!-- Footer for details view -->
