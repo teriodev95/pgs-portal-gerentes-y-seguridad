@@ -53,10 +53,10 @@ const navigateToCorrection = () => {
 
 <template>
   <CardContainer>
-    <div v-if="sale.prestamoId"
+    <div v-if="sale.solicitudId"
       class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
       <BankNotesIcon class="size-3.5" />
-      Desde desembolso
+      Desde solicitud
     </div>
 
     <DataField label="Agencia" :value="sale.agencia" />

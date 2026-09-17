@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { toCurrency } from '@/shared/utils'
-import type { Disbursement, SaleFormData, SaleOrigin } from '../types'
+import type { ApprovedRequest, SaleFormData, SaleOrigin } from '../types'
 
 // Components
 import InputGeneric from '@/shared/components/forms/InputGeneric.vue'
@@ -15,16 +15,16 @@ import { useSaleForm } from '@/features/sale/composables/useSaleForm'
 
 interface Props {
   isSaving: boolean
-  /** Cuando viene, el plan del credito ya lo autorizo oficina y no se edita aqui. */
-  disbursement?: Disbursement | null
+  /** Cuando viene, el plan del credito ya esta autorizado y no se edita aqui. */
+  request?: ApprovedRequest | null
 }
 
-const props = withDefaults(defineProps<Props>(), { disbursement: null })
+const props = withDefaults(defineProps<Props>(), { request: null })
 
 // Emits
 interface Emits {
   (event: 'submit', sale: SaleFormData): void
-  (event: 'change-disbursement'): void
+  (event: 'change-request'): void
 }
 
 const emit = defineEmits<Emits>()
@@ -38,16 +38,16 @@ const {
   availableAmounts,
   isAmountSelectDisabled,
   availableAgencies,
-  isFromDisbursement,
+  isFromRequest,
   submitForm,
   clearForm,
-  applyDisbursement
+  applyRequest
 } = useSaleForm(false, (sale: SaleFormData) => {
   emit('submit', sale)
 })
 
 onMounted(() => {
-  if (props.disbursement) applyDisbursement(props.disbursement)
+  if (props.request) applyRequest(props.request)
 })
 
 // Expose methods to parent components
@@ -57,13 +57,13 @@ defineExpose({ clearForm })
 <template>
   <form @submit.prevent="submitForm" class="space-y-4">
     <!-- Resumen del desembolso: lo que ya esta decidido, visible y cerrado -->
-    <section v-if="isFromDisbursement"
+    <section v-if="isFromRequest"
       class="space-y-3 rounded-xl border border-blue-200 bg-blue-50/50 p-4">
       <header class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <p class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-blue-700">
             <LockIcon class="size-3.5" />
-            Datos del desembolso
+            Datos de la solicitud aprobada
           </p>
           <p class="mt-1 truncate font-semibold capitalize text-slate-900">
             {{ saleForm.nombreCliente.toLowerCase() }}
@@ -71,7 +71,7 @@ defineExpose({ clearForm })
         </div>
         <button type="button"
           class="shrink-0 rounded-lg px-2.5 py-1 text-sm font-semibold text-blue-700 underline-offset-2 hover:bg-blue-100 hover:underline"
-          @click="emit('change-disbursement')">
+          @click="emit('change-request')">
           Cambiar
         </button>
       </header>
@@ -86,7 +86,7 @@ defineExpose({ clearForm })
       </dl>
 
       <p class="text-xs leading-5 text-slate-500">
-        Crédito {{ saleForm.prestamoId }}. Si algo no coincide, cambia el desembolso.
+        Vistos buenos completos. Si algo no coincide, cambia la solicitud.
       </p>
     </section>
 
@@ -113,7 +113,7 @@ defineExpose({ clearForm })
     </fieldset>
 
     <!-- Captura manual: el plan se escribe aqui -->
-    <template v-if="!isFromDisbursement">
+    <template v-if="!isFromRequest">
       <div class="form-field">
         <LabelForm for="agencia">Agencia</LabelForm>
         <InputSelect id="agencia" placeholder="Elige la Agencia" v-model="saleForm.agencia">

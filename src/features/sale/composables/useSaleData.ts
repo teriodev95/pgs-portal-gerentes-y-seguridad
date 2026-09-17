@@ -96,29 +96,30 @@ export function useSaleData() {
   }
 
   // ============================================
-  // Business Logic - Desembolsos sin venta
+  // Business Logic - Solicitudes aprobadas sin venta
   // ============================================
 
   /**
-   * Carga los desembolsos de la gerencia y semana que aun no se registraron como venta.
-   * Si falla, la lista queda vacia y el gerente puede capturar a mano.
+   * Carga las solicitudes de la gerencia y semana con todos los vistos buenos
+   * que aun no se registraron como venta. Si falla, la lista queda vacia y el
+   * gerente puede capturar a mano.
    */
-  async function fetchDisbursements(): Promise<void> {
+  async function fetchApprovedRequests(): Promise<void> {
     if (!gerenciaSelected.value) return
 
     try {
-      saleStore.setLoadingDisbursements(true)
-      const disbursements = await salesService.getDisbursements(
+      saleStore.setLoadingRequests(true)
+      const requests = await salesService.getApprovedRequests(
         gerenciaSelected.value,
         currentDate.value.year,
         currentDate.value.week
       )
-      saleStore.setDisbursements(disbursements)
+      saleStore.setApprovedRequests(requests)
     } catch (error) {
-      console.error('Error al cargar desembolsos:', error)
-      saleStore.setDisbursements([])
+      console.error('Error al cargar solicitudes aprobadas:', error)
+      saleStore.setApprovedRequests([])
     } finally {
-      saleStore.setLoadingDisbursements(false)
+      saleStore.setLoadingRequests(false)
     }
   }
 
@@ -159,8 +160,8 @@ export function useSaleData() {
 
     try {
       await salesService.createSale(saleData)
-      // Refrescar lista y desembolsos: el recien usado ya no debe ofrecerse
-      await Promise.all([fetchSales(), fetchDisbursements()])
+      // Refrescar lista y solicitudes: la recien usada ya no debe ofrecerse
+      await Promise.all([fetchSales(), fetchApprovedRequests()])
       return Promise.resolve()
     } catch (error) {
       console.error('Error al guardar venta:', error)
@@ -193,7 +194,7 @@ export function useSaleData() {
 
     // Methods
     fetchSales,
-    fetchDisbursements,
+    fetchApprovedRequests,
     saveSale,
   }
 }

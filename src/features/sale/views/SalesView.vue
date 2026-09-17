@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ROUTE_NAME } from '@/router'
-import { useRouter } from 'vue-router'
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import type { SaleDetails } from '../types'
 import { useDrawer } from '@/shared/composables'
 import { useSaleStore } from '../stores'
@@ -16,6 +17,13 @@ import SalesList from '@/features/sale/components/SalesList.vue'
 import { useSaleData } from '../composables'
 
 const router = useRouter()
+const route = useRoute()
+
+/** Solicitud que llega desde su detalle para registrarse como venta. */
+const preselectSolicitudId = computed(() => {
+  const value = route.query.solicitud
+  return typeof value === 'string' && value ? value : null
+})
 
 // Stores & Composables
 const saleStore = useSaleStore()
@@ -23,6 +31,11 @@ const saleDrawer = useDrawer<SaleDetails>('sale')
 
 // Inicializar lógica de negocio (fetch inicial en onBeforeMount)
 useSaleData()
+
+// Llegando desde el detalle de una solicitud, el cajón se abre solo
+onMounted(() => {
+  if (preselectSolicitudId.value) saleDrawer.open()
+})
 
 // Methods
 function handleSaleSelect(sale: SaleDetails): void {
@@ -36,7 +49,7 @@ function handleBack(): void {
 
 <template>
   <!-- Sale Drawer (Create & Details) -->
-  <SaleDrawer />
+  <SaleDrawer :preselect-solicitud-id="preselectSolicitudId" />
 
   <!-- Main Content -->
   <MainCT>

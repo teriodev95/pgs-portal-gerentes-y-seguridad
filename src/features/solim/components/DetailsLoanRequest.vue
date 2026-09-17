@@ -29,6 +29,7 @@ interface Props {
 
 interface Emits {
   (e: 'open:review', approvalType?: ApprovalType): void
+  (e: 'register:sale'): void
 }
 
 const props = defineProps<Props>()
@@ -36,6 +37,11 @@ defineEmits<Emits>()
 
 const approvals = computed<RevisionApproval[]>(
   () => props.request.revision_aprobaciones ?? props.request.revision?.aprobaciones ?? []
+)
+
+/** Con todos los vistos buenos, el credito ya se puede registrar como venta sin recapturarlo. */
+const canRegisterSale = computed(
+  () => ['lista_desembolso', 'desembolsada'].includes(String(props.request.status ?? ''))
 )
 
 const currentApproval = computed(
@@ -636,6 +642,15 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
           @click="$emit('open:review', tipo)"
         >
           {{ reviewButtonLabel(tipo) }}
+        </button>
+
+        <button
+          v-if="canRegisterSale"
+          class="inline-flex h-11 min-w-[9rem] flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+          :disabled="isLoadingAction"
+          @click="$emit('register:sale')"
+        >
+          Registrar venta
         </button>
 
         <button

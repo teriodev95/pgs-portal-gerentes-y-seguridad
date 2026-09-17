@@ -1,11 +1,10 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
-import type { Disbursement, SaleDetails } from "../types"
+import type { ApprovedRequest, SaleDetails } from "../types"
 
-/** Lo que devuelve Elysia en /prestamos/borradores/sin-venta (snake_case). */
-interface DisbursementResponse {
-  prestamo_id: string
-  solicitud_id: string | null
-  estado_borrador: string
+/** Lo que devuelve Elysia en /solicitudes-app/listas-sin-venta (snake_case). */
+interface ApprovedRequestResponse {
+  solicitud_id: string
+  status: string
   nombre_cliente: string
   agencia: string
   gerencia: string
@@ -22,15 +21,15 @@ class SalesService {
   private faxClient = createApiClientFromPreset('fastApi')
   private elysiaClient = createApiClientFromPreset('elysia')
 
-  /** Desembolsos de la gerencia y semana que aun no se registraron como venta. */
-  async getDisbursements(gerencia: string, anio: number, semana: number): Promise<Disbursement[]> {
-    const { data } = await this.elysiaClient.get<{ data: DisbursementResponse[] }>(
-      `/prestamos/borradores/sin-venta?gerencia=${gerencia}&anio=${anio}&semana=${semana}`,
+  /** Solicitudes con todos los vistos buenos que aun no se registraron como venta. */
+  async getApprovedRequests(gerencia: string, anio: number, semana: number): Promise<ApprovedRequest[]> {
+    const { data } = await this.elysiaClient.get<{ data: ApprovedRequestResponse[] }>(
+      `/solicitudes-app/listas-sin-venta?gerencia=${gerencia}&anio=${anio}&semana=${semana}`,
       {
         meta: {
           errorNotification: {
-            title: 'Error al cargar desembolsos',
-            message: 'No se pudieron cargar los desembolsos de la semana. Puedes capturar la venta a mano.',
+            title: 'Error al cargar solicitudes',
+            message: 'No se pudieron cargar las solicitudes aprobadas. Puedes capturar la venta a mano.',
             type: 'error'
           }
         }
@@ -38,9 +37,8 @@ class SalesService {
     )
 
     return (data?.data ?? []).map((item) => ({
-      prestamoId: item.prestamo_id,
       solicitudId: item.solicitud_id,
-      estadoBorrador: item.estado_borrador,
+      status: item.status,
       nombreCliente: item.nombre_cliente,
       agencia: item.agencia,
       gerencia: item.gerencia,
