@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { SaleDetails } from '../types'
+import type { Disbursement, SaleDetails } from '../types'
 
 const STORE_NAME = 'sale'
 
@@ -19,11 +19,16 @@ export const useSaleStore = defineStore(STORE_NAME, () => {
   const isLoadingSales = ref(false)
   const isSavingSale = ref(false)
 
+  // Desembolsos de la semana que todavia no tienen venta
+  const disbursements = ref<Disbursement[]>([])
+  const isLoadingDisbursements = ref(false)
+
   // ============================================
   // Computed Properties
   // ============================================
   const hasSales = computed(() => sales.value.length > 0)
   const salesCount = computed(() => sales.value.length)
+  const disbursementsCount = computed(() => disbursements.value.length)
 
   // ============================================
   // Métodos - Lista de Ventas
@@ -74,6 +79,20 @@ export const useSaleStore = defineStore(STORE_NAME, () => {
     isSavingSale.value = saving
   }
 
+  /**
+   * Establece los desembolsos disponibles de la semana
+   */
+  function setDisbursements(items: Disbursement[]) {
+    disbursements.value = items
+  }
+
+  /**
+   * Establece el estado de carga de desembolsos
+   */
+  function setLoadingDisbursements(loading: boolean) {
+    isLoadingDisbursements.value = loading
+  }
+
   // ============================================
   // Reset completo del store
   // ============================================
@@ -85,6 +104,8 @@ export const useSaleStore = defineStore(STORE_NAME, () => {
     sales.value = []
     isLoadingSales.value = false
     isSavingSale.value = false
+    disbursements.value = []
+    isLoadingDisbursements.value = false
   }
 
   return {
@@ -92,10 +113,13 @@ export const useSaleStore = defineStore(STORE_NAME, () => {
     sales,
     isLoadingSales,
     isSavingSale,
+    disbursements,
+    isLoadingDisbursements,
 
     // Computed
     hasSales,
     salesCount,
+    disbursementsCount,
 
     // Métodos
     setSales,
@@ -104,6 +128,8 @@ export const useSaleStore = defineStore(STORE_NAME, () => {
     clearSales,
     setLoadingSales,
     setSavingSale,
+    setDisbursements,
+    setLoadingDisbursements,
 
     // Reset
     $reset,

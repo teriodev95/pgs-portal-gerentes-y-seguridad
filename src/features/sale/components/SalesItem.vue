@@ -14,6 +14,7 @@ import BtnComponent from '@/shared/components/BtnComponent.vue';
 import EyeIcon from '@/shared/components/icons/EyeIcon.vue';
 import ToolsIcon from '@/shared/components/icons/ToolsIcon.vue';
 import DataField from '@/shared/components/DataField.vue';
+import BankNotesIcon from '@/shared/components/icons/BankNotesIcon.vue';
 import TextCT from '@/shared/components/ui/TextCT.vue';
 
 /**
@@ -52,6 +53,12 @@ const navigateToCorrection = () => {
 
 <template>
   <CardContainer>
+    <div v-if="sale.prestamoId"
+      class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+      <BankNotesIcon class="size-3.5" />
+      Desde desembolso
+    </div>
+
     <DataField label="Agencia" :value="sale.agencia" />
     <DataField label="Cliente" :value="sale.nombreCliente" />
     <DataField label="Tipo" :value="sale.tipo" />

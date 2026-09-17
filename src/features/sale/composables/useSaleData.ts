@@ -96,6 +96,33 @@ export function useSaleData() {
   }
 
   // ============================================
+  // Business Logic - Desembolsos sin venta
+  // ============================================
+
+  /**
+   * Carga los desembolsos de la gerencia y semana que aun no se registraron como venta.
+   * Si falla, la lista queda vacia y el gerente puede capturar a mano.
+   */
+  async function fetchDisbursements(): Promise<void> {
+    if (!gerenciaSelected.value) return
+
+    try {
+      saleStore.setLoadingDisbursements(true)
+      const disbursements = await salesService.getDisbursements(
+        gerenciaSelected.value,
+        currentDate.value.year,
+        currentDate.value.week
+      )
+      saleStore.setDisbursements(disbursements)
+    } catch (error) {
+      console.error('Error al cargar desembolsos:', error)
+      saleStore.setDisbursements([])
+    } finally {
+      saleStore.setLoadingDisbursements(false)
+    }
+  }
+
+  // ============================================
   // Business Logic - Save Sale
   // ============================================
 
@@ -132,8 +159,8 @@ export function useSaleData() {
 
     try {
       await salesService.createSale(saleData)
-      // Refrescar la lista después de guardar
-      await fetchSales()
+      // Refrescar lista y desembolsos: el recien usado ya no debe ofrecerse
+      await Promise.all([fetchSales(), fetchDisbursements()])
       return Promise.resolve()
     } catch (error) {
       console.error('Error al guardar venta:', error)
@@ -166,6 +193,7 @@ export function useSaleData() {
 
     // Methods
     fetchSales,
+    fetchDisbursements,
     saveSale,
   }
 }
