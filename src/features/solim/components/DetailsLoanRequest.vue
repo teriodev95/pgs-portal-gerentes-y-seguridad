@@ -334,11 +334,12 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 <template>
   <div class="relative" :class="canRegisterDecision ? 'pb-40' : 'pb-4'">
   <Tabs default-value="revision" class="space-y-4">
-    <TabsList class="grid h-auto w-full grid-cols-4 rounded-3xl bg-white p-2 shadow-sm">
-      <TabsTrigger value="revision" class="rounded-2xl py-3 text-sm font-semibold">Revisión</TabsTrigger>
-      <TabsTrigger value="cliente" class="rounded-2xl py-3 text-sm font-semibold">Cliente</TabsTrigger>
-      <TabsTrigger value="aval" class="rounded-2xl py-3 text-sm font-semibold">Aval</TabsTrigger>
-      <TabsTrigger value="credito" class="rounded-2xl py-3 text-sm font-semibold">Crédito</TabsTrigger>
+    <TabsList class="grid h-auto w-full grid-cols-5 rounded-3xl bg-white p-2 shadow-sm">
+      <TabsTrigger value="revision" class="rounded-2xl px-1 py-3 text-sm font-semibold">Revisión</TabsTrigger>
+      <TabsTrigger value="cliente" class="rounded-2xl px-1 py-3 text-sm font-semibold">Cliente</TabsTrigger>
+      <TabsTrigger value="historial" class="rounded-2xl px-1 py-3 text-sm font-semibold">Historial</TabsTrigger>
+      <TabsTrigger value="aval" class="rounded-2xl px-1 py-3 text-sm font-semibold">Aval</TabsTrigger>
+      <TabsTrigger value="credito" class="rounded-2xl px-1 py-3 text-sm font-semibold">Crédito</TabsTrigger>
     </TabsList>
 
     <TabsContent value="revision" class="space-y-4">
@@ -510,18 +511,22 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
       </div>
     </TabsContent>
 
-    <TabsContent value="credito" class="space-y-4">
-      <!--
-        Primero el historial, arriba del plan. El regional abre esta pestaña
-        para responder "¿cabe el aumento?" antes que "¿cómo queda el plan?", y
-        en móvil el orden vertical es el orden de lectura. Vivía sólo en el
-        modal de aprobación, colapsado: desde el detalle no se veía.
-      -->
-      <ClienteHistorialDisclosure
-        :persona-id="request.cliente_persona_id"
-        :monto-solicitado="request.monto_solicitado"
-      />
+    <!-- Pestaña propia y abierta: los gerentes vienen a ver los créditos que ha tenido el cliente. -->
+    <TabsContent value="historial" class="space-y-4">
+      <CardContainer class-name="rounded-3xl">
+        <ClienteHistorialDisclosure
+          v-if="request.cliente_persona_id"
+          :persona-id="request.cliente_persona_id"
+          :monto-solicitado="request.monto_solicitado"
+          default-expanded
+        />
+        <p v-else class="text-sm text-slate-500">
+          Cliente sin registro previo: no hay historial de crédito.
+        </p>
+      </CardContainer>
+    </TabsContent>
 
+    <TabsContent value="credito" class="space-y-4">
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
         <CardContainer class-name="rounded-3xl"><DetailSection title="Plan solicitado" :items="creditInfo" /></CardContainer>
         <CardContainer class-name="rounded-3xl">
