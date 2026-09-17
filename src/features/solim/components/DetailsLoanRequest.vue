@@ -518,7 +518,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
           v-if="request.cliente_persona_id"
           :persona-id="request.cliente_persona_id"
           :monto-solicitado="request.monto_solicitado"
-          default-expanded
+          full
         />
         <p v-else class="text-sm text-slate-500">
           Cliente sin registro previo: no hay historial de crédito.
