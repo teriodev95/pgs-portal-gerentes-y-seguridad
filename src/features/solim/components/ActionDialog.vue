@@ -196,7 +196,7 @@ function selectMonto(value: number) {
           v-if="signerLabel"
           class="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800"
         >
-          Firmas como {{ signerLabel.toLowerCase() }}, a falta de {{ roleLabel.toLowerCase() }} en la sucursal
+          Firmas como {{ signerLabel.toLowerCase() }}, a falta de {{ roleLabel.toLowerCase() }}
         </p>
       </DrawerHeader>
 

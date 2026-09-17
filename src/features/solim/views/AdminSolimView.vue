@@ -7,7 +7,7 @@ import { useApprovalDialog } from '../composables/useApprovalDialog'
 import { useSolim } from '../composables/useSolim'
 import { useStore } from '@/shared/stores'
 import type { ApprovalType, RevisionApproval } from '../types'
-import { APPROVAL_LABELS } from '../constants/approvals'
+import { APPROVAL_LABELS, coverageNote } from '../constants/approvals'
 
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
@@ -91,6 +91,10 @@ function handleOpenDialog(id: string, approvalType: ApprovalType = currentApprov
       null,
     currentPlanId: request?.revision?.tabla_cargos_id_sugerido ?? request?.tabla_cargos_id ?? null
   })
+  // Check ajeno sin comentario previo: queda escrito quién cubrió el puesto.
+  if (approvalType !== currentApprovalType.value && !loanApprovalForm.value.comentario) {
+    loanApprovalForm.value.comentario = coverageNote(currentApprovalType.value, approvalType)
+  }
 }
 
 /** Título del diálogo: el check que se firma. Si es ajeno, se aclara quién firma. */
