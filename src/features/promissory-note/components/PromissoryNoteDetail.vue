@@ -2,19 +2,12 @@
 /**
  * La ficha con la que el gerente registra que ya entrego el pagare.
  *
- * Arriba el bloque de cotejo —los mismos datos que oficina compara contra el
- * talon— y abajo los cuatro campos que se llenan en la puerta del cliente. El
- * semaforo no aparece: esa decision es de oficina al recibir el talon de vuelta.
+ * Dos bloques y nada mas: arriba lo que se coteja contra el papel, abajo lo que
+ * se escribe en la puerta del cliente. El semaforo no aparece —esa decision es
+ * de oficina al recibir el talon— y tampoco monto, aval ni plazo.
  */
 import { toRef } from 'vue'
-import CardContainer from '@/shared/components/CardContainer.vue'
-import SectionContainer from '@/shared/components/SectionContainer.vue'
-import InputGeneric from '@/shared/components/forms/InputGeneric.vue'
-import InputSelect from '@/shared/components/forms/InputSelect.vue'
-import LabelForm from '@/shared/components/forms/LabelForm.vue'
-import BtnComponent from '@/shared/components/BtnComponent.vue'
-import TextCT from '@/shared/components/ui/TextCT.vue'
-import PhoneIcon from '@/shared/components/icons/PhoneIcon.vue'
+import { LoaderCircle, MapPin, Phone, ScanSearch, SquarePen, TriangleAlert } from 'lucide-vue-next'
 import {
   PARENTESCOS_FRECUENTES,
   PARENTESCOS_RESTANTES,
@@ -22,7 +15,11 @@ import {
 } from '../composables/usePromissoryNoteDetail'
 import type { PagarePendiente } from '../types'
 
-const props = defineProps<{ pagare: PagarePendiente | null }>()
+const props = defineProps<{
+  pagare: PagarePendiente | null
+  /** Cuantos pagares hay a este nombre. El aviso pesa mas aqui que en la lista. */
+  mismoNombre?: number
+}>()
 
 const emit = defineEmits<{ close: []; updated: [] }>()
 
@@ -38,6 +35,12 @@ const {
   verTodosParentescos
 } = usePromissoryNoteDetail(pagareRef)
 
+const MICRO =
+  'flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500'
+const CAMPO =
+  'h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-[15px] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
+const ETIQUETA = 'text-[13px] font-medium text-slate-600'
+
 const elegirParentesco = (valor: string) => {
   formData.value.parentesco_quien_recibio = valor
   verTodosParentescos.value = false
@@ -52,178 +55,217 @@ const handleSave = async () => {
 </script>
 
 <template>
-  <Transition name="fade" mode="out-in">
-    <SectionContainer v-if="pagare">
-      <!-- Cotejo: antes de escribir nada, el gerente confirma que tiene en la mano
-           el pagare de esta persona. Con 121 clientes que traen dos a la vez, el
-           folio y el ID pesan tanto como el nombre. -->
-      <CardContainer class-name="border-blue-200 bg-blue-50/60">
-        <div class="space-y-1">
-          <TextCT variant="label" class="uppercase tracking-wide text-blue-700">
-            Coteja contra el pagaré
-          </TextCT>
-          <TextCT variant="title" class="text-lg">
+  <section v-if="pagare" class="space-y-5 px-4 py-5 pb-8">
+    <!-- Cotejo: antes de escribir nada, el gerente confirma que tiene en la mano
+         el pagare de esta persona. Con 121 clientes que traen dos a la vez, el
+         folio pesa tanto como el nombre. -->
+    <div class="space-y-2">
+      <p :class="MICRO">
+        <ScanSearch class="size-3.5" />
+        Coteja contra el pagaré
+      </p>
+
+      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="space-y-3 px-5 py-4">
+          <p class="text-[17px] font-semibold leading-snug text-slate-900">
             {{ pagare.cliente_nombre || 'Sin nombre' }}
-          </TextCT>
-        </div>
-
-        <TextCT variant="secondary" v-if="pagare.cliente_domicilio">
-          {{ pagare.cliente_domicilio }}
-        </TextCT>
-
-        <a
-          v-if="pagare.cliente_telefono"
-          :href="`tel:${pagare.cliente_telefono}`"
-          class="inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#083040] ring-1 ring-blue-200"
-        >
-          <PhoneIcon class="h-4 w-4" />
-          Llamar {{ pagare.cliente_telefono }}
-        </a>
-
-        <div class="space-y-1 border-t border-blue-200 pt-3 text-xs text-gray-600">
-          <p>
-            Folio <span class="font-semibold">{{ pagare.folio || '--' }}</span>
-            · Agencia <span class="font-semibold">{{ pagare.agencia || '--' }}</span>
-            <template v-if="pagare.semana_liquidacion && pagare.anio_liquidacion">
-              · Liquidó <span class="font-semibold">S{{ pagare.semana_liquidacion }}/{{ pagare.anio_liquidacion }}</span>
-            </template>
           </p>
-          <p>Pagaré {{ pagare.id_sistemas }}</p>
-          <p v-if="pagare.folio_solicitud">Solicitud {{ pagare.folio_solicitud }}</p>
+
+          <!-- En la lista el aviso previene; aqui evita el error, porque este es
+               el gesto que registra uno de los dos y da el otro por visto. -->
+          <p
+            v-if="(mismoNombre ?? 1) > 1"
+            class="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-[13px] leading-relaxed text-amber-800"
+          >
+            <TriangleAlert class="mt-0.5 size-4 shrink-0 text-amber-600" />
+            <span>
+              Este cliente tiene {{ mismoNombre }} pagarés. Estás registrando sólo el
+              <span class="font-semibold">{{ pagare.folio || pagare.id_sistemas }}</span>.
+            </span>
+          </p>
+
+          <p
+            v-if="pagare.cliente_domicilio"
+            class="flex items-start gap-2 text-[13px] leading-relaxed text-slate-600"
+          >
+            <MapPin class="mt-0.5 size-4 shrink-0 text-slate-400" />
+            <span>{{ pagare.cliente_domicilio }}</span>
+          </p>
+
+          <a
+            v-if="pagare.cliente_telefono"
+            :href="`tel:${pagare.cliente_telefono}`"
+            class="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-blue-700 transition hover:bg-slate-100"
+          >
+            <Phone class="size-4" />
+            <span>Llamar</span>
+            <span class="text-slate-300">·</span>
+            <span class="tabular-nums text-slate-700">{{ pagare.cliente_telefono }}</span>
+          </a>
         </div>
-      </CardContainer>
 
-      <CardContainer>
-        <div class="space-y-4">
-          <div>
-            <LabelForm for="nombre_recibio">¿Quién recibió el pagaré? *</LabelForm>
-            <InputGeneric
-              id="nombre_recibio"
-              type="text"
-              v-model="formData.nombre_quien_recibio"
-              placeholder="Como viene en el talón"
-            />
+        <!-- Tres columnas iguales, como el bloque de cifras de Solim. -->
+        <div class="flex gap-3 border-t border-slate-100 px-5 py-4">
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] font-medium text-slate-500">Folio</p>
+            <p class="mt-0.5 truncate text-base font-semibold tabular-nums text-slate-900">
+              {{ pagare.folio || '--' }}
+            </p>
           </div>
-
-          <!-- Tres botones resuelven casi todas las entregas; la lista completa
-               solo se despliega cuando hace falta. -->
-          <div>
-            <LabelForm for="parentesco">Parentesco</LabelForm>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="opcion in PARENTESCOS_FRECUENTES"
-                :key="opcion"
-                type="button"
-                class="rounded-full border px-3 py-1.5 text-sm font-medium transition-colors"
-                :class="
-                  formData.parentesco_quien_recibio === opcion
-                    ? 'border-[#083040] bg-[#083040] text-white'
-                    : 'border-gray-300 bg-white text-gray-700'
-                "
-                @click="elegirParentesco(opcion)"
-              >
-                {{ opcion }}
-              </button>
-
-              <button
-                type="button"
-                class="rounded-full border px-3 py-1.5 text-sm font-medium transition-colors"
-                :class="
-                  verTodosParentescos
-                    ? 'border-[#083040] bg-[#083040] text-white'
-                    : 'border-gray-300 bg-white text-gray-700'
-                "
-                @click="verTodosParentescos = !verTodosParentescos"
-              >
-                Otro…
-              </button>
-            </div>
-
-            <InputSelect
-              v-if="verTodosParentescos"
-              id="parentesco"
-              class="mt-2"
-              v-model="formData.parentesco_quien_recibio"
-              :is-required="false"
-            >
-              <option value="">Seleccione un parentesco</option>
-              <option v-for="opcion in PARENTESCOS_RESTANTES" :key="opcion" :value="opcion">
-                {{ opcion }}
-              </option>
-            </InputSelect>
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] font-medium text-slate-500">Agencia</p>
+            <p class="mt-0.5 truncate text-base font-semibold text-slate-900">
+              {{ pagare.agencia || '--' }}
+            </p>
           </div>
-
-          <div>
-            <LabelForm for="fecha_entrega">Fecha de entrega</LabelForm>
-            <InputGeneric
-              id="fecha_entrega"
-              type="date"
-              v-model="formData.fecha_entrega_pagare"
-              :is-required="false"
-            />
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] font-medium text-slate-500">Liquidó</p>
+            <p class="mt-0.5 truncate text-base font-semibold tabular-nums text-slate-900">
+              {{
+                pagare.semana_liquidacion && pagare.anio_liquidacion
+                  ? `S${pagare.semana_liquidacion}/${pagare.anio_liquidacion}`
+                  : '--'
+              }}
+            </p>
           </div>
+        </div>
 
-          <div>
+        <div
+          class="flex flex-wrap items-center gap-1.5 border-t border-slate-100 bg-slate-50/60 px-5 py-3 text-[11px] text-slate-500"
+        >
+          <span class="tabular-nums">Pagaré {{ pagare.id_sistemas }}</span>
+          <template v-if="pagare.folio_solicitud">
+            <span class="text-slate-300">·</span>
+            <span class="tabular-nums">Solicitud {{ pagare.folio_solicitud }}</span>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-2">
+      <p :class="MICRO">
+        <SquarePen class="size-3.5" />
+        Datos del talón
+      </p>
+
+      <div class="space-y-5 rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
+        <div class="space-y-2">
+          <label for="nombre_recibio" :class="ETIQUETA">
+            ¿Quién recibió el pagaré? <span class="text-rose-600">*</span>
+          </label>
+          <input
+            id="nombre_recibio"
+            v-model="formData.nombre_quien_recibio"
+            type="text"
+            placeholder="Como viene en el talón"
+            :class="CAMPO"
+          />
+        </div>
+
+        <!-- Tres botones resuelven casi todas las entregas; la lista completa
+             solo se despliega cuando hace falta. -->
+        <div class="space-y-2">
+          <span :class="ETIQUETA">Parentesco</span>
+          <div class="flex flex-wrap gap-2">
             <button
-              v-if="!verObservaciones"
+              v-for="opcion in PARENTESCOS_FRECUENTES"
+              :key="opcion"
               type="button"
-              class="text-sm font-semibold text-[#083040]"
-              @click="verObservaciones = true"
+              class="h-10 rounded-full border px-4 text-sm font-medium transition"
+              :class="
+                formData.parentesco_quien_recibio === opcion
+                  ? 'border-blue-700 bg-blue-700 text-white'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+              "
+              @click="elegirParentesco(opcion)"
             >
-              + Agregar observación
+              {{ opcion }}
             </button>
 
-            <template v-else>
-              <LabelForm for="observaciones">Observaciones</LabelForm>
-              <textarea
-                id="observaciones"
-                v-model="formData.observaciones"
-                rows="3"
-                class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-xs text-gray-900 focus:border-[#083040] focus:ring-[#083040]"
-                placeholder="Cualquier detalle del talón que oficina deba conservar"
-              />
-            </template>
+            <button
+              type="button"
+              class="h-10 rounded-full border px-4 text-sm font-medium transition"
+              :class="
+                verTodosParentescos
+                  ? 'border-blue-700 bg-blue-700 text-white'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+              "
+              @click="verTodosParentescos = !verTodosParentescos"
+            >
+              Otro…
+            </button>
           </div>
+
+          <select
+            v-if="verTodosParentescos"
+            id="parentesco"
+            v-model="formData.parentesco_quien_recibio"
+            :class="CAMPO"
+          >
+            <option value="">Seleccione un parentesco</option>
+            <option v-for="opcion in PARENTESCOS_RESTANTES" :key="opcion" :value="opcion">
+              {{ opcion }}
+            </option>
+          </select>
         </div>
-      </CardContainer>
 
-      <TextCT variant="tertiary" class="text-center">
-        Oficina cierra el pagaré cuando le regreses el talón.
-      </TextCT>
+        <div class="space-y-2">
+          <label for="fecha_entrega" :class="ETIQUETA">Fecha de entrega</label>
+          <input
+            id="fecha_entrega"
+            v-model="formData.fecha_entrega_pagare"
+            type="date"
+            :class="CAMPO"
+          />
+        </div>
 
-      <div class="flex w-full flex-col gap-2 pt-2 md:flex-row">
-        <BtnComponent :disabled="isSaving || !puedeGuardar" @click="handleSave" class="flex-1">
-          {{
-            isSaving
-              ? 'Guardando...'
-              : esActualizacion
-                ? 'Actualizar entrega'
-                : 'Registrar entrega'
-          }}
-        </BtnComponent>
+        <div class="space-y-2">
+          <button
+            v-if="!verObservaciones"
+            type="button"
+            class="text-sm font-semibold text-blue-700 transition hover:text-blue-800"
+            @click="verObservaciones = true"
+          >
+            + Agregar observación
+          </button>
 
-        <BtnComponent
-          variant="primary"
-          outline
-          :disabled="isSaving"
-          @click="emit('close')"
-          class="flex-1"
-        >
-          Cancelar
-        </BtnComponent>
+          <template v-else>
+            <label for="observaciones" :class="ETIQUETA">Observaciones</label>
+            <textarea
+              id="observaciones"
+              v-model="formData.observaciones"
+              rows="3"
+              placeholder="Cualquier detalle del talón que oficina deba conservar"
+              class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-[15px] leading-relaxed text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            />
+          </template>
+        </div>
       </div>
-    </SectionContainer>
-  </Transition>
+    </div>
+
+    <p class="px-1 text-center text-[12px] leading-relaxed text-slate-500">
+      Oficina cierra el pagaré cuando le regreses el talón.
+    </p>
+
+    <div class="flex gap-2.5">
+      <button
+        type="button"
+        class="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+        :disabled="isSaving"
+        @click="emit('close')"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="inline-flex h-12 flex-[1.4] items-center justify-center gap-2 rounded-xl bg-blue-700 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:bg-slate-200 disabled:text-slate-400"
+        :disabled="isSaving || !puedeGuardar"
+        @click="handleSave"
+      >
+        <LoaderCircle v-if="isSaving" class="size-4 animate-spin" />
+        {{ isSaving ? 'Guardando…' : esActualizacion ? 'Actualizar entrega' : 'Registrar entrega' }}
+      </button>
+    </div>
+  </section>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>
