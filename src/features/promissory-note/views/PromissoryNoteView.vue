@@ -7,14 +7,21 @@ import PromissoryNoteDetail from '../components/PromissoryNoteDetail.vue'
 import { usePromissoryNote } from '../composables/usePromissoryNote'
 
 const {
-  pagares,
-  loading,
-  selectedPagare,
-  handleSelectPagare,
+  busqueda,
   closeDetail,
-  loadPagares,
+  contarMismoNombre,
+  gruposPorEntregar,
+  handleOnBack,
+  handleSelectPagare,
   handleUpdated,
-  handleOnBack
+  loadPagares,
+  loading,
+  mostrarBuscador,
+  nuncaRecibio,
+  porEntregar,
+  registrados,
+  selectedPagare,
+  total
 } = usePromissoryNote()
 
 onMounted(async () => {
@@ -24,24 +31,28 @@ onMounted(async () => {
 
 <template>
   <MainCT>
-    <!-- Top Navigation Bar -->
     <NavbarCT
-      :title="selectedPagare ? 'Detalle del Pagaré' : 'Pagarés'"
+      :title="selectedPagare ? 'Registrar entrega' : 'Pagarés por entregar'"
       :show-back-button="true"
       @back="handleOnBack"
     />
 
-    <!-- Promissory Notes List -->
     <PromissoryNoteList
       v-if="!selectedPagare"
-      :pagares="pagares"
+      v-model:busqueda="busqueda"
+      :grupos="gruposPorEntregar"
+      :registrados="registrados"
+      :por-entregar-count="porEntregar.length"
+      :total="total"
       :loading="loading"
+      :mostrar-buscador="mostrarBuscador"
+      :nunca-recibio="nuncaRecibio"
+      :contar-mismo-nombre="contarMismoNombre"
       @select-pagare="handleSelectPagare"
     />
 
-    <!-- Promissory Note Detail -->
     <PromissoryNoteDetail
-      v-if="selectedPagare"
+      v-else
       :pagare="selectedPagare"
       @close="closeDetail"
       @updated="handleUpdated"
