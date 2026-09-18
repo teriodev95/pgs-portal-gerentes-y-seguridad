@@ -1,26 +1,17 @@
-import { ref, watch, type Ref } from 'vue'
+import { computed, ref, watch, type Ref } from 'vue'
 import { useStore } from '@/shared/stores'
 import { promissoryNoteService } from '../services/promissory-note.service'
-import { formatDateTimeToSql } from '../utils/date-formatter'
-import { buildCleanPayload } from '../utils/payload-builder'
-import type { Pagare } from '../types'
+import { fechaDeHoy, formatDateTimeToSql } from '../utils/date-formatter'
+import type { PagarePendiente, RegistrarEntregaPayload } from '../types'
 
-interface FormData {
-  lugar_entrega: string
-  observaciones: string
-  fecha_entrega_pagare: string
-  nombre_quien_recibio: string
-  parentesco_quien_recibio: string
-  entregado_cliente_at: string
-  entregado_cliente_by: string
-  recibido_oficina_at: string
-  recibido_oficina_by: string
-}
+/**
+ * Los tres parentescos que resuelven casi todas las entregas van como botones, y
+ * el resto detras de "Otro". En el telefono, abrir una lista de catorce para
+ * elegir "Titular" cuesta tres gestos donde deberia costar uno.
+ */
+export const PARENTESCOS_FRECUENTES = ['Titular', 'Esposo/a', 'Hijo/a'] as const
 
-const PARENTESCO_OPTIONS = [
-  'Titular',
-  'Esposo/a',
-  'Hijo/a',
+export const PARENTESCOS_RESTANTES = [
   'Padre/Madre',
   'Hermano/a',
   'Abuelo/a',
@@ -34,85 +25,96 @@ const PARENTESCO_OPTIONS = [
   'Otro'
 ] as const
 
-export function usePromissoryNoteDetail(pagareRef: Ref<Pagare | null>) {
+interface FormData {
+  nombre_quien_recibio: string
+  parentesco_quien_recibio: string
+  fecha_entrega_pagare: string
+  observaciones: string
+}
+
+export function usePromissoryNoteDetail(pagareRef: Ref<PagarePendiente | null>) {
   const store = useStore()
 
   const formData = ref<FormData>({
-    lugar_entrega: '',
-    observaciones: '',
-    fecha_entrega_pagare: '',
     nombre_quien_recibio: '',
     parentesco_quien_recibio: '',
-    entregado_cliente_at: '',
-    entregado_cliente_by: '',
-    recibido_oficina_at: '',
-    recibido_oficina_by: ''
+    fecha_entrega_pagare: '',
+    observaciones: ''
   })
 
   const isSaving = ref(false)
   const error = ref<string | null>(null)
+  /** La lista larga de parentescos solo aparece cuando se pide. */
+  const verTodosParentescos = ref(false)
+  const verObservaciones = ref(false)
 
-  // Reset form when pagare changes
   watch(
     pagareRef,
-    (newPagare) => {
-      if (newPagare) {
-        formData.value = {
-          lugar_entrega: newPagare.lugar_entrega || '',
-          observaciones: newPagare.observaciones || '',
-          fecha_entrega_pagare: newPagare.fecha_entrega_pagare || '',
-          nombre_quien_recibio: newPagare.nombre_quien_recibio || '',
-          parentesco_quien_recibio: newPagare.parentesco_quien_recibio || '',
-          entregado_cliente_at: newPagare.entregado_cliente_at || '',
-          entregado_cliente_by: newPagare.entregado_cliente_by || '',
-          recibido_oficina_at: newPagare.recibido_oficina_at || '',
-          recibido_oficina_by: newPagare.recibido_oficina_by || ''
-        }
+    (pagare) => {
+      if (!pagare) return
+
+      formData.value = {
+        nombre_quien_recibio: pagare.nombre_quien_recibio ?? '',
+        parentesco_quien_recibio: pagare.parentesco_quien_recibio ?? '',
+        // La entrega y su captura pasan el mismo dia casi siempre; queda editable
+        // para el gerente que las anota por la noche.
+        fecha_entrega_pagare: pagare.fecha_entrega_pagare ?? fechaDeHoy(),
+        observaciones: pagare.observaciones ?? ''
       }
+
+      const parentesco = pagare.parentesco_quien_recibio ?? ''
+      verTodosParentescos.value =
+        !!parentesco && !PARENTESCOS_FRECUENTES.includes(parentesco as never)
+      verObservaciones.value = !!pagare.observaciones
     },
     { immediate: true }
   )
 
-  const buildUpdatePayload = () => {
-    // Construir payload con campos editables
-    const cleanPayload = buildCleanPayload({
-      lugar_entrega: formData.value.lugar_entrega,
-      observaciones: formData.value.observaciones,
-      fecha_entrega_pagare: formData.value.fecha_entrega_pagare,
-      nombre_quien_recibio: formData.value.nombre_quien_recibio,
-      parentesco_quien_recibio: formData.value.parentesco_quien_recibio,
-      recibido_oficina_at: formData.value.recibido_oficina_at,
-      recibido_oficina_by: formData.value.recibido_oficina_by
-    })
+  /** Ya registrada: el boton deja de prometer algo nuevo y ofrece corregir. */
+  const esActualizacion = computed(() => !!pagareRef.value?.nombre_quien_recibio?.trim())
 
-    // Agregar campos automáticos
-    return {
-      ...cleanPayload,
+  const puedeGuardar = computed(() => !!formData.value.nombre_quien_recibio.trim())
+
+  const buildPayload = (): RegistrarEntregaPayload => {
+    const payload: RegistrarEntregaPayload = {
+      nombre_quien_recibio: formData.value.nombre_quien_recibio.trim(),
       entregado: true,
-      entregado_cliente_by: store.user?.nombre || '',
-      entregado_cliente_at: formatDateTimeToSql()
+      entregado_cliente_at: formatDateTimeToSql(),
+      entregado_cliente_by: store.user?.nombre || ''
     }
+
+    // Solo viaja lo que el gerente realmente lleno: un string vacio borraria en la
+    // base el dato que el pagare ya traia.
+    const parentesco = formData.value.parentesco_quien_recibio.trim()
+    const fecha = formData.value.fecha_entrega_pagare.trim()
+    const observaciones = formData.value.observaciones.trim()
+
+    if (parentesco) payload.parentesco_quien_recibio = parentesco
+    if (fecha) payload.fecha_entrega_pagare = fecha
+    if (observaciones) payload.observaciones = observaciones
+
+    return payload
   }
 
   const save = async (onSuccess?: () => void): Promise<boolean> => {
-    if (!pagareRef.value?.id) {
+    const idSistemas = pagareRef.value?.id_sistemas
+    if (!idSistemas) {
       error.value = 'No se puede guardar: falta el ID del pagaré'
       console.error(error.value)
+      return false
+    }
+    if (!puedeGuardar.value) {
+      error.value = 'Escribe el nombre de quien recibió el pagaré'
       return false
     }
 
     try {
       isSaving.value = true
       error.value = null
-
-      const payload = buildUpdatePayload()
-      console.log('Payload a enviar:', payload)
-
-      await promissoryNoteService.updatePagare(pagareRef.value.id.toString(), payload, onSuccess)
-
+      await promissoryNoteService.registrarEntrega(idSistemas, buildPayload(), onSuccess)
       return true
     } catch (err) {
-      console.error('Error al guardar pagaré:', err)
+      console.error('Error al registrar la entrega:', err)
       return false
     } finally {
       isSaving.value = false
@@ -120,10 +122,13 @@ export function usePromissoryNoteDetail(pagareRef: Ref<Pagare | null>) {
   }
 
   return {
+    error,
+    esActualizacion,
     formData,
     isSaving,
-    error,
-    parentescoOptions: PARENTESCO_OPTIONS,
-    save
+    puedeGuardar,
+    save,
+    verObservaciones,
+    verTodosParentescos
   }
 }

@@ -238,10 +238,10 @@ export function useHomeMenu() {
     },
     {
       id: 'pagare',
-      title: 'Pagaré',
+      title: 'Pagarés',
       icon: Book,
       route: ROUTE_NAME.PROMISSORY_NOTES,
-      description: 'Ver pagarés'
+      description: 'Entregar pagarés'
     },
     {
       id: 'solim',
