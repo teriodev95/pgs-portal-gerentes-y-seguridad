@@ -54,6 +54,7 @@ onMounted(async () => {
     <PromissoryNoteDetail
       v-else
       :pagare="selectedPagare"
+      :mismo-nombre="contarMismoNombre(selectedPagare)"
       @close="closeDetail"
       @updated="handleUpdated"
     />
