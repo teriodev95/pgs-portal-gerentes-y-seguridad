@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/shared/stores'
 import { ROUTE_NAME } from '@/router'
@@ -24,7 +24,7 @@ export function usePromissoryNote() {
   const $router = useRouter()
 
   const pendientes = ref<PendientesGerencia | null>(null)
-  const loading = ref(false)
+  const loading = ref(true)
   const busqueda = ref('')
   const selectedPagare = ref<PagarePendiente | null>(null)
 
@@ -86,13 +86,18 @@ export function usePromissoryNote() {
   /** Nunca recibio pagares vs ya los retorno todos: la lista vacia se lee igual. */
   const nuncaRecibio = computed(() => (pendientes.value?.entregados_historicos ?? 0) === 0)
 
+  /**
+   * La gerencia todavia no esta. `DashboardLayout` la resuelve en un
+   * `onBeforeMount` asincrono que Vue no espera, asi que al recargar la app
+   * parado en esta ruta el hijo monta antes. Sin distinguirlo, la pantalla
+   * decia "oficina no te ha entregado pagares" a un gerente que trae veintidos.
+   */
+  const esperandoGerencia = computed(() => !store.gerenciaSelected)
+
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
   const loadPagares = async () => {
-    if (!store.gerenciaSelected) {
-      console.warn('No hay gerencia seleccionada')
-      return
-    }
+    if (!store.gerenciaSelected) return
 
     try {
       loading.value = true
@@ -103,6 +108,12 @@ export function usePromissoryNote() {
       loading.value = false
     }
   }
+
+  // Se carga en cuanto hay gerencia, y se recarga si cambia. Un `onMounted` solo
+  // corre una vez, y entonces depende de ganarle a esa carga; ademas dejaba la
+  // lista de la gerencia anterior cuando seguridad o el regional cambian de una a
+  // otra sin salir de la pantalla.
+  watch(() => store.gerenciaSelected, loadPagares, { immediate: true })
 
   const handleSelectPagare = (pagare: PagarePendiente) => {
     selectedPagare.value = pagare
@@ -135,6 +146,7 @@ export function usePromissoryNote() {
     busqueda,
     closeDetail,
     contarMismoNombre,
+    esperandoGerencia,
     gruposPorEntregar,
     handleOnBack,
     handleSelectPagare,
