@@ -9,6 +9,7 @@
 import { toRef } from 'vue'
 import { LoaderCircle, MapPin, Phone, ScanSearch, SquarePen, TriangleAlert } from 'lucide-vue-next'
 import {
+  MAX_NOMBRE,
   PARENTESCOS_FRECUENTES,
   PARENTESCOS_RESTANTES,
   usePromissoryNoteDetail
@@ -29,6 +30,7 @@ const {
   esActualizacion,
   formData,
   isSaving,
+  notaPrevia,
   puedeGuardar,
   save,
   verObservaciones,
@@ -158,6 +160,7 @@ const handleSave = async () => {
             v-model="formData.nombre_quien_recibio"
             type="text"
             placeholder="Como viene en el talón"
+            :maxlength="MAX_NOMBRE"
             :class="CAMPO"
           />
         </div>
@@ -220,6 +223,17 @@ const handleSave = async () => {
         </div>
 
         <div class="space-y-2">
+          <!-- Lo que el pagare ya trae, en lectura. Casi todos cargan la nota con
+               la que oficina migro el control de Excel, y no es del gerente. -->
+          <div v-if="notaPrevia" class="space-y-1.5">
+            <span :class="ETIQUETA">Nota en el pagaré</span>
+            <p
+              class="whitespace-pre-line rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-[13px] leading-relaxed text-slate-600"
+            >
+              {{ notaPrevia }}
+            </p>
+          </div>
+
           <button
             v-if="!verObservaciones"
             type="button"
@@ -230,7 +244,7 @@ const handleSave = async () => {
           </button>
 
           <template v-else>
-            <label for="observaciones" :class="ETIQUETA">Observaciones</label>
+            <label for="observaciones" :class="ETIQUETA">Tu observación</label>
             <textarea
               id="observaciones"
               v-model="formData.observaciones"
@@ -238,6 +252,9 @@ const handleSave = async () => {
               placeholder="Cualquier detalle del talón que oficina deba conservar"
               class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-[15px] leading-relaxed text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
             />
+            <p v-if="notaPrevia" class="text-[12px] text-slate-500">
+              Se agrega a la nota de arriba, no la reemplaza.
+            </p>
           </template>
         </div>
       </div>

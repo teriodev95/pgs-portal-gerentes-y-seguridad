@@ -20,6 +20,8 @@ defineProps<{
   porEntregarCount: number
   total: number
   loading: boolean
+  /** La gerencia aun no llega; la lista vacia todavia no significa nada. */
+  esperandoGerencia: boolean
   mostrarBuscador: boolean
   nuncaRecibio: boolean
   contarMismoNombre: (pagare: PagarePendiente) => number
@@ -34,7 +36,7 @@ const MICRO = 'flex items-center gap-1.5 text-[11px] font-semibold uppercase tra
 
 <template>
   <section class="space-y-5 px-4 py-5">
-    <div v-if="loading" class="space-y-3">
+    <div v-if="loading || esperandoGerencia" class="space-y-3">
       <LoadSkeleton :items="6" />
     </div>
 

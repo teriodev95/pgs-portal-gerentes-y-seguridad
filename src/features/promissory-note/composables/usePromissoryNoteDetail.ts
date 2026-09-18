@@ -25,10 +25,14 @@ export const PARENTESCOS_RESTANTES = [
   'Otro'
 ] as const
 
+/** `nombre_quien_recibio` es varchar(128) en la base. */
+export const MAX_NOMBRE = 128
+
 interface FormData {
   nombre_quien_recibio: string
   parentesco_quien_recibio: string
   fecha_entrega_pagare: string
+  /** Solo lo que escribe el gerente ahora; lo que ya traia el pagare no se toca. */
   observaciones: string
 }
 
@@ -59,13 +63,13 @@ export function usePromissoryNoteDetail(pagareRef: Ref<PagarePendiente | null>) 
         // La entrega y su captura pasan el mismo dia casi siempre; queda editable
         // para el gerente que las anota por la noche.
         fecha_entrega_pagare: pagare.fecha_entrega_pagare ?? fechaDeHoy(),
-        observaciones: pagare.observaciones ?? ''
+        observaciones: ''
       }
 
       const parentesco = pagare.parentesco_quien_recibio ?? ''
       verTodosParentescos.value =
         !!parentesco && !PARENTESCOS_FRECUENTES.includes(parentesco as never)
-      verObservaciones.value = !!pagare.observaciones
+      verObservaciones.value = false
     },
     { immediate: true }
   )
@@ -73,14 +77,26 @@ export function usePromissoryNoteDetail(pagareRef: Ref<PagarePendiente | null>) 
   /** Ya registrada: el boton deja de prometer algo nuevo y ofrece corregir. */
   const esActualizacion = computed(() => !!pagareRef.value?.nombre_quien_recibio?.trim())
 
+  /**
+   * Lo que el pagare ya trae escrito, para enseñarlo sin que se pueda editar.
+   *
+   * No es campo del gerente: 2,069 de los 2,227 pendientes traen la nota con la
+   * que oficina migro el control de Excel. Abrirle esa caja al gerente le
+   * enseñaba texto que no entiende y le dejaba borrar el rastro de oficina.
+   */
+  const notaPrevia = computed(() => pagareRef.value?.observaciones?.trim() || null)
+
   const puedeGuardar = computed(() => !!formData.value.nombre_quien_recibio.trim())
 
   const buildPayload = (): RegistrarEntregaPayload => {
     const payload: RegistrarEntregaPayload = {
-      nombre_quien_recibio: formData.value.nombre_quien_recibio.trim(),
+      nombre_quien_recibio: formData.value.nombre_quien_recibio.trim().slice(0, MAX_NOMBRE),
       entregado: true,
       entregado_cliente_at: formatDateTimeToSql(),
-      entregado_cliente_by: store.user?.nombre || ''
+      // El usuario y no el nombre: `user.nombre` es solo el nombre de pila, y
+      // oficina veria "Capturado por MARIA" sin saber cual. Es ademas la misma
+      // llave con la que el MOX sella `recibido_oficina_by`.
+      entregado_cliente_by: store.user?.usuario || ''
     }
 
     // Solo viaja lo que el gerente realmente lleno: un string vacio borraria en la
@@ -91,7 +107,14 @@ export function usePromissoryNoteDetail(pagareRef: Ref<PagarePendiente | null>) 
 
     if (parentesco) payload.parentesco_quien_recibio = parentesco
     if (fecha) payload.fecha_entrega_pagare = fecha
-    if (observaciones) payload.observaciones = observaciones
+    // La observacion se suma a la que ya estaba, con el mismo separador que usa
+    // oficina. Reemplazarla borraria su nota; la caja arranca vacia, asi que
+    // volver a guardar sin escribir nada no toca el campo.
+    if (observaciones) {
+      payload.observaciones = notaPrevia.value
+        ? `${notaPrevia.value} | ${observaciones}`
+        : observaciones
+    }
 
     return payload
   }
@@ -125,6 +148,7 @@ export function usePromissoryNoteDetail(pagareRef: Ref<PagarePendiente | null>) 
     error,
     esActualizacion,
     formData,
+    notaPrevia,
     isSaving,
     puedeGuardar,
     save,

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import PromissoryNoteList from '../components/PromissoryNoteList.vue'
@@ -10,11 +9,11 @@ const {
   busqueda,
   closeDetail,
   contarMismoNombre,
+  esperandoGerencia,
   gruposPorEntregar,
   handleOnBack,
   handleSelectPagare,
   handleUpdated,
-  loadPagares,
   loading,
   mostrarBuscador,
   nuncaRecibio,
@@ -23,10 +22,6 @@ const {
   selectedPagare,
   total
 } = usePromissoryNote()
-
-onMounted(async () => {
-  await loadPagares()
-})
 </script>
 
 <template>
@@ -45,6 +40,7 @@ onMounted(async () => {
       :por-entregar-count="porEntregar.length"
       :total="total"
       :loading="loading"
+      :esperando-gerencia="esperandoGerencia"
       :mostrar-buscador="mostrarBuscador"
       :nunca-recibio="nuncaRecibio"
       :contar-mismo-nombre="contarMismoNombre"
