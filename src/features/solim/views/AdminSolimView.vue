@@ -182,7 +182,7 @@ function handlePrevWeek(): void {
 
 function handleNextWeek(): void {
   const next = selectedWeek.value + 1
-  if (next <= $store.currentDate.week) {
+  if (next <= $store.currentDate.week + 1) {
     setSelectedWeek(next)
   }
 }
@@ -262,7 +262,7 @@ function handleNextWeek(): void {
         <button
           type="button"
           class="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 disabled:opacity-30"
-          :disabled="selectedWeek >= $store.currentDate.week"
+          :disabled="selectedWeek >= $store.currentDate.week + 1"
           @click="handleNextWeek"
         >
           <ChevronRight class="size-5" />
