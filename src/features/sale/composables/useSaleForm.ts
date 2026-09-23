@@ -1,25 +1,49 @@
 import { computed, ref, watch, onBeforeMount } from 'vue'
 import { useCsvLoaderStore } from '@/shared/stores'
 import { useStore } from '@/shared/stores'
+import { useNotification } from '@/shared/composables/useNotification'
 import type { ApprovedRequest, SaleFormData } from '../types'
 import { useCreditFilter, type CreditFilters } from '@/shared/composables/useCreditFilter'
 
+/** Hoy en zona local, YYYY-MM-DD. El 97 % de las ventas se capturan el mismo dia. */
+const todayISO = () => {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/** Plazo mas vendido (73 % de las ventas): viene puesto y se cambia con un toque. */
+const DEFAULT_PLAZO = '16'
+
 /**
- * Estado inicial del formulario de venta
+ * Estado inicial del formulario de venta. Se construye cada vez para que
+ * la fecha sea la de hoy y no la del dia en que se abrio la app.
  */
-const defaultSaleForm: SaleFormData = {
-  fecha: "",
+const buildDefaultForm = (): SaleFormData => ({
+  fecha: todayISO(),
   agencia: "",
   nombreCliente: "",
   generadaPor: "",
   tipo: "Nuevo",
   nivel: "NUEVO",
-  plazo: "12",
+  plazo: DEFAULT_PLAZO,
   monto: 0,
   primerPago: 0,
   solicitudId: null,
   prestamoId: null,
-}
+})
+
+/** Que falta, en el orden en que aparece en pantalla. */
+const REQUIRED_FIELDS: { key: keyof SaleFormData; label: string }[] = [
+  { key: 'fecha', label: 'la fecha de la venta' },
+  { key: 'generadaPor', label: 'quién generó la venta' },
+  { key: 'agencia', label: 'la agencia' },
+  { key: 'nombreCliente', label: 'el nombre del cliente' },
+  { key: 'tipo', label: 'el tipo' },
+  { key: 'nivel', label: 'el nivel' },
+  { key: 'plazo', label: 'el plazo' },
+  { key: 'monto', label: 'el monto' },
+]
 
 /**
  * Composable para manejar la lógica del formulario de ventas
@@ -33,9 +57,10 @@ export function useSaleForm(
 ) {
   const $store = useStore()
   const $csvLoaderStore = useCsvLoaderStore()
+  const { showWarning } = useNotification()
 
   // Estado del formulario
-  const saleForm = ref<SaleFormData>({ ...defaultSaleForm })
+  const saleForm = ref<SaleFormData>(buildDefaultForm())
 
   /** Con datos de la solicitud, el plan es el que ya autorizaron: el CSV no lo recalcula. */
   const isFromRequest = computed(() => Boolean(saleForm.value.solicitudId))
@@ -46,7 +71,9 @@ export function useSaleForm(
     getAvailableAmounts, 
     getFilteredCreditOptions, 
     getFirstPayment, 
-    isAmountSelectDisabled: isAmountDisabled 
+    isAmountSelectDisabled: isAmountDisabled,
+    getAvailableTerms,
+    getAvailableLevels
   } = useCreditFilter(csvData)
 
   // Computed properties para filtros
@@ -69,6 +96,10 @@ export function useSaleForm(
     isAmountDisabled(currentFilters.value)
   )
 
+  /** Plazos y niveles que existen en la tabla de cargos, no una lista fija. */
+  const availableTerms = computed(() => getAvailableTerms())
+  const availableLevels = computed(() => getAvailableLevels())
+
   // Watchers para efectos reactivos
   watch(
     filteredCreditOptions,
@@ -90,31 +121,42 @@ export function useSaleForm(
     }
   )
 
+  // Un cliente nuevo siempre entra en nivel NUEVO: no hay que elegirlo
+  watch(
+    () => saleForm.value.tipo,
+    (tipo) => {
+      if (isFromRequest.value) return
+      if (tipo === 'Nuevo') saleForm.value.nivel = 'NUEVO'
+    }
+  )
+
+  // Si cambia el plazo y el monto elegido ya no existe en ese plan, se limpia
+  watch(availableAmounts, (amounts) => {
+    if (isFromRequest.value || !saleForm.value.monto) return
+    if (!amounts.includes(String(saleForm.value.monto))) {
+      saleForm.value.monto = 0
+      saleForm.value.primerPago = 0
+    }
+  })
+
   /**
-   * Valida que todos los campos requeridos estén completos
+   * Valida que todos los campos requeridos estén completos.
+   * Avisa que falta, no solo que algo falta.
    * @returns true si el formulario es válido
    */
   const validateForm = (): boolean => {
-    const requiredFields = [
-      saleForm.value.fecha,
-      saleForm.value.agencia,
-      saleForm.value.nombreCliente,
-      saleForm.value.generadaPor,
-      saleForm.value.tipo,
-      saleForm.value.nivel,
-      saleForm.value.plazo
-    ]
+    const missing = REQUIRED_FIELDS.find(({ key }) => {
+      const value = saleForm.value[key]
+      return value === undefined || value === null || value === '' || value === 0
+    })
 
-    const hasAllRequiredFields = requiredFields.every(field => field && field.toString().trim() !== '')
-    const hasValidAmounts = !isNaN(saleForm.value.monto) && !isNaN(saleForm.value.primerPago)
-
-    if (!hasAllRequiredFields) {
-      alert('Por favor, complete todos los campos.')
+    if (missing) {
+      showWarning(`Falta ${missing.label}.`)
       return false
     }
 
-    if (!hasValidAmounts) {
-      alert('Monto y Primer Pago deben ser números.')
+    if (isNaN(saleForm.value.monto) || isNaN(saleForm.value.primerPago) || saleForm.value.primerPago <= 0) {
+      showWarning('Ese monto no tiene primer pago en la tabla de cargos.')
       return false
     }
 
@@ -149,7 +191,7 @@ export function useSaleForm(
    */
   const applyRequest = (request: ApprovedRequest) => {
     saleForm.value = {
-      ...defaultSaleForm,
+      ...buildDefaultForm(),
       fecha: saleForm.value.fecha,
       agencia: request.agencia,
       nombreCliente: request.nombreCliente,
@@ -166,7 +208,7 @@ export function useSaleForm(
    * Limpia el formulario a su estado inicial
    */
   const clearForm = () => {
-    saleForm.value = { ...defaultSaleForm }
+    saleForm.value = buildDefaultForm()
   }
 
   /**
@@ -195,6 +237,8 @@ export function useSaleForm(
     // Estado reactivo
     saleForm,
     availableAmounts,
+    availableTerms,
+    availableLevels,
     filteredCreditOptions,
     isAmountSelectDisabled,
     availableAgencies,
@@ -207,4 +251,4 @@ export function useSaleForm(
     updateField,
     validateForm
   }
-} 
+}
