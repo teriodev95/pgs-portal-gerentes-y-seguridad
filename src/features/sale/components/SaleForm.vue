@@ -30,7 +30,11 @@ interface Emits {
 const emit = defineEmits<Emits>()
 
 // Constants
-const saleOriginOptions: SaleOrigin[] = ['agente', 'gerente']
+/** Cada opcion dice lo que decide en Comisiones: la venta del gerente no paga bono de venta al agente. */
+const saleOriginOptions: { value: SaleOrigin; label: string; detail: string }[] = [
+  { value: 'agente', label: 'Agente', detail: 'Sí genera comisión de venta al agente' },
+  { value: 'gerente', label: 'Gerente', detail: 'No genera comisión de venta al agente' },
+]
 
 // Inicializar composable
 const {
@@ -101,12 +105,16 @@ defineExpose({ clearForm })
         ¿Quién generó la venta?
       </legend>
       <div class="grid grid-cols-2 gap-3">
-        <label v-for="option in saleOriginOptions" :key="option" class="cursor-pointer">
-          <input type="radio" name="generadaPor" class="peer sr-only" :value="option"
+        <label v-for="option in saleOriginOptions" :key="option.value" class="cursor-pointer">
+          <input type="radio" name="generadaPor" class="peer sr-only" :value="option.value"
             v-model="saleForm.generadaPor" />
           <span
-            class="block rounded-lg border border-slate-200 p-2.5 text-center text-sm capitalize text-gray-500 transition-colors peer-checked:border-blue-700 peer-checked:bg-blue-50 peer-checked:font-medium peer-checked:text-blue-700 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 dark:border-gray-600 dark:text-gray-400 dark:peer-checked:border-blue-500 dark:peer-checked:bg-blue-950/40 dark:peer-checked:text-blue-400">
-            {{ option }}
+            class="block h-full rounded-lg border border-slate-200 p-2.5 text-center text-gray-500 transition-colors peer-checked:border-blue-700 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 dark:border-gray-600 dark:text-gray-400 dark:peer-checked:border-blue-500 dark:peer-checked:bg-blue-950/40 dark:peer-checked:text-blue-400">
+            <span class="block text-sm font-medium">{{ option.label }}</span>
+            <span class="mt-1 block text-xs leading-4"
+              :class="option.value === 'gerente' ? 'text-red-600 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400'">
+              {{ option.detail }}
+            </span>
           </span>
         </label>
       </div>
