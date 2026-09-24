@@ -16,6 +16,7 @@ defineProps<Props>()
     <DataField label="No. Clientes" :value="agency.clientes" />
     <DataField label="No. Liquidaciones" :value="agency.numeroLiquidaciones" />
     <DataField label="Clientes Cobrados" :value="agency.clientesCobrados" />
+    <DataField label="No pagos" :value="agency.noPagos" />
     <DataField label="Reducidos" :value="agency.pagosReducidos" />
     <DataField label="Débito Miércoles" :value="toCurrency(agency.debitoMiercoles)" />
     <DataField label="Débito Jueves" :value="toCurrency(agency.debitoJueves)" />
