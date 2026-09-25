@@ -11,6 +11,8 @@ export interface NotificationOptions {
   dismissible?: boolean
   pauseOnHover?: boolean
   queue?: boolean
+  /** Al tocar el toast (p. ej. "Deshacer"). */
+  onClick?: () => void
 }
 
 /**
@@ -79,7 +81,8 @@ export function useNotification() {
       duration: config.duration,
       dismissible: config.dismissible,
       pauseOnHover: config.pauseOnHover,
-      queue: config.queue
+      queue: config.queue,
+      onClick: config.onClick
     }
 
     switch (type) {

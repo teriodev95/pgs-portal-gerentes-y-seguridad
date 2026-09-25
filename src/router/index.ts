@@ -177,6 +177,11 @@ const router = createRouter({
           component: () => import('@/features/solim/views/AdminSolimView.vue')
         },
         {
+          path: 'avisos',
+          name: ROUTE_NAME.AVISOS,
+          component: () => import('@/features/avisos/views/AvisosView.vue')
+        },
+        {
           path: 'loan-simulation',
           name: ROUTE_NAME.LOAN_SIMULATION,
           component: () => import('@/features/iframe/views/LoanSimulatorView.vue')
