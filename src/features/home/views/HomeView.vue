@@ -6,6 +6,7 @@ import { useCollections } from '@/features/home/composables/useCollections'
 import { useUIState } from '@/features/home/composables/useUIState'
 
 // Components import
+import AvisosBell from '@/features/avisos/components/AvisosBell.vue'
 import AgencySlider from '@/features/home/components/AgencySlider.vue'
 import DrawerLeftMenu from '@/features/home/components/DrawerLeftMenu.vue'
 import FilterButton from '@/shared/components/FilterButton.vue'
@@ -98,7 +99,11 @@ onMounted(() => {
           </svg>
         </button>
 
-        <GerencySlider :gerencias="gerencias" />
+        <div class="min-w-0 flex-1">
+          <GerencySlider :gerencias="gerencias" />
+        </div>
+
+        <AvisosBell />
       </div>
 
       <!-- Search and Filter Area -->
