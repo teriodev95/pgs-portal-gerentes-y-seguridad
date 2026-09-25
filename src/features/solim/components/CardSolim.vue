@@ -6,6 +6,7 @@ import { toCurrency } from '@/shared/utils'
 import SolicitudProgressSteps from './SolicitudProgressSteps.vue'
 import { isNarrativeEmpty } from '@/features/solim/constants/filtradoCopy'
 import { APPROVAL_LABELS, getPendingReviews } from '@/features/solim/constants/approvals'
+import { solicitudStatusLabel as statusLabel } from '@/features/solim/constants/solicitudCopy'
 
 interface Props {
   solicitud: Solicitud
@@ -53,28 +54,7 @@ const coveredPendingLabel = computed(() => {
   return covered.length ? covered.map((t) => APPROVAL_LABELS[t]).join(' y ') : null
 })
 
-const solicitudStatusLabel = computed(() => {
-  switch (props.solicitud.status) {
-    case 'capturada':
-      return 'Capturada'
-    case 'en_filtrado':
-      return 'En evaluación'
-    case 'en_correccion':
-      return 'En corrección'
-    case 'en_vistos_buenos':
-      return 'En vistos buenos'
-    case 'lista_desembolso':
-      return 'Lista p/ desembolso'
-    case 'desembolsada':
-      return 'Desembolsada'
-    case 'rechazada':
-      return 'Rechazada'
-    case 'cancelada':
-      return 'Cancelada'
-    default:
-      return props.solicitud.status ?? 'Sin status'
-  }
-})
+const solicitudStatusLabel = computed(() => statusLabel(props.solicitud.status))
 
 // Color del estado solo en el strip lateral izquierdo y el dot del badge.
 const stripClass = computed(() => {

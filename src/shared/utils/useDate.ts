@@ -77,7 +77,6 @@ export function formatToHumanDate(fecha: string | Date, conHora: boolean = false
 
   const diaSemana = diasSemana[fechaObj.getDay()]
   const dia = fechaObj.getDate()
-  console.log('dia', dia)
   const mes = meses[fechaObj.getMonth()]
   const anio = fechaObj.getFullYear()
   const hora = fechaObj.getHours()

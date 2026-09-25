@@ -1,5 +1,6 @@
 import type {
   ApprovalDecision,
+  CorreccionSolicitud,
   ApprovalRequirements,
   RutaSolicitud,
   RutaSolicitudPaso,
@@ -307,6 +308,21 @@ function normalizeRevision(raw: AnyRecord, approvalRequirements: ApprovalRequire
   }
 }
 
+function normalizeCorreccion(value: unknown): CorreccionSolicitud | null {
+  const raw = asRecord(value)
+  if (!raw) return null
+  return {
+    id: asString(raw.id),
+    motivo: asString(raw.motivo),
+    instruccion: asString(raw.instruccion),
+    temas: asArray(raw.scopes).map(String),
+    solicitada_por: asString(raw.solicitada_por_nombre),
+    solicitada_at: asString(raw.solicitada_at),
+    completed_at: asString(raw.completed_at),
+    cancelled_at: asString(raw.cancelled_at)
+  }
+}
+
 export function normalizeSolicitud(value: unknown): Solicitud {
   const raw = asRecord(value) ?? {}
   const captura = asRecord(raw.captura)
@@ -419,7 +435,8 @@ export function normalizeSolicitud(value: unknown): Solicitud {
     tabla_cargos_snapshot: tablaSnapshot,
     revision,
     revision_aprobaciones: aprobaciones,
-    ruta_solicitud: rutaSolicitud
+    ruta_solicitud: rutaSolicitud,
+    correccion: normalizeCorreccion(raw.correccion)
   }
 }
 

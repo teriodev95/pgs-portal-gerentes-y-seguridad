@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { ROUTE_NAME } from '@/router'
 import { useApprovalDialog } from '../composables/useApprovalDialog'
@@ -20,6 +20,7 @@ import CardSolim from '../components/CardSolim.vue'
 import DetailsLoanRequest from '../components/DetailsLoanRequest.vue'
 
 const router = useRouter()
+const route = useRoute()
 const $store = useStore()
 const { loanApprovalForm, isDialogOpen, selectedRequestId: dialogRequestId, selectedApprovalType: dialogApprovalType, openDialog, closeDialog } =
   useApprovalDialog()
@@ -76,6 +77,15 @@ async function handleShowDetails(id: string): Promise<void> {
   selectedRequestId.value = id
   await selectLoanRequest(id)
 }
+
+// Un aviso del buzón abre la solicitud directo (`?solicitud=<id>`), aunque no esté en la semana visible.
+onMounted(async () => {
+  const id = route.query.solicitud
+  if (typeof id !== 'string' || !id) return
+  await handleShowDetails(id)
+  await nextTick()
+  document.getElementById('correccion-solicitada')?.scrollIntoView({ block: 'start' })
+})
 
 function findRequest(id: string) {
   return (selectedLoanRequest.value?.id === id
@@ -150,6 +160,7 @@ function handleBack(): void {
   if (selectedRequestId.value) {
     selectedRequestId.value = null
     clearSelectedLoanRequest()
+    if (route.query.solicitud) router.replace({ query: {} })
     return
   }
 
