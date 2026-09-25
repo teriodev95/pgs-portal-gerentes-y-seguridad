@@ -143,6 +143,18 @@ export interface ActivosData {
   [key: string]: unknown
 }
 
+/** Última corrección pedida sobre la solicitud (`correccion` del detalle en Elysia). */
+export interface CorreccionSolicitud {
+  id: string | null
+  motivo: string | null
+  instruccion: string | null
+  temas: string[]
+  solicitada_por: string | null
+  solicitada_at: string | null
+  completed_at: string | null
+  cancelled_at: string | null
+}
+
 export interface Solicitud {
   id: string
   agencia?: string | null
@@ -230,6 +242,7 @@ export interface Solicitud {
   revision?: RevisionSummary | null
   revision_aprobaciones?: RevisionApproval[] | null
   ruta_solicitud?: RutaSolicitud | null
+  correccion?: CorreccionSolicitud | null
 }
 
 export interface LoanRequestsListResponse {

@@ -8,6 +8,7 @@ import CardContainer from '@/shared/components/CardContainer.vue'
 import DocumentViewer from './DocumentViewer.vue'
 import DetailSection from './DetailSection.vue'
 import ClienteHistorialDisclosure from './ClienteHistorialDisclosure.vue'
+import CorreccionSolicitadaCard from './CorreccionSolicitadaCard.vue'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type {
   ActivosData,
@@ -349,6 +350,8 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
     </TabsList>
 
     <TabsContent value="revision" class="space-y-4">
+      <CorreccionSolicitadaCard v-if="request.correccion" :correccion="request.correccion" />
+
       <!-- Diagnóstico narrativo neutral -->
       <CardContainer class-name="rounded-3xl">
         <div class="space-y-5">
