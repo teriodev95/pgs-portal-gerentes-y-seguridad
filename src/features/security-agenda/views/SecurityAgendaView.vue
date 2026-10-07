@@ -61,6 +61,7 @@ const {
   loadError,
   denied,
   activities,
+  countable,
   completed,
   isSent,
   canSend,
@@ -138,7 +139,7 @@ const pendingVisitsLabel = computed(() => {
 const timeline = ref<InstanceType<typeof AgendaTimeline>>()
 
 const progress = computed(() =>
-  activities.value.length ? Math.round((completed.value / activities.value.length) * 100) : 0
+  countable.value.length ? Math.round((completed.value / countable.value.length) * 100) : 0
 )
 
 const activityCountLabel = computed(() => {

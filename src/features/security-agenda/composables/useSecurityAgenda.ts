@@ -48,8 +48,12 @@ export function useSecurityAgenda(managerGerencia?: string) {
   const denied = ref(false)
 
   const activities = computed(() => agenda.value?.actividades ?? [])
+  /** Las que entran al avance: la comida se agenda pero no cuenta. */
+  const countable = computed(() =>
+    activities.value.filter((activity) => activity.cuentaEnCumplimiento !== false)
+  )
   const completed = computed(
-    () => activities.value.filter((activity) => DONE_STATUSES.includes(activity.status)).length
+    () => countable.value.filter((activity) => DONE_STATUSES.includes(activity.status)).length
   )
   const isSent = computed(() => agenda.value?.status === 'enviada')
   const canSend = computed(() => activities.value.length > 0 && !isSent.value)
@@ -209,6 +213,7 @@ export function useSecurityAgenda(managerGerencia?: string) {
 
     // Computed
     activities,
+    countable,
     completed,
     isSent,
     canSend,

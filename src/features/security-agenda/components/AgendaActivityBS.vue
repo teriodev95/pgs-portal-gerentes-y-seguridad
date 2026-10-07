@@ -5,6 +5,7 @@ import {
   DAY_END_HOUR,
   DEFAULT_DURATION_MINUTES,
   DETAIL_MAX_LENGTH,
+  DETAIL_REQUIRED_ACTIVITY_TYPES,
   DURATION_OPTIONS,
   PLACELESS_ACTIVITY_TYPES,
   PRIORITY_OPTIONS,
@@ -209,6 +210,8 @@ const agencias = computed(
  */
 const requiereLugar = computed(() => !!tipo.value && !PLACELESS_ACTIVITY_TYPES.includes(tipo.value))
 
+const pideDetalle = computed(() => DETAIL_REQUIRED_ACTIVITY_TYPES.includes(tipo.value))
+
 /**
  * Gerencia y agencia viven en su propio modal, detrás de un renglón que resume
  * lo elegido. En el formulario abierto eran dos controles más que recorrer para
@@ -388,6 +391,11 @@ function volverAVer() {
 function submit() {
   if (!tipo.value) {
     formError.value = 'Elige una actividad.'
+    return
+  }
+
+  if (pideDetalle.value && !detalle.value.trim()) {
+    formError.value = 'Escribe en el detalle qué vas a hacer.'
     return
   }
 
@@ -640,10 +648,15 @@ function submit() {
 
                   <!-- Detalle -->
                   <div class="space-y-2">
-                    <LabelForm for="agenda-detalle" description="Opcional">Detalle</LabelForm>
+                    <LabelForm
+                      for="agenda-detalle"
+                      :description="pideDetalle ? 'Obligatorio en Otra actividad' : 'Opcional'"
+                      >Detalle</LabelForm
+                    >
                     <textarea
                       id="agenda-detalle"
                       v-model="detalle"
+                      :aria-required="pideDetalle"
                       rows="2"
                       :maxlength="DETAIL_MAX_LENGTH"
                       placeholder="¿Qué vas a hacer?"

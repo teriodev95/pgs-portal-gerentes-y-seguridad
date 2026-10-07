@@ -63,6 +63,11 @@ export interface AgendaActivity {
   agendaId: number
   tipo: string
   tipoNombre: string
+  /**
+   * `false` en la comida: se pinta pero no suma en el avance, igual que en el
+   * 4/8 del backend. Opcional porque un backend anterior no lo manda.
+   */
+  cuentaEnCumplimiento?: boolean
   detalle: string | null
   horaInicio: string
   horaFin: string
