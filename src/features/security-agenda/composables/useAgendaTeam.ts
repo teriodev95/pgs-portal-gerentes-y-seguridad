@@ -46,7 +46,8 @@ export function useAgendaTeam(fecha: Ref<string>) {
     error.value = ''
 
     try {
-      members.value = await securityAgendaService.getTeam(fecha.value)
+      // "Mi equipo" son los auditores; sin `rol` el backend agrega a los gerentes.
+      members.value = await securityAgendaService.getTeam(fecha.value, { rol: 'auditores' })
     } catch (err) {
       members.value = []
       error.value = agendaErrorMessage(err, 'No pudimos cargar a tu equipo.')

@@ -11,6 +11,7 @@ import type {
   AgendaSendResult,
   AgendaShareLink,
   AgendaSummary,
+  AgendaTeamFilter,
   AgendaTeamMember,
   AgendaUnlinkedVisit
 } from '../types'
@@ -57,10 +58,17 @@ class SecurityAgendaService {
     return data.data ?? null
   }
 
-  async getTeam(fecha: string): Promise<AgendaTeamMember[]> {
+  /**
+   * Agenda del día de cada auditor del equipo y de cada gerente. Un auditor sólo
+   * puede pedir `rol: 'gerentes'` (los de sus gerencias); `gerencia` acota a uno.
+   */
+  async getTeam(
+    fecha: string,
+    filtros: { rol?: AgendaTeamFilter; gerencia?: string } = {}
+  ): Promise<AgendaTeamMember[]> {
     const { data } = await this.apiClient.get<ApiEnvelope<AgendaTeamMember[]>>(
       `${this.base}/equipo`,
-      { params: { fecha } }
+      { params: { fecha, ...filtros } }
     )
     return data.data
   }

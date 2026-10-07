@@ -221,6 +221,13 @@ const router = createRouter({
           name: ROUTE_NAME.SECURITY_AGENDA,
           beforeEnter: AgendaGuard,
           component: () => import('@/features/security-agenda/views/SecurityAgendaView.vue')
+        },
+        {
+          // La misma vista en sólo lectura: la agenda del gerente de esa gerencia.
+          path: 'agenda/gerente/:gerencia',
+          name: ROUTE_NAME.SECURITY_AGENDA_MANAGER,
+          beforeEnter: AgendaGuard,
+          component: () => import('@/features/security-agenda/views/SecurityAgendaView.vue')
         }
       ]
     },

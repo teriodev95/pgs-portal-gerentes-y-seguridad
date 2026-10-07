@@ -2,7 +2,8 @@
 import { ref } from 'vue'
 import { Link2 } from 'lucide-vue-next'
 
-defineProps<{ busy?: boolean }>()
+/** `canRevoke`: revocar rompe un enlace ajeno; quien sólo consulta la agenda no lo ofrece. */
+withDefaults(defineProps<{ busy?: boolean; canRevoke?: boolean }>(), { canRevoke: true })
 
 const emit = defineEmits<{
   (e: 'share'): void
@@ -34,6 +35,7 @@ function revoke() {
           Copiar
         </button>
         <button
+          v-if="canRevoke"
           type="button"
           class="min-h-[44px] px-2 text-red-700"
           :disabled="busy"

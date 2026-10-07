@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { useStore } from '@/shared/stores'
 import { getDateTime2 } from '@/shared/utils'
 import { useAgendaAccess } from '@/features/security-agenda/composables/useAgendaAccess'
+import { useManagerAgendaStatus } from '@/features/security-agenda/composables/useManagerAgendaStatus'
 import { AGENDA_RELEASED } from '@/features/security-agenda/constants'
 import { ROUTE_NAME } from '@/router'
 
@@ -31,6 +32,7 @@ import {
   Book,
   Calendar,
   CalendarCheck,
+  CalendarSearch,
   Banknote,
 } from 'lucide-vue-next'
 import { hasCashReportPermission } from '@/features/cash-report/cash-report.constants'
@@ -43,9 +45,15 @@ export interface MenuItem {
   title: string
   icon: any
   route?: string
+  /** Parámetros de la ruta, cuando la vista depende de algo del Home (la gerencia). */
+  params?: Record<string, string>
   href?: string
   disabled?: boolean
   description?: string
+  /** Tile presente pero sin nada que ver hoy: se pinta en gris. */
+  muted?: boolean
+  /** Punto de estado sobre el icono; `label` lo dice para el lector de pantalla. */
+  mark?: { class: string; label: string } | null
 }
 
 /**
@@ -56,6 +64,7 @@ export function useHomeMenu() {
   const router = useRouter()
   const $store = useStore()
   const { canUseAgenda } = useAgendaAccess()
+  const managerAgenda = useManagerAgendaStatus()
 
   // Drawer states
   const isAgencyDrawerOpen = ref(false)
@@ -221,13 +230,26 @@ export function useHomeMenu() {
     {
       // Espejo de la tarjeta del Home: misma vista, misma condición de acceso.
       id: 'agenda-seguridad',
-      title: 'Agenda',
+      title: 'Mi agenda',
       icon: CalendarCheck,
       route: ROUTE_NAME.SECURITY_AGENDA,
       // El permiso se conserva junto a la autorizacion pendiente: cuando la
       // agenda se publique, la tarjeta vuelve a depender solo de quien mira.
       disabled: !AGENDA_RELEASED || !canUseAgenda.value,
       description: 'Agenda del día'
+    },
+    {
+      // Agenda del gerente de la gerencia seleccionada, sólo lectura. Sigue a la
+      // gerencia como el tile "Gerencia"; vacante o sin agenda hoy queda en gris.
+      id: 'agenda-gerente',
+      title: 'Agenda gerente',
+      icon: CalendarSearch,
+      route: ROUTE_NAME.SECURITY_AGENDA_MANAGER,
+      params: management.value ? { gerencia: management.value } : undefined,
+      disabled: !AGENDA_RELEASED || !managerAgenda.canViewManagerAgenda.value,
+      description: managerAgenda.withoutAgenda.value ? 'Sin agenda hoy' : management.value,
+      muted: managerAgenda.withoutAgenda.value,
+      mark: managerAgenda.mark.value
     },
     {
       id: 'calendar',
@@ -321,7 +343,7 @@ export function useHomeMenu() {
       if (item.route === ROUTE_NAME.ASSIGNMENTS) {
         router.push({ name: item.route, query: { from: 'home' } })
       } else {
-        router.push({ name: item.route })
+        router.push({ name: item.route, params: item.params })
       }
     }
   }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from '@/shared/stores'
 import { formatToHumanDate } from '@/shared/utils'
 import { EMPTY_AGENDA_DESCRIPTION, EMPTY_AGENDA_MESSAGE } from '../constants'
 import {
@@ -36,11 +37,23 @@ import MainCT from '@/shared/components/ui/MainCT.vue'
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 
 const $router = useRouter()
+const $route = useRoute()
+const $store = useStore()
+
+/**
+ * Con `:gerencia` en la ruta es la agenda del gerente de esa gerencia, en sólo
+ * lectura: sin alta, sin edición, sin envío y sin pestañas. Sí se comparte, para
+ * reenviarla a Dirección.
+ */
+const managerGerencia =
+  typeof $route.params.gerencia === 'string' ? $route.params.gerencia : undefined
+const isManagerView = Boolean(managerGerencia)
 
 const {
   fecha,
   auditorId,
   agenda,
+  manager,
   activityTypes,
   scope,
   loading,
@@ -59,7 +72,7 @@ const {
   send,
   share,
   revokeShare
-} = useSecurityAgenda()
+} = useSecurityAgenda(managerGerencia)
 
 const { rows, expandLeading, expandTrailing } = useAgendaTimeline(activities, fecha)
 
@@ -95,7 +108,7 @@ const isTeamDetail = computed(() => selectedMember.value !== null)
  * Las visitas son mías: se registran con mi usuario y mi ubicación. En la
  * agenda de otro auditor no hay nada que registrar ni que reconciliar.
  */
-const canRegisterVisit = computed(() => !isTeamDetail.value)
+const canRegisterVisit = computed(() => !isTeamDetail.value && !isManagerView)
 
 /**
  * Reconciliar es meter a la agenda de hoy visitas de hoy. La misma condición
@@ -137,17 +150,36 @@ const activityCountLabel = computed(() => {
 
 const isEmpty = computed(() => !loading.value && !loadError.value && !activities.value.length)
 
-const emptyMessage = computed(() =>
-  fecha.value === todayISO() ? EMPTY_AGENDA_MESSAGE : 'Tu agenda de mañana está vacía'
-)
+const emptyMessage = computed(() => {
+  const today = fecha.value === todayISO()
+  if (isManagerView) return today ? 'Sin agenda hoy' : 'Sin agenda para mañana'
+  return today ? EMPTY_AGENDA_MESSAGE : 'Tu agenda de mañana está vacía'
+})
 
-const headerTitle = computed(() =>
-  selectedMember.value ? selectedMember.value.nombre : 'Mi agenda'
-)
+const emptyDescription = computed(() => {
+  if (!isManagerView) return EMPTY_AGENDA_DESCRIPTION
+  return manager.value
+    ? `${manager.value.nombre} todavía no captura actividades.`
+    : `${managerGerencia} no tiene gerente activo.`
+})
+
+const headerTitle = computed(() => {
+  if (isManagerView) return `Agenda de ${manager.value?.nombre ?? 'gerente'} · ${managerGerencia}`
+  return selectedMember.value ? selectedMember.value.nombre : 'Mi agenda'
+})
+
+/** El gerente no es de seguridad: su pantalla es la misma con otro título. */
+const navbarTitle = computed(() => {
+  if (isManagerView) return 'Agenda gerente'
+  return $store.user?.tipo === 'Gerente' ? 'Agenda' : 'Agendas de seguridad'
+})
 
 onMounted(async () => {
-  loadCatalogs()
-  team.checkTeamModule()
+  // En sólo lectura no hay hoja de alta ni pestaña de equipo que preparar.
+  if (!isManagerView) {
+    loadCatalogs()
+    team.checkTeamModule()
+  }
   await load()
   visits.loadPending()
   scrollToNow(false)
@@ -292,14 +324,17 @@ function goBack() {
 <template>
   <MainCT>
     <NavbarCT
-      title="Agendas de seguridad"
+      :title="navbarTitle"
       :subtitles="[formatToHumanDate(fecha)]"
       show-back-button
       @back="goBack"
     />
 
     <Tabs v-model="tab" class="block px-3 pb-44 pt-2">
-      <TabsList v-if="team.hasTeamModule.value && !isTeamDetail" class="grid w-full grid-cols-2">
+      <TabsList
+        v-if="team.hasTeamModule.value && !isTeamDetail && !isManagerView"
+        class="grid w-full grid-cols-2"
+      >
         <TabsTrigger value="mi-agenda">Mi agenda</TabsTrigger>
         <TabsTrigger value="equipo">Mi equipo</TabsTrigger>
       </TabsList>
@@ -347,8 +382,14 @@ function goBack() {
         <div class="rounded-lg border border-gray-200 bg-white p-3">
           <div class="flex items-baseline justify-between gap-2">
             <p class="text-sm font-semibold text-gray-900">{{ headerTitle }}</p>
-            <p class="text-xs text-gray-700">{{ activityCountLabel }}</p>
+            <p class="shrink-0 text-xs text-gray-700">{{ activityCountLabel }}</p>
           </div>
+          <span
+            v-if="isManagerView"
+            class="mt-1 inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
+          >
+            Solo lectura
+          </span>
 
           <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
             <div class="agenda-progress h-full bg-blue-700" :style="{ width: `${progress}%` }" />
@@ -356,7 +397,8 @@ function goBack() {
 
           <div class="mt-3 rounded-lg border p-2.5" :class="cutoff.classes">
             <p class="text-sm font-medium">{{ cutoff.label }}</p>
-            <p v-if="!cutoff.collapsed && cutoff.detail" class="mt-0.5 text-xs">
+            <!-- El detalle le habla a quien envía: en sólo lectura sobra. -->
+            <p v-if="!cutoff.collapsed && cutoff.detail && !isManagerView" class="mt-0.5 text-xs">
               {{ cutoff.detail }}
             </p>
           </div>
@@ -383,6 +425,7 @@ function goBack() {
         <AgendaShareRow
           v-if="agenda?.shareToken"
           :busy="saving"
+          :can-revoke="!isManagerView"
           @share="handleShare"
           @copy="handleCopy"
           @revoke="revokeShare"
@@ -409,12 +452,13 @@ function goBack() {
             v-if="isEmpty"
             compact
             :message="emptyMessage"
-            :description="EMPTY_AGENDA_DESCRIPTION"
+            :description="emptyDescription"
           />
 
           <AgendaTimeline
             ref="timeline"
             :rows="rows"
+            :readonly="isManagerView"
             :can-register-visit="canRegisterVisit"
             @select-gap="openGap"
             @select-activity="openActivity"
@@ -457,12 +501,12 @@ function goBack() {
       </TabsContent>
     </Tabs>
 
-    <!-- Acción primaria fija -->
+    <!-- Acción primaria fija. En sólo lectura lo único que queda es compartir. -->
     <div
-      v-if="!isTeamDetail && tab === 'mi-agenda' && !denied"
+      v-if="isManagerView ? agenda : !isTeamDetail && tab === 'mi-agenda' && !denied"
       class="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200 bg-white p-3"
     >
-      <BtnComponent v-if="isSent" full-width :loading="saving" @click="handleShare">
+      <BtnComponent v-if="isSent || isManagerView" full-width :loading="saving" @click="handleShare">
         Compartir agenda
       </BtnComponent>
       <template v-else>

@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Circle,
   PlayCircle,
+  Repeat2,
   XCircle
 } from 'lucide-vue-next'
 import type { AgendaActivityStatus, AgendaPriority } from '../types'
@@ -154,8 +155,19 @@ export const STATUS_STYLE: Record<AgendaActivityStatus, StatusStyle> = {
     block: 'bg-amber-50 border-amber-600 text-amber-900',
     blockPast: 'bg-amber-50/50 border-amber-200 text-amber-900',
     stripe: 'bg-amber-600'
+  },
+  // Cuenta como hecha: verde como `completada`; el icono dice que fue otra cosa.
+  realizo_otra_actividad: {
+    label: 'Realizó otra actividad',
+    icon: Repeat2,
+    block: 'bg-green-50 border-green-600 text-green-900',
+    blockPast: 'bg-green-50/50 border-green-200 text-green-900',
+    stripe: 'bg-green-600'
   }
 }
+
+/** Estados que cuentan como hechos: el espejo de `STATUS_CUMPLIDOS` en xpress-elysia. */
+export const DONE_STATUSES: AgendaActivityStatus[] = ['completada', 'realizo_otra_actividad']
 
 /** La prioridad NUNCA pinta el fondo del bloque: sólo punto de 8px + texto. */
 export const PRIORITY_STYLE: Record<AgendaPriority, { label: string; dot: string }> = {

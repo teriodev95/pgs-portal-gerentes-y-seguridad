@@ -95,17 +95,25 @@ const {
                 v-if="!item.disabled"
                 class="flex flex-col items-center cursor-pointer p-3 rounded-lg transition-all duration-200"
                 :class="{
-                  'hover:bg-gray-50': true,
+                  'hover:bg-gray-50': !item.muted,
+                  'bg-gray-100': item.muted,
                   'bg-blue-50 border border-blue-200': item.id === 'gerencia'
                 }"
                 @click="handleMenuItemClick(item, closeGeneralActions)"
               >
                 <div
-                  class="size-6 bg-white border border-gray-200 rounded-full flex items-center justify-center mb-2 transition-all duration-200">
+                  class="relative size-6 bg-white border border-gray-200 rounded-full flex items-center justify-center mb-2 transition-all duration-200">
                   <component :is="item.icon" class="size-4 transition-colors duration-200" :class="{
                     'text-blue-600': item.id === 'gerencia',
                     'text-gray-600': item.id !== 'gerencia'
                   }" :stroke-width="1.5" />
+                  <!-- Mismo punto que el FAB de la agenda: estado sin abrir nada. -->
+                  <span
+                    v-if="item.mark"
+                    class="absolute -right-1 -top-1 size-2 rounded-full ring-2 ring-white"
+                    :class="item.mark.class"
+                  />
+                  <span v-if="item.mark" class="sr-only">Agenda {{ item.mark.label }}</span>
                 </div>
                 <h3 class="text-xs font-medium text-center mb-1 leading-tight">{{ item.title }}</h3>
                 <p class="text-xs text-gray-500 text-center leading-tight">{{ item.description }}</p>

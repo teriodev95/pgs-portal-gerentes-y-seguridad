@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { useNotification } from '@/shared/composables/useNotification'
+import { DONE_STATUSES } from '../constants'
 import {
   agendaErrorMessage,
   agendaErrorStatus,
@@ -12,16 +13,18 @@ import type {
   AgendaActivityPayload,
   AgendaActivityType,
   AgendaScope,
-  AgendaShareLink
+  AgendaShareLink,
+  AgendaTeamMember
 } from '../types'
 
 /**
- * Agenda de un día: la del usuario en sesión o la de un auditor a cargo.
+ * Agenda de un día: la del usuario en sesión, la de un auditor a cargo o, con
+ * `managerGerencia`, la del gerente de esa gerencia (sólo lectura).
  *
  * `GET /` devuelve el resumen del día y `GET /:id` la agenda completa: son dos
  * llamadas porque el contrato no expone la agenda completa por fecha.
  */
-export function useSecurityAgenda() {
+export function useSecurityAgenda(managerGerencia?: string) {
   const { showError } = useNotification()
 
   const fecha = ref(todayISO())
@@ -29,6 +32,8 @@ export function useSecurityAgenda() {
   const auditorId = ref<number | undefined>()
 
   const agenda = ref<Agenda | null>(null)
+  /** Gerente consultado; `null` también cuando la gerencia está vacante. */
+  const manager = ref<AgendaTeamMember | null>(null)
   const activityTypes = ref<AgendaActivityType[]>([])
   const scope = ref<AgendaScope>({ gerencias: [] })
 
@@ -44,7 +49,7 @@ export function useSecurityAgenda() {
 
   const activities = computed(() => agenda.value?.actividades ?? [])
   const completed = computed(
-    () => activities.value.filter((activity) => activity.status === 'completada').length
+    () => activities.value.filter((activity) => DONE_STATUSES.includes(activity.status)).length
   )
   const isSent = computed(() => agenda.value?.status === 'enviada')
   const canSend = computed(() => activities.value.length > 0 && !isSent.value)
@@ -68,8 +73,18 @@ export function useSecurityAgenda() {
     denied.value = false
 
     try {
-      const [summary] = await securityAgendaService.listAgendas(fecha.value, auditorId.value)
-      agenda.value = summary ? await securityAgendaService.getAgenda(summary.id) : null
+      if (managerGerencia) {
+        // `GET /` sólo lista la agenda propia: la del gerente se encuentra por su gerencia.
+        const [member] = await securityAgendaService.getTeam(fecha.value, {
+          rol: 'gerentes',
+          gerencia: managerGerencia
+        })
+        manager.value = member ?? null
+        agenda.value = member?.agenda ? await securityAgendaService.getAgenda(member.agenda.id) : null
+      } else {
+        const [summary] = await securityAgendaService.listAgendas(fecha.value, auditorId.value)
+        agenda.value = summary ? await securityAgendaService.getAgenda(summary.id) : null
+      }
     } catch (error) {
       agenda.value = null
       loadError.value = agendaErrorMessage(error, 'No pudimos cargar la agenda.')
@@ -184,6 +199,7 @@ export function useSecurityAgenda() {
     fecha,
     auditorId,
     agenda,
+    manager,
     activityTypes,
     scope,
     loading,
