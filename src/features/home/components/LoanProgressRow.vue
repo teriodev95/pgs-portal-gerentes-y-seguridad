@@ -61,7 +61,9 @@ onMounted(() => {
       <div class="flex items-start justify-between gap-2 text-sm">
         <div class="min-w-0">
           <TextCT class="truncate">{{ cobranza.nombre }}</TextCT>
-          <TextCT variant="tertiary">{{ cobranza.prestamoId }}</TextCT>
+          <TextCT variant="tertiary" class="truncate">
+            {{ cobranza.prestamoId }}<template v-if="cobranza.contrato"> · Contrato {{ cobranza.contrato }}</template>
+          </TextCT>
         </div>
 
         <div class="flex-none text-right">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { toCurrency } from '@/shared/utils';
 import type { ILoan } from '@/features/loan/types'
 import CardContainer from '@/shared/components/CardContainer.vue';
@@ -19,6 +19,21 @@ const nombreCompleto = computed(() =>
     .trim()
 )
 
+// El contrato es el "ID cliente" que oficina pide para GoCash y RH (Belén, 7-oct-2026):
+// se copia de un toque para no dictarlo.
+const contrato = computed(() => props.loanData.noDeContrato?.trim() || '')
+const contratoCopiado = ref(false)
+
+async function copiarContrato() {
+  try {
+    await navigator.clipboard.writeText(contrato.value)
+    contratoCopiado.value = true
+    setTimeout(() => (contratoCopiado.value = false), 2000)
+  } catch {
+    /* clipboard no disponible: el número sigue a la vista */
+  }
+}
+
 // Avance del crédito: cobrado real contra el total a pagar
 const progreso = computed(() => {
   const total = props.loanData.totalAPagar || 0
@@ -32,6 +47,20 @@ const progreso = computed(() => {
 <template>
   <CardContainer title="Datos Generales">
     <DataField label="Nombre" :value="nombreCompleto" />
+    <div class="flex justify-between gap-2">
+      <p class="font-light text-gray-400">Contrato</p>
+      <button
+        v-if="contrato"
+        type="button"
+        class="property-value inline-flex items-center gap-1.5 text-blue-800"
+        :aria-label="`Copiar contrato ${contrato}`"
+        @click="copiarContrato"
+      >
+        {{ contrato }}
+        <span class="text-xs font-light text-gray-400">{{ contratoCopiado ? 'Copiado' : 'Copiar' }}</span>
+      </button>
+      <p v-else class="property-value text-blue-800">--</p>
+    </div>
     <DataField label="Dirección" :value="loanData.direccion" />
     <DataField label="Teléfono" :value="loanData.telefonoCliente" />
     <DataField label="Nivel" :value="loanData.tipoDeCliente" />

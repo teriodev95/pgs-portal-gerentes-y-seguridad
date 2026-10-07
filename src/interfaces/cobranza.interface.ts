@@ -20,6 +20,8 @@ export interface ICobranza {
  */
 export interface ICobranzaV2 {
   prestamoId: string
+  /** No. de Contrato: el "ID cliente" de GoCash y RH. */
+  contrato?: string | null
   nombre: string
   status: CobranzaStatus
   diaDePago: string
