@@ -12,9 +12,11 @@ import type { PagarePendiente, RegistrarEntregaPayload } from '../types'
 export const PARENTESCOS_FRECUENTES = ['Titular', 'Esposo/a', 'Hijo/a'] as const
 
 // Sin "Vecino/a" ni "Amigo/a": oficina no entrega el pagaré a nadie fuera de la
-// familia (Brenda, 22-sep-2026). Lo ya guardado con esos valores se conserva; la
-// ficha lo muestra tal cual porque el select no valida contra esta lista.
+// familia salvo al aval, que también puede recibirlo (Brenda, 22-sep y 7-oct-2026).
+// Lo ya guardado con esos valores se conserva; la ficha lo muestra tal cual porque
+// el select no valida contra esta lista.
 export const PARENTESCOS_RESTANTES = [
+  'Aval',
   'Padre/Madre',
   'Hermano/a',
   'Abuelo/a',
