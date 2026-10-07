@@ -42,6 +42,20 @@ onMounted(() => {
     barWidth.value = avance.value
   })
 })
+
+// Oficina pide el contrato como "ID cliente" (Belén, 7-oct-2026); se copia sin abrir el detalle.
+const contratoCopiado = ref(false)
+
+async function copiarContrato() {
+  if (!$props.cobranza.contrato) return
+  try {
+    await navigator.clipboard.writeText($props.cobranza.contrato)
+    contratoCopiado.value = true
+    setTimeout(() => (contratoCopiado.value = false), 2000)
+  } catch {
+    /* clipboard no disponible: el contrato sigue a la vista */
+  }
+}
 </script>
 
 <template>
@@ -61,8 +75,37 @@ onMounted(() => {
       <div class="flex items-start justify-between gap-2 text-sm">
         <div class="min-w-0">
           <TextCT class="truncate">{{ cobranza.nombre }}</TextCT>
-          <TextCT variant="tertiary" class="truncate">
-            {{ cobranza.prestamoId }}<template v-if="cobranza.contrato"> · Contrato {{ cobranza.contrato }}</template>
+          <TextCT variant="tertiary" class="flex min-w-0 items-center gap-1">
+            <!-- Al copiar, "Contrato" cambia a "Copiado" en su lugar: el aviso no empuja ni tapa el número. -->
+            <span class="truncate">
+              {{ cobranza.prestamoId }}<template v-if="cobranza.contrato">
+                · <span :class="{ 'text-green-600': contratoCopiado }">{{ contratoCopiado ? 'Copiado' : 'Contrato' }}</span>
+                {{ cobranza.contrato }}</template>
+            </span>
+            <!-- La fila entera es un <button> y otro adentro no es válido: un span con
+                 rol de botón que corta el toque para que no abra el detalle. -->
+            <span
+              v-if="cobranza.contrato"
+              role="button"
+              tabindex="0"
+              :aria-label="`Copiar contrato ${cobranza.contrato}`"
+              class="-m-1.5 flex-none p-1.5 text-gray-400 active:text-gray-700"
+              @click.stop="copiarContrato"
+              @keydown.enter.stop.prevent="copiarContrato"
+              @keydown.space.stop.prevent="copiarContrato"
+            >
+              <svg v-if="contratoCopiado" class="h-3.5 w-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <svg v-else class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+            </span>
           </TextCT>
         </div>
 
