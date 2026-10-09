@@ -73,7 +73,12 @@ function pendientes(member: AgendaTeamMember): number {
         >
           <div class="flex items-baseline justify-between gap-2">
             <p class="truncate text-sm font-semibold text-gray-900">{{ member.nombre }}</p>
-            <p class="shrink-0 text-xs text-gray-600">{{ member.usuario }}</p>
+            <p class="shrink-0 text-xs text-gray-600">
+              <span v-if="member.rol === 'regional'" class="font-medium text-blue-800">
+                Regional ·
+              </span>
+              {{ member.usuario }}
+            </p>
           </div>
           <p class="mt-0.5 text-xs text-gray-700">{{ statusLine(member) }}</p>
 

@@ -2,8 +2,8 @@ import { computed } from 'vue'
 import { useStore } from '@/shared/stores'
 
 /**
- * Quién ve la agenda: Seguridad siempre; Regional sólo si tiene ámbito
- * (gerencias cargadas por el layout). Sin ámbito no hay nada que agendar.
+ * Quién hace agenda: Seguridad siempre; Regional sólo si tiene ámbito
+ * (gerencias cargadas por el layout), que son las gerencias donde agenda.
  * El gerente agenda en su gerencia: sin ella el backend no le abre la agenda.
  */
 export function useAgendaAccess() {

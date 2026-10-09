@@ -169,10 +169,12 @@ const headerTitle = computed(() => {
   return selectedMember.value ? selectedMember.value.nombre : 'Mi agenda'
 })
 
-/** El gerente no es de seguridad: su pantalla es la misma con otro título. */
+/** Gerente y regional no son de seguridad: su pantalla es la misma con otro título. */
 const navbarTitle = computed(() => {
   if (isManagerView) return 'Agenda gerente'
-  return $store.user?.tipo === 'Gerente' ? 'Agenda' : 'Agendas de seguridad'
+  return ['Gerente', 'Regional'].includes($store.user?.tipo ?? '')
+    ? 'Agenda'
+    : 'Agendas de seguridad'
 })
 
 onMounted(async () => {

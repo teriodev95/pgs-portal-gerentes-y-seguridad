@@ -41,9 +41,8 @@ export function useSecurityAgenda(managerGerencia?: string) {
   const saving = ref(false)
   const loadError = ref('')
   /**
-   * 403: el perfil no alcanza. Es alcanzable de verdad —un Regional con
-   * gerencias que no es responsable de seguridad ve la entrada del menú—, y
-   * ahí no hay nada que reintentar ni que enviar.
+   * 403: el perfil no alcanza (un Gerente sin gerencia activa, o una agenda
+   * de otra sucursal). Ahí no hay nada que reintentar ni que enviar.
    */
   const denied = ref(false)
 

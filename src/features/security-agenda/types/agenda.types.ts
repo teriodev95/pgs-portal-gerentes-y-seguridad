@@ -130,11 +130,11 @@ export interface AgendaSummary {
   completadas: number
 }
 
-/** Dueño de una agenda en `GET /equipo`: la misma agenda la usan auditores y gerentes. */
-export type AgendaOwnerRole = 'auditor' | 'gerente'
+/** Dueño de una agenda en `GET /equipo`: la misma agenda la usan auditores, regionales y gerentes. */
+export type AgendaOwnerRole = 'auditor' | 'regional' | 'gerente'
 
-/** Filtro `rol` de `GET /equipo`; sin él vienen los dos. */
-export type AgendaTeamFilter = 'auditores' | 'gerentes'
+/** Filtro `rol` de `GET /equipo`; sin él vienen todos. */
+export type AgendaTeamFilter = 'auditores' | 'regionales' | 'gerentes'
 
 export interface AgendaTeamMember {
   /** Dueño de la agenda, también cuando es gerente: el nombre es del contrato. */
@@ -142,7 +142,7 @@ export interface AgendaTeamMember {
   usuario: string
   nombre: string
   rol: AgendaOwnerRole
-  /** La del gerente; `null` para auditores, que tienen varias. */
+  /** La del gerente; `null` para auditores y regionales, que tienen varias. */
   gerencia: string | null
   sucursales: string[]
   agenda: AgendaSummary | null

@@ -46,8 +46,12 @@ export function useAgendaTeam(fecha: Ref<string>) {
     error.value = ''
 
     try {
-      // "Mi equipo" son los auditores; sin `rol` el backend agrega a los gerentes.
-      members.value = await securityAgendaService.getTeam(fecha.value, { rol: 'auditores' })
+      // "Mi equipo" son auditores y regionales; sin `rol` el backend agrega a los gerentes.
+      const [auditores, regionales] = await Promise.all([
+        securityAgendaService.getTeam(fecha.value, { rol: 'auditores' }),
+        securityAgendaService.getTeam(fecha.value, { rol: 'regionales' })
+      ])
+      members.value = [...auditores, ...regionales]
     } catch (err) {
       members.value = []
       error.value = agendaErrorMessage(err, 'No pudimos cargar a tu equipo.')
