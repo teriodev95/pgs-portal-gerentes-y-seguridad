@@ -1,7 +1,8 @@
 import { useNotification } from '@/shared/composables/useNotification'
 import { useShareData } from '@/shared/composables/useShareData'
+import { useStore } from '@/shared/stores'
 import type { Agenda } from '../types'
-import { renderAgendaImage } from '../utils/agendaImage'
+import { marcaDe, renderAgendaImage } from '../utils/agendaImage'
 import { formatShortDate } from '../utils/time'
 
 interface ShareAgendaInput {
@@ -25,6 +26,7 @@ function buildShareText(input: ShareAgendaInput): string {
 export function useAgendaShare() {
   const { shareData, canShareNatively } = useShareData()
   const { showSuccess, showError } = useNotification()
+  const $store = useStore()
 
   /** Comparte con la hoja nativa; si no hay (escritorio), copia el enlace. */
   async function shareAgenda(input: ShareAgendaInput) {
@@ -48,7 +50,12 @@ export function useAgendaShare() {
   async function shareAgendaImage(agenda: Agenda, estado: string) {
     let blob: Blob
     try {
-      blob = await renderAgendaImage({ agenda, activities: agenda.actividades, estado })
+      blob = await renderAgendaImage({
+        agenda,
+        activities: agenda.actividades,
+        estado,
+        marca: marcaDe($store.sucursales)
+      })
     } catch {
       showError('No pudimos generar la imagen de la agenda.')
       return

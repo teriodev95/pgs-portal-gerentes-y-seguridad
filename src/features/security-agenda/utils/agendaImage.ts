@@ -38,6 +38,21 @@ interface AgendaImageInput {
   activities: AgendaActivity[]
   /** Línea de estado tal como la muestra la vista (`Enviada 7:12 am`). */
   estado: string
+  /** Pie de la imagen: la marca de quien la comparte (`marcaDe`). */
+  marca: string
+}
+
+/**
+ * Marca del pie según las sucursales del usuario: un gerente de GoCash manda
+ * su agenda a un grupo de GoCash, y "Xpress" ahí se leía como un error (Belén,
+ * 9-oct-2026). Quien tiene sucursales de las dos ve las dos.
+ */
+export function marcaDe(sucursales: readonly string[]): string {
+  const gocash = sucursales.some((s) => s.toUpperCase().startsWith('GERGC'))
+  const xpress = sucursales.some((s) => !s.toUpperCase().startsWith('GERGC'))
+  if (gocash && !xpress) return 'GoCash'
+  if (gocash && xpress) return 'Xpress · GoCash'
+  return 'Xpress'
 }
 
 interface Renglon {
@@ -94,7 +109,8 @@ function lugarDe(actividad: AgendaActivity): string {
 export async function renderAgendaImage({
   agenda,
   activities,
-  estado
+  estado,
+  marca
 }: AgendaImageInput): Promise<Blob> {
   const canvas = document.createElement('canvas')
   canvas.width = ANCHO
@@ -201,7 +217,7 @@ export async function renderAgendaImage({
   ctx.fillStyle = COLOR.tenue
   ctx.font = `400 24px ${FUENTE}`
   const total = `${activities.length} ${activities.length === 1 ? 'actividad' : 'actividades'}`
-  ctx.fillText(`${total} · Xpress`, MARGEN, canvas.height - pie + 40)
+  ctx.fillText(`${total} · ${marca}`, MARGEN, canvas.height - pie + 40)
 
   return new Promise((resolve, reject) =>
     canvas.toBlob(
