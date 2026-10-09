@@ -96,7 +96,9 @@ const gapHeight = HOUR_ROW_HEIGHT - 8
         <span class="w-14 shrink-0 pt-1 text-right text-xs font-medium text-gray-600">
           {{ formatTime(row.activity.horaInicio) }}
         </span>
-        <div class="flex-1 border-l border-gray-200 pb-2 pl-3">
+        <!-- `min-w-0`: sin él, un tipo largo ("Entrega de ventas y asignación") ensancha la
+             columna en vez de truncarse, y la página se desplaza de lado. -->
+        <div class="min-w-0 flex-1 border-l border-gray-200 pb-2 pl-3">
           <AgendaActivityBlock
             :activity="row.activity"
             :height="row.height"
