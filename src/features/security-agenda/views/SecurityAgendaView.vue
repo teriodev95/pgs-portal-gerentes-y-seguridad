@@ -89,7 +89,14 @@ const cutoffSource = computed(() =>
 const { state: cutoff } = useAgendaCutoff(fecha, cutoffSource)
 
 const team = useAgendaTeam(fecha)
-const { shareAgenda, copyLink, buildShareText } = useAgendaShare()
+const { shareAgenda, shareAgendaImage, copyLink, buildShareText } = useAgendaShare()
+
+/**
+ * Imagen y enlace se ofrecen a todos; el regional manda imagen al grupo, así que
+ * para él es la acción principal y para los demás sigue siéndolo el enlace.
+ */
+const imageFirst = computed(() => $store.user?.tipo === 'Regional')
+const sharingImage = ref(false)
 
 const tab = ref<'mi-agenda' | 'equipo'>('mi-agenda')
 const selectedMember = ref<AgendaTeamMember | null>(null)
@@ -288,6 +295,18 @@ async function handleShare() {
   sentOpen.value = false
 }
 
+async function handleShareImage() {
+  if (!agenda.value) return
+
+  sharingImage.value = true
+  try {
+    await shareAgendaImage(agenda.value, cutoff.value.label)
+  } finally {
+    sharingImage.value = false
+  }
+  sentOpen.value = false
+}
+
 async function handleCopy() {
   if (!agenda.value?.shareUrl) return
 
@@ -305,7 +324,7 @@ async function openMember(member: AgendaTeamMember) {
   selectedMember.value = member
   auditorId.value = member.auditorId
   tab.value = 'mi-agenda'
-  await load()
+  await Promise.all([load(), loadCatalogs()])
   scrollToNow()
 }
 
@@ -313,7 +332,7 @@ async function backToTeam() {
   selectedMember.value = null
   auditorId.value = undefined
   tab.value = 'equipo'
-  await load()
+  await Promise.all([load(), loadCatalogs()])
   visits.loadPending()
   team.loadTeam()
 }
@@ -509,9 +528,19 @@ function goBack() {
       v-if="isManagerView ? agenda : !isTeamDetail && tab === 'mi-agenda' && !denied"
       class="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200 bg-white p-3"
     >
-      <BtnComponent v-if="isSent || isManagerView" full-width :loading="saving" @click="handleShare">
-        Compartir agenda
-      </BtnComponent>
+      <div v-if="isSent || isManagerView" class="flex gap-2">
+        <BtnComponent
+          full-width
+          :outline="!imageFirst"
+          :loading="sharingImage"
+          @click="handleShareImage"
+        >
+          Compartir imagen
+        </BtnComponent>
+        <BtnComponent full-width :outline="imageFirst" :loading="saving" @click="handleShare">
+          Compartir enlace
+        </BtnComponent>
+      </div>
       <template v-else>
         <BtnComponent full-width :disabled="!canSend" :loading="saving" @click="handleSend">
           Enviar agenda
@@ -566,10 +595,18 @@ function goBack() {
         </DrawerHeader>
         <div class="space-y-2 p-4 pb-6">
           <p class="text-sm text-gray-700">
-            Tu agenda quedó registrada. Puedes compartir el enlace con el grupo.
+            Tu agenda quedó registrada. Puedes compartirla con el grupo como imagen o como enlace.
           </p>
-          <BtnComponent full-width :loading="saving" @click="handleShare">
-            Compartir al grupo
+          <BtnComponent
+            full-width
+            :outline="!imageFirst"
+            :loading="sharingImage"
+            @click="handleShareImage"
+          >
+            Compartir imagen al grupo
+          </BtnComponent>
+          <BtnComponent full-width :outline="imageFirst" :loading="saving" @click="handleShare">
+            Compartir enlace al grupo
           </BtnComponent>
           <BtnComponent outline full-width @click="sentOpen = false">Ahora no</BtnComponent>
         </div>

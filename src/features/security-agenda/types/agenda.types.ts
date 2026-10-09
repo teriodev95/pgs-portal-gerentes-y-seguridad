@@ -14,9 +14,18 @@ export type AgendaActivityStatus =
 
 export type AgendaPriority = 'baja' | 'media' | 'alta'
 
+/**
+ * Renglón del catálogo de `GET /actividades`, que es por rol. Las reglas de cada
+ * tipo (si pide lugar o detalle, si cuenta en el avance) vienen de ahí: no se
+ * repiten en PGS.
+ */
 export interface AgendaActivityType {
   clave: string
   nombre: string
+  abreviatura: string
+  pideLugar: boolean
+  pideDetalle: boolean
+  cuentaEnCumplimiento: boolean
 }
 
 export interface AgendaScopeGerencia {

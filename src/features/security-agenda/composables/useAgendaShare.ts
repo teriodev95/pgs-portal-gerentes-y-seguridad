@@ -1,5 +1,7 @@
 import { useNotification } from '@/shared/composables/useNotification'
 import { useShareData } from '@/shared/composables/useShareData'
+import type { Agenda } from '../types'
+import { renderAgendaImage } from '../utils/agendaImage'
 import { formatShortDate } from '../utils/time'
 
 interface ShareAgendaInput {
@@ -39,6 +41,38 @@ export function useAgendaShare() {
     await shareData(payload)
   }
 
+  /**
+   * Imagen de la agenda del día con la hoja nativa; sin ella (escritorio, o un
+   * navegador que no comparte archivos) se descarga para mandarla a mano.
+   */
+  async function shareAgendaImage(agenda: Agenda, estado: string) {
+    let blob: Blob
+    try {
+      blob = await renderAgendaImage({ agenda, activities: agenda.actividades, estado })
+    } catch {
+      showError('No pudimos generar la imagen de la agenda.')
+      return
+    }
+
+    const file = new File([blob], `agenda-${agenda.fecha}.png`, { type: 'image/png' })
+    if (canShareNatively({ files: [file] })) {
+      await shareData({
+        files: [file],
+        title: 'Agenda',
+        text: `Agenda ${formatShortDate(agenda.fecha)} — ${agenda.auditorNombre}`
+      })
+      return
+    }
+
+    const url = URL.createObjectURL(blob)
+    const enlace = document.createElement('a')
+    enlace.href = url
+    enlace.download = file.name
+    enlace.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    showSuccess('Imagen descargada')
+  }
+
   async function copyLink(value: string) {
     try {
       await navigator.clipboard.writeText(value)
@@ -48,5 +82,5 @@ export function useAgendaShare() {
     }
   }
 
-  return { shareAgenda, copyLink, buildShareText }
+  return { shareAgenda, shareAgendaImage, copyLink, buildShareText }
 }

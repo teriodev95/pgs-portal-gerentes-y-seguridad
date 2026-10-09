@@ -30,15 +30,20 @@ class SecurityAgendaService {
   private apiClient = createApiClientFromPreset('elysia')
   private readonly base = '/agendas-seguridad'
 
-  async getActivityTypes(): Promise<AgendaActivityType[]> {
+  /** Catálogo de la agenda de `usuarioId` (sin él, la propia): cada rol tiene el suyo. */
+  async getActivityTypes(usuarioId?: number): Promise<AgendaActivityType[]> {
     const { data } = await this.apiClient.get<ApiEnvelope<AgendaActivityType[]>>(
-      `${this.base}/actividades`
+      `${this.base}/actividades`,
+      { params: usuarioId ? { usuarioId } : {} }
     )
     return data.data
   }
 
-  async getScope(): Promise<AgendaScope> {
-    const { data } = await this.apiClient.get<ApiEnvelope<AgendaScope>>(`${this.base}/mi-ambito`)
+  /** Gerencias donde agenda `auditorId` (sin él, el usuario de la sesión). */
+  async getScope(auditorId?: number): Promise<AgendaScope> {
+    const { data } = await this.apiClient.get<ApiEnvelope<AgendaScope>>(`${this.base}/mi-ambito`, {
+      params: auditorId ? { auditorId } : {}
+    })
     return data.data
   }
 

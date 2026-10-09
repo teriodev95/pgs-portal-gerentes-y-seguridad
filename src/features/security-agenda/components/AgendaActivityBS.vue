@@ -5,9 +5,7 @@ import {
   DAY_END_HOUR,
   DEFAULT_DURATION_MINUTES,
   DETAIL_MAX_LENGTH,
-  DETAIL_REQUIRED_ACTIVITY_TYPES,
   DURATION_OPTIONS,
-  PLACELESS_ACTIVITY_TYPES,
   PRIORITY_OPTIONS,
   PRIORITY_STYLE,
   START_HOURS,
@@ -208,9 +206,12 @@ const agencias = computed(
  * camino entre dos agencias y "Otra" es la que no cabe en el catálogo: obligar
  * a elegir ahí sólo llena el campo de lugares inventados.
  */
-const requiereLugar = computed(() => !!tipo.value && !PLACELESS_ACTIVITY_TYPES.includes(tipo.value))
+const tipoElegido = computed(() => props.activityTypes.find((item) => item.clave === tipo.value))
 
-const pideDetalle = computed(() => DETAIL_REQUIRED_ACTIVITY_TYPES.includes(tipo.value))
+const requiereLugar = computed(() => !!tipo.value && tipoElegido.value?.pideLugar !== false)
+
+/** "Otra" sin detalle no dice qué se hizo: el backend la rechaza y aquí se avisa antes. */
+const pideDetalle = computed(() => tipoElegido.value?.pideDetalle === true)
 
 /**
  * Gerencia y agencia viven en su propio modal, detrás de un renglón que resume

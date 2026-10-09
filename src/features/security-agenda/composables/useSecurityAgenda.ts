@@ -57,11 +57,15 @@ export function useSecurityAgenda(managerGerencia?: string) {
   const isSent = computed(() => agenda.value?.status === 'enviada')
   const canSend = computed(() => activities.value.length > 0 && !isSent.value)
 
+  /**
+   * Catálogo y gerencias de la agenda abierta: la propia, o la del integrante
+   * del equipo que el jefe está editando, que puede ser de otro rol.
+   */
   async function loadCatalogs() {
     try {
       const [types, userScope] = await Promise.all([
-        securityAgendaService.getActivityTypes(),
-        securityAgendaService.getScope()
+        securityAgendaService.getActivityTypes(auditorId.value),
+        securityAgendaService.getScope(auditorId.value)
       ])
       activityTypes.value = types
       scope.value = userScope

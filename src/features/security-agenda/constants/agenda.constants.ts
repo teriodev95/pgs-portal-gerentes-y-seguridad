@@ -88,24 +88,6 @@ export const AGENDA_RELEASED = true
 /** Tipo de actividad que se liga con una visita del call center. */
 export const VISIT_ACTIVITY_TYPE = 'VISITA_CALL_CENTER'
 
-/**
- * Actividades que no ocurren en una agencia: el traslado es el camino entre dos,
- * la comida y el trabajo en oficina no son en campo, y "Otra" es, por definición,
- * la que no cabe en el catálogo. Pedirles gerencia y agencia sólo obliga a
- * inventar un lugar que después nadie puede leer.
- *
- * Las claves son las de `TIPOS_ACTIVIDAD` en xpress-elysia
- * (`agendas-seguridad.types.ts`); el catálogo llega del backend, así que aquí
- * sólo se nombran las que no piden lugar.
- */
-export const PLACELESS_ACTIVITY_TYPES: string[] = ['TRASLADO', 'COMIDA', 'TRABAJO_OFICINA', 'OTRA']
-
-/**
- * "Otra" sin detalle no dice qué se hizo: el backend la rechaza (400) y aquí se
- * avisa antes de mandarla. Los demás tipos ya lo dicen con su nombre.
- */
-export const DETAIL_REQUIRED_ACTIVITY_TYPES: string[] = ['OTRA']
-
 /** Duración del bloque que se crea al agregar una visita ya registrada. */
 export const VISIT_DURATION_MINUTES = SLOT_MINUTES
 
