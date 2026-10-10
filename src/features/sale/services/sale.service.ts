@@ -1,5 +1,5 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
-import type { ApprovedRequest, SaleDetails } from "../types"
+import type { ApprovedRequest, SaleDetails, SecurityStaff } from "../types"
 
 /** Lo que devuelve Elysia en /solicitudes-app/listas-sin-venta (snake_case). */
 interface ApprovedRequestResponse {
@@ -50,6 +50,20 @@ class SalesService {
       semana: item.semana,
       anio: item.anio
     }))
+  }
+
+  /** Seguridad y Regionales ligados a la gerencia (GerenciaID moderno, el de gerenciaSelected). */
+  async getSecurityStaff(gerencia: string): Promise<SecurityStaff[]> {
+    const { data } = await this.faxClient.get<SecurityStaff[]>(`/usuarios/seguridad?gerencia=${gerencia}`, {
+      meta: {
+        errorNotification: {
+          title: 'Error al cargar Seguridad',
+          message: 'No se pudo cargar quién de Seguridad o Regional cubre la gerencia.',
+          type: 'error'
+        }
+      }
+    })
+    return data ?? []
   }
 
   async createSale(sale: SaleDetails) {

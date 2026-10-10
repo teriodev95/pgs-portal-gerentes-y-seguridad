@@ -50,9 +50,13 @@ const {
   availableLevels,
   availableAgencies,
   isFromRequest,
+  isVacantAgency,
+  securityStaff,
+  securityStaffStatus,
   submitForm,
   clearForm,
-  applyRequest
+  applyRequest,
+  loadSecurityStaff
 } = useSaleForm(false, (sale: SaleFormData) => {
   emit('submit', sale)
 })
@@ -62,7 +66,16 @@ const agencyOptions = computed<ChoiceOption<string>[]>(() =>
   availableAgencies.value.map((agency) => ({
     value: agency.agencia,
     label: agency.agencia,
-    detail: agency.agente ? agency.agente.split(' ').slice(0, 2).join(' ') : 'Vacante',
+    detail: agency.vacante || !agency.agente ? 'Vacante' : agency.agente.split(' ').slice(0, 2).join(' '),
+  }))
+)
+
+/** Se guarda el nombre tal cual: oficina lo copia al borrador como Seguridad. */
+const securityOptions = computed<ChoiceOption<string>[]>(() =>
+  securityStaff.value.map((person) => ({
+    value: person.nombreCompleto,
+    label: person.nombreCompleto,
+    detail: person.tipo,
   }))
 )
 
@@ -141,13 +154,34 @@ defineExpose({ clearForm })
     </fieldset>
 
     <!-- Captura manual: el plan se escribe aqui -->
-    <template v-if="!isFromRequest">
-      <fieldset class="form-field">
-        <legend class="form-legend">Agencia</legend>
-        <ChoiceChips v-if="agencyOptions.length" v-model="saleForm.agencia" name="Agencia" :options="agencyOptions" />
-        <p v-else class="form-hint">Elige primero una gerencia en el menú.</p>
-      </fieldset>
+    <fieldset v-if="!isFromRequest" class="form-field">
+      <legend class="form-legend">Agencia</legend>
+      <ChoiceChips v-if="agencyOptions.length" v-model="saleForm.agencia" name="Agencia" :options="agencyOptions" />
+      <p v-else class="form-hint">Elige primero una gerencia en el menú.</p>
+    </fieldset>
 
+    <!-- Agencia vacante: nadie de la agencia firma la entrega -->
+    <fieldset v-if="isVacantAgency" class="form-field">
+      <legend class="form-legend">¿Quién de Seguridad/Regional estuvo en la entrega?</legend>
+      <p class="text-xs text-amber-700 dark:text-amber-400">
+        {{ saleForm.agencia }} es vacante: sin este dato no se registra la venta.
+      </p>
+      <p v-if="securityStaffStatus === 'loading'" class="form-hint">Cargando Seguridad y Regionales…</p>
+      <p v-else-if="securityStaffStatus === 'error'" class="form-hint">
+        No se pudo cargar la lista.
+        <button type="button" class="font-semibold text-blue-700 underline-offset-2 hover:underline"
+          @click="loadSecurityStaff">
+          Reintentar
+        </button>
+      </p>
+      <p v-else-if="!securityOptions.length" class="form-hint">
+        Nadie de Seguridad o Regional está ligado a esta gerencia. Pide a oficina que lo ligue para registrar la venta.
+      </p>
+      <ChoiceChips v-else v-model="saleForm.seguridadEnVenta" name="Quién de Seguridad o Regional estuvo en la entrega"
+        :options="securityOptions" />
+    </fieldset>
+
+    <template v-if="!isFromRequest">
       <div class="form-field">
         <LabelForm for="cliente">Cliente</LabelForm>
         <InputGeneric id="cliente" placeholder="Nombre completo" type="text" v-model="saleForm.nombreCliente" />

@@ -2,7 +2,8 @@ import { computed, ref, watch, onBeforeMount } from 'vue'
 import { useCsvLoaderStore } from '@/shared/stores'
 import { useStore } from '@/shared/stores'
 import { useNotification } from '@/shared/composables/useNotification'
-import type { ApprovedRequest, SaleFormData } from '../types'
+import type { ApprovedRequest, SaleFormData, SecurityStaff } from '../types'
+import { salesService } from '../services/sale.service'
 import { useCreditFilter, type CreditFilters } from '@/shared/composables/useCreditFilter'
 
 /** Hoy en zona local, YYYY-MM-DD. El 97 % de las ventas se capturan el mismo dia. */
@@ -24,6 +25,7 @@ const buildDefaultForm = (): SaleFormData => ({
   agencia: "",
   nombreCliente: "",
   generadaPor: "",
+  seguridadEnVenta: "",
   tipo: "Nuevo",
   nivel: "NUEVO",
   plazo: DEFAULT_PLAZO,
@@ -33,11 +35,12 @@ const buildDefaultForm = (): SaleFormData => ({
   prestamoId: null,
 })
 
-/** Que falta, en el orden en que aparece en pantalla. */
-const REQUIRED_FIELDS: { key: keyof SaleFormData; label: string }[] = [
+/** Que falta, en el orden en que aparece en pantalla. `onlyVacant`: solo se pide si la agencia es vacante. */
+const REQUIRED_FIELDS: { key: keyof SaleFormData; label: string; onlyVacant?: boolean }[] = [
   { key: 'fecha', label: 'la fecha de la venta' },
   { key: 'generadaPor', label: 'quién generó la venta' },
   { key: 'agencia', label: 'la agencia' },
+  { key: 'seguridadEnVenta', label: 'quién de Seguridad o Regional estuvo en la entrega: la agencia es vacante', onlyVacant: true },
   { key: 'nombreCliente', label: 'el nombre del cliente' },
   { key: 'tipo', label: 'el tipo' },
   { key: 'nivel', label: 'el nivel' },
@@ -70,7 +73,6 @@ export function useSaleForm(
   const { 
     getAvailableAmounts, 
     getFilteredCreditOptions, 
-    getFirstPayment, 
     isAmountSelectDisabled: isAmountDisabled,
     getAvailableTerms,
     getAvailableLevels
@@ -145,7 +147,8 @@ export function useSaleForm(
    * @returns true si el formulario es válido
    */
   const validateForm = (): boolean => {
-    const missing = REQUIRED_FIELDS.find(({ key }) => {
+    const missing = REQUIRED_FIELDS.find(({ key, onlyVacant }) => {
+      if (onlyVacant && !isVacantAgency.value) return false
       const value = saleForm.value[key]
       return value === undefined || value === null || value === '' || value === 0
     })
@@ -173,7 +176,9 @@ export function useSaleForm(
     const saleData: SaleFormData = {
       ...saleForm.value,
       monto: Number(saleForm.value.monto),
-      primerPago: Number(saleForm.value.primerPago)
+      primerPago: Number(saleForm.value.primerPago),
+      // Si eligio a alguien y luego cambio a una agencia con agente, no se arrastra
+      seguridadEnVenta: isVacantAgency.value ? saleForm.value.seguridadEnVenta : ''
     }
 
     // Llamar callback si existe
@@ -228,6 +233,30 @@ export function useSaleForm(
    */
   const availableAgencies = computed(() => $store.agencies)
 
+  /** En agencia vacante nadie de la agencia firma la entrega: se pide quien de Seguridad/Regional estuvo. */
+  const isVacantAgency = computed(() =>
+    availableAgencies.value.some((agency) => agency.agencia === saleForm.value.agencia && agency.vacante)
+  )
+
+  // Lista de Seguridad/Regional: solo se pide la primera vez que hace falta
+  const securityStaff = ref<SecurityStaff[]>([])
+  const securityStaffStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle')
+
+  const loadSecurityStaff = async () => {
+    if (!$store.gerenciaSelected) return
+    securityStaffStatus.value = 'loading'
+    try {
+      securityStaff.value = await salesService.getSecurityStaff($store.gerenciaSelected)
+      securityStaffStatus.value = 'ready'
+    } catch {
+      securityStaffStatus.value = 'error'
+    }
+  }
+
+  watch(isVacantAgency, (isVacant) => {
+    if (isVacant && securityStaffStatus.value === 'idle') loadSecurityStaff()
+  })
+
   // Inicializar formulario al montar, sin borrar un desembolso ya aplicado
   onBeforeMount(() => {
     if (!isFromRequest.value) clearForm()
@@ -243,11 +272,15 @@ export function useSaleForm(
     isAmountSelectDisabled,
     availableAgencies,
     isFromRequest,
+    isVacantAgency,
+    securityStaff,
+    securityStaffStatus,
 
     // Métodos
     submitForm,
     clearForm,
     applyRequest,
+    loadSecurityStaff,
     updateField,
     validateForm
   }

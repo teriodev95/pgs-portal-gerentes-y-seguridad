@@ -1,5 +1,12 @@
 export type SaleOrigin = 'agente' | 'gerente'
 
+/** Seguridad o Regional ligado a la gerencia: quien entrega en una agencia vacante. */
+export interface SecurityStaff {
+  usuarioId: number
+  nombreCompleto: string
+  tipo: 'Seguridad' | 'Regional'
+}
+
 /** Solicitud con todos los vistos buenos que aun no se registro como venta. */
 export interface ApprovedRequest {
   solicitudId: string
@@ -20,6 +27,8 @@ export interface SaleFormData {
   agencia: string 
   fecha: string // formato YYYY-MM-DD
   generadaPor: SaleOrigin | '' // '' = aún sin elegir
+  /** Quien de Seguridad/Regional estuvo en la entrega. Solo agencia vacante; '' = no aplica o sin elegir. */
+  seguridadEnVenta: string
   monto: number
   nivel: 'DIAMANTE' | 'NUEVO' | 'PREMIUM' | 'LEAL' | 'NOBEL' | 'VIP'
   nombreCliente: string
