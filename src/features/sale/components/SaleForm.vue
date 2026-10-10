@@ -51,6 +51,7 @@ const {
   availableAgencies,
   isFromRequest,
   isVacantAgency,
+  vacantBlockReason,
   securityStaff,
   securityStaffStatus,
   submitForm,
@@ -66,9 +67,14 @@ const agencyOptions = computed<ChoiceOption<string>[]>(() =>
   availableAgencies.value.map((agency) => ({
     value: agency.agencia,
     label: agency.agencia,
-    detail: agency.vacante || !agency.agente ? 'Vacante' : agency.agente.split(' ').slice(0, 2).join(' '),
+    detail: isVacant(agency) ? 'Vacante · sin agente' : agency.agente.split(' ').slice(0, 2).join(' '),
+    tone: isVacant(agency) ? 'warning' : undefined,
   }))
 )
+
+/** Misma lectura que el composable: bandera nueva o el texto que mandaba FAX antes. */
+const isVacant = (agency: { agente?: string | null; vacante?: boolean }) =>
+  Boolean(agency.vacante) || !agency.agente || /SIN AGENTE|VACANTE/i.test(agency.agente)
 
 /** Se guarda el nombre tal cual: oficina lo copia al borrador como Seguridad. */
 const securityOptions = computed<ChoiceOption<string>[]>(() =>
@@ -160,12 +166,20 @@ defineExpose({ clearForm })
       <p v-else class="form-hint">Elige primero una gerencia en el menú.</p>
     </fieldset>
 
-    <!-- Agencia vacante: nadie de la agencia firma la entrega -->
-    <fieldset v-if="isVacantAgency" class="form-field">
-      <legend class="form-legend">¿Quién de Seguridad/Regional estuvo en la entrega?</legend>
-      <p class="text-xs text-amber-700 dark:text-amber-400">
-        {{ saleForm.agencia }} es vacante: sin este dato no se registra la venta.
-      </p>
+    <!-- Agencia vacante: nadie de la agencia firma la entrega. Bloque destacado, no un campo mas -->
+    <section v-if="isVacantAgency" aria-live="polite"
+      class="space-y-3 rounded-xl border-2 border-amber-400 bg-amber-50 p-4 dark:border-amber-500 dark:bg-amber-950/30">
+      <header class="flex items-start gap-3">
+        <span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-500 text-base font-bold text-white">!</span>
+        <div>
+          <h3 class="text-base font-semibold text-amber-900 dark:text-amber-200">
+            {{ saleForm.agencia }} es vacante: ¿quién hizo la entrega?
+          </h3>
+          <p class="text-sm text-amber-800 dark:text-amber-300">
+            Elige a quien de Seguridad o Regional estuvo. Sin este dato no se registra la venta.
+          </p>
+        </div>
+      </header>
       <p v-if="securityStaffStatus === 'loading'" class="form-hint">Cargando Seguridad y Regionales…</p>
       <p v-else-if="securityStaffStatus === 'error'" class="form-hint">
         No se pudo cargar la lista.
@@ -179,7 +193,10 @@ defineExpose({ clearForm })
       </p>
       <ChoiceChips v-else v-model="saleForm.seguridadEnVenta" name="Quién de Seguridad o Regional estuvo en la entrega"
         :options="securityOptions" />
-    </fieldset>
+      <p v-if="saleForm.seguridadEnVenta" class="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+        Entrega: {{ saleForm.seguridadEnVenta }}
+      </p>
+    </section>
 
     <template v-if="!isFromRequest">
       <div class="form-field">
@@ -225,12 +242,15 @@ defineExpose({ clearForm })
       </div>
     </template>
 
-    <!-- Submit Button -->
+    <!-- Submit Button: en agencia vacante se bloquea con el motivo a la vista -->
+    <p v-if="vacantBlockReason" class="rounded-lg bg-amber-100 px-3 py-2 text-center text-sm font-medium text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+      {{ vacantBlockReason }}
+    </p>
     <BtnComponent
       type="submit"
       variant="primary"
       full-width
-      :disabled="isSaving"
+      :disabled="isSaving || Boolean(vacantBlockReason)"
       :loading="isSaving"
     >
       Registrar venta

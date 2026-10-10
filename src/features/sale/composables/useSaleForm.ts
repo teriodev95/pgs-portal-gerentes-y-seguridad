@@ -233,9 +233,22 @@ export function useSaleForm(
    */
   const availableAgencies = computed(() => $store.agencies)
 
-  /** En agencia vacante nadie de la agencia firma la entrega: se pide quien de Seguridad/Regional estuvo. */
+  /**
+   * En agencia vacante nadie de la agencia firma la entrega: se pide quien de Seguridad/Regional estuvo.
+   * `vacante` lo manda FAX desde el 10-oct-2026; una app abierta desde antes trae la lista sin esa
+   * bandera y el agente como "SIN AGENTE ASIGNADO", por eso tambien se lee el texto.
+   */
   const isVacantAgency = computed(() =>
-    availableAgencies.value.some((agency) => agency.agencia === saleForm.value.agencia && agency.vacante)
+    availableAgencies.value.some(
+      (agency) =>
+        agency.agencia === saleForm.value.agencia &&
+        (agency.vacante || !agency.agente || /SIN AGENTE|VACANTE/i.test(agency.agente))
+    )
+  )
+
+  /** Lo que bloquea el registro en agencia vacante, para decirlo junto al boton y no solo al intentar. */
+  const vacantBlockReason = computed(() =>
+    isVacantAgency.value && !saleForm.value.seguridadEnVenta ? 'Falta quién hizo la entrega' : ''
   )
 
   // Lista de Seguridad/Regional: solo se pide la primera vez que hace falta
@@ -273,6 +286,7 @@ export function useSaleForm(
     availableAgencies,
     isFromRequest,
     isVacantAgency,
+    vacantBlockReason,
     securityStaff,
     securityStaffStatus,
 

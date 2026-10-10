@@ -9,7 +9,7 @@ export interface ChoiceOption<V extends string | number> {
   value: V
   label: string
   detail?: string
-  tone?: 'positive' | 'negative'
+  tone?: 'positive' | 'negative' | 'warning'
   disabled?: boolean
 }
 
@@ -44,6 +44,7 @@ const PADDING: Record<NonNullable<Props['size']>, string> = {
 const TONE: Record<NonNullable<ChoiceOption<T>['tone']>, string> = {
   positive: 'text-emerald-700 dark:text-emerald-400',
   negative: 'text-red-600 dark:text-red-400',
+  warning: 'text-amber-700 dark:text-amber-400',
 }
 
 const isSelected = (option: ChoiceOption<T>) => option.value === props.modelValue
