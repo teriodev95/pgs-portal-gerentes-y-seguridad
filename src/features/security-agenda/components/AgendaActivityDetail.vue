@@ -45,7 +45,11 @@ const evidencia = computed(() =>
  * lleno de "Sin comentario" cansa más de lo que informa.
  */
 const tieneTexto = computed(
-  () => !!props.activity.detalle || !!props.activity.comentario || !!props.activity.motivoCambio
+  () =>
+    !!props.activity.detalle ||
+    !!props.activity.otraActividad ||
+    !!props.activity.comentario ||
+    !!props.activity.motivoCambio
 )
 
 /** Quién tocó la actividad por última vez. Sin nombre no hay nada que firmar. */
@@ -107,6 +111,11 @@ const rastro = computed(() => {
       <div v-if="activity.detalle" class="space-y-1">
         <p class="text-sm text-gray-600">Detalle</p>
         <p class="whitespace-pre-line text-sm text-gray-900">{{ activity.detalle }}</p>
+      </div>
+
+      <div v-if="activity.otraActividad" class="space-y-1">
+        <p class="text-sm text-gray-600">Otra actividad en este horario</p>
+        <p class="whitespace-pre-line text-sm text-gray-900">{{ activity.otraActividad }}</p>
       </div>
 
       <div v-if="activity.comentario" class="space-y-1">

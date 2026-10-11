@@ -120,6 +120,12 @@ const lugar = computed(() =>
         <p v-if="cabeDetalle && activity.detalle" class="mt-1 text-xs leading-snug" :class="detalleClamp">
           {{ activity.detalle }}
         </p>
+        <p
+          v-if="cabeDetalle && activity.otraActividad"
+          class="mt-0.5 truncate text-xs leading-snug"
+        >
+          + {{ activity.otraActividad }}
+        </p>
 
         <!-- Evidencia: qué se encontró en la visita. Nunca coordenadas. -->
         <p v-if="cabeEvidencia" class="mt-1.5 truncate text-xs font-medium">{{ evidencia }}</p>

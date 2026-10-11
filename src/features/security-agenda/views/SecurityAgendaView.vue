@@ -242,6 +242,7 @@ async function handleSave(payload: Parameters<typeof createActivity>[0]) {
         // El PUT sólo toca lo que viaja: `null` limpia el campo, omitirlo
         // dejaría el valor anterior y no se podría borrar nada.
         detalle: payload.detalle ?? null,
+        otraActividad: payload.otraActividad ?? null,
         gerencia: payload.gerencia ?? null,
         agencia: payload.agencia ?? null
       })

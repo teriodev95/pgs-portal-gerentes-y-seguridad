@@ -103,6 +103,7 @@ const puedeVolver = computed(() => modo.value === 'editar' && props.activity !==
 
 const tipo = ref('')
 const detalle = ref('')
+const otraActividad = ref('')
 const horaInicio = ref('')
 const duracion = ref(DEFAULT_DURATION_MINUTES)
 const prioridad = ref<AgendaPriority>('media')
@@ -334,6 +335,7 @@ function reset() {
 
   tipo.value = activity?.tipo ?? defaults?.tipo ?? props.activityTypes[0]?.clave ?? ''
   detalle.value = activity?.detalle ?? defaults?.detalle ?? ''
+  otraActividad.value = activity?.otraActividad ?? ''
   horaInicio.value = activity?.horaInicio ?? props.defaultHoraInicio
   duracion.value = activity
     ? toMinutes(activity.horaFin) - toMinutes(activity.horaInicio)
@@ -417,6 +419,7 @@ function submit() {
   emit('save', {
     tipo: tipo.value,
     detalle: detalle.value.trim() || undefined,
+    otraActividad: otraActividad.value.trim() || undefined,
     horaInicio: horaInicio.value,
     horaFin: horaFin.value,
     prioridad: prioridad.value,
@@ -822,6 +825,21 @@ function submit() {
                       </label>
                     </div>
                   </fieldset>
+
+                  <!-- Otra cosa en la misma hora: va en este bloque, sin traslapar. -->
+                  <div class="space-y-2">
+                    <LabelForm for="agenda-otra-actividad">
+                      Otra actividad en este horario (opcional)
+                    </LabelForm>
+                    <textarea
+                      id="agenda-otra-actividad"
+                      v-model="otraActividad"
+                      rows="2"
+                      :maxlength="DETAIL_MAX_LENGTH"
+                      placeholder="Ej. Cobranza en la misma salida"
+                      class="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
 
                   <!-- Estado: informativo -->
                   <div class="flex items-center justify-between">

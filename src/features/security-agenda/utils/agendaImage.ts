@@ -59,6 +59,7 @@ interface Renglon {
   actividad: AgendaActivity
   titulo: string[]
   detalle: string[]
+  otra: string[]
   alto: number
 }
 
@@ -130,8 +131,11 @@ export async function renderAgendaImage({
     const textoDetalle =
       actividad.tipo === VISIT_ACTIVITY_TYPE ? '' : actividad.detalle?.trim() ?? ''
     const detalle = textoDetalle ? partir(medir, textoDetalle, anchoTexto, 2) : []
-    const alto = 36 + titulo.length * 44 + 40 + detalle.length * 36 + 32
-    return { actividad, titulo, detalle, alto }
+    // "Otra actividad en este horario": segunda línea bajo el detalle, con un `+`.
+    const textoOtra = actividad.otraActividad?.trim() ?? ''
+    const otra = textoOtra ? partir(medir, `+ ${textoOtra}`, anchoTexto, 2) : []
+    const alto = 36 + titulo.length * 44 + 40 + (detalle.length + otra.length) * 36 + 32
+    return { actividad, titulo, detalle, otra, alto }
   })
 
   const encabezado = 330
@@ -170,7 +174,7 @@ export async function renderAgendaImage({
     ctx.fillText('Sin actividades.', MARGEN, y + 30)
   }
 
-  for (const { actividad, titulo, detalle, alto } of renglones) {
+  for (const { actividad, titulo, detalle, otra, alto } of renglones) {
     const x = MARGEN + COLUMNA_HORA
     let fila = y + 36
 
@@ -204,7 +208,7 @@ export async function renderAgendaImage({
 
     ctx.font = `400 27px ${FUENTE}`
     ctx.fillStyle = COLOR.tenue
-    for (const renglon of detalle) {
+    for (const renglon of [...detalle, ...otra]) {
       ctx.fillText(renglon, x, fila)
       fila += 36
     }

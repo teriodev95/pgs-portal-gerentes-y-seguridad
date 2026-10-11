@@ -78,6 +78,8 @@ export interface AgendaActivity {
    */
   cuentaEnCumplimiento?: boolean
   detalle: string | null
+  /** "Otra actividad en este horario": segunda descripción opcional del mismo bloque. */
+  otraActividad?: string | null
   horaInicio: string
   horaFin: string
   prioridad: AgendaPriority
@@ -104,6 +106,7 @@ export type AgendaPublicActivity = Pick<
   | 'tipo'
   | 'tipoNombre'
   | 'detalle'
+  | 'otraActividad'
   | 'horaInicio'
   | 'horaFin'
   | 'prioridad'
@@ -210,6 +213,7 @@ export interface AgendaActivityPayload {
   fecha: string
   tipo: string
   detalle?: string
+  otraActividad?: string
   horaInicio: string
   horaFin: string
   prioridad?: AgendaPriority
@@ -222,8 +226,12 @@ export interface AgendaActivityPayload {
  * forma de limpiar un campo: omitirlo conserva el valor anterior.
  */
 export interface AgendaActivityChanges
-  extends Omit<Partial<AgendaActivityPayload>, 'detalle' | 'gerencia' | 'agencia'> {
+  extends Omit<
+    Partial<AgendaActivityPayload>,
+    'detalle' | 'otraActividad' | 'gerencia' | 'agencia'
+  > {
   detalle?: string | null
+  otraActividad?: string | null
   gerencia?: string | null
   agencia?: string | null
   /**
