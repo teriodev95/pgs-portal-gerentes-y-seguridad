@@ -1,11 +1,14 @@
-import { STATUS_STYLE, VISIT_ACTIVITY_TYPE } from '../constants'
+import { DONE_STATUSES, STATUS_STYLE, VISIT_ACTIVITY_TYPE } from '../constants'
 import type { Agenda, AgendaActivity, AgendaActivityStatus } from '../types'
-import { formatTime, toMinutes } from './time'
+import { formatDuration, formatTime, toMinutes } from './time'
 
 /**
  * PNG de la agenda del día, lista para mandarse al grupo de WhatsApp sin depender
- * del enlace. Se dibuja a mano en un canvas: es una lista de texto, y una librería
- * que fotografía el DOM pesaría más que todo esto y saldría distinta en cada celular.
+ * del enlace. Se dibuja a mano en un canvas: una librería que fotografía el DOM
+ * pesaría más que todo esto y saldría distinta en cada celular.
+ *
+ * Se lee como agenda y no como lista: un riel de tiempo con un punto por actividad,
+ * bloques con alto según su duración y los huecos del día marcados como "libre".
  *
  * Nunca lleva el detalle de una visita de call center: ahí va `"<cliente> — <préstamo>"`,
  * y la imagen sale del sistema igual que el enlace público, que tampoco lo publica.
@@ -14,6 +17,14 @@ import { formatTime, toMinutes } from './time'
 const ANCHO = 1080
 const MARGEN = 64
 const COLUMNA_HORA = 190
+/** El riel va entre las horas y los bloques. */
+const RIEL_X = MARGEN + 158
+const BLOQUE_X = MARGEN + COLUMNA_HORA
+const TEXTO_X = BLOQUE_X + 26
+/** Alto según la duración: más largo, más alto, sin bajar del texto ni pasar de 2.5 veces. */
+const PX_POR_MINUTO = 2.2
+const TOPE_ALTO = 2.5
+const SEPARACION = 14
 const FUENTE = '-apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
 
 const COLOR = {
@@ -21,7 +32,9 @@ const COLOR = {
   tenue: '#4b5563',
   linea: '#e5e7eb',
   fondo: '#ffffff',
-  banda: '#1d4ed8'
+  banda: '#1d4ed8',
+  riel: '#d1d5db',
+  bloque: '#f9fafb'
 }
 
 const COLOR_ESTADO: Record<AgendaActivityStatus, string> = {
@@ -61,6 +74,13 @@ interface Renglon {
   detalle: string[]
   otra: string[]
   alto: number
+  /** Minutos libres antes de esta actividad; 0 si va pegada a la anterior. */
+  libre: number
+}
+
+/** Tramo punteado del riel para los minutos libres entre dos actividades. */
+function altoLibre(minutos: number): number {
+  return Math.min(Math.max(minutos * PX_POR_MINUTO * 0.5, 56), 120)
 }
 
 /** `2026-10-08` -> `Jueves 8 de octubre de 2026`. */
@@ -118,13 +138,13 @@ export async function renderAgendaImage({
   const medir = canvas.getContext('2d')
   if (!medir) throw new Error('Este navegador no puede generar la imagen.')
 
-  const anchoTexto = ANCHO - MARGEN * 2 - COLUMNA_HORA
+  const anchoTexto = ANCHO - MARGEN - TEXTO_X - 20
   const ordenadas = [...activities].sort(
     (a, b) => toMinutes(a.horaInicio) - toMinutes(b.horaInicio)
   )
 
   // Primero se mide, para saber el alto; al cambiar el alto el canvas se reinicia.
-  const renglones: Renglon[] = ordenadas.map((actividad) => {
+  const renglones: Renglon[] = ordenadas.map((actividad, i) => {
     medir.font = `600 34px ${FUENTE}`
     const titulo = partir(medir, actividad.tipoNombre, anchoTexto, 2)
     medir.font = `400 27px ${FUENTE}`
@@ -134,13 +154,26 @@ export async function renderAgendaImage({
     // "Otra actividad en este horario": segunda línea bajo el detalle, con un `+`.
     const textoOtra = actividad.otraActividad?.trim() ?? ''
     const otra = textoOtra ? partir(medir, `+ ${textoOtra}`, anchoTexto, 2) : []
-    const alto = 36 + titulo.length * 44 + 40 + (detalle.length + otra.length) * 36 + 32
-    return { actividad, titulo, detalle, otra, alto }
+    const minimo = 24 + titulo.length * 44 + 40 + (detalle.length + otra.length) * 36 + 20
+    const duracion = toMinutes(actividad.horaFin) - toMinutes(actividad.horaInicio)
+    const alto = Math.round(
+      Math.min(Math.max(duracion * PX_POR_MINUTO, minimo), minimo * TOPE_ALTO)
+    )
+    const anterior = ordenadas[i - 1]
+    const libre = anterior
+      ? Math.max(0, toMinutes(actividad.horaInicio) - toMinutes(anterior.horaFin))
+      : 0
+    return { actividad, titulo, detalle, otra, alto, libre }
   })
 
-  const encabezado = 330
+  const encabezado = 380
   const pie = 110
-  const cuerpo = renglones.length ? renglones.reduce((suma, r) => suma + r.alto, 0) : 120
+  const cuerpo = renglones.length
+    ? renglones.reduce(
+        (suma, r) => suma + r.alto + SEPARACION + (r.libre ? altoLibre(r.libre) : 0),
+        0
+      )
+    : 120
   canvas.height = encabezado + cuerpo + pie
 
   const ctx = canvas.getContext('2d')!
@@ -148,7 +181,7 @@ export async function renderAgendaImage({
   ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.textBaseline = 'top'
 
-  // Encabezado: quién, qué día y si ya se envió.
+  // Encabezado: quién, qué día, si ya se envió y el día en una línea.
   ctx.fillStyle = COLOR.banda
   ctx.fillRect(0, 0, ANCHO, 14)
   ctx.fillStyle = COLOR.tenue
@@ -164,6 +197,25 @@ export async function renderAgendaImage({
   ctx.fillStyle = agenda.status === 'enviada' ? '#15803d' : '#b45309'
   ctx.fillText(estado, MARGEN, 232)
 
+  // Resumen: cuántas, de qué hora a qué hora y cuántas van hechas (como el avance de la vista).
+  const total = `${activities.length} ${activities.length === 1 ? 'actividad' : 'actividades'}`
+  if (ordenadas.length) {
+    const hechas = activities.filter(
+      (a) => a.cuentaEnCumplimiento !== false && DONE_STATUSES.includes(a.status)
+    ).length
+    const fin = Math.max(...ordenadas.map((a) => toMinutes(a.horaFin)))
+    const ultima = ordenadas.find((a) => toMinutes(a.horaFin) === fin)!
+    ctx.font = `400 28px ${FUENTE}`
+    ctx.fillStyle = COLOR.tenue
+    ctx.fillText(
+      `${total} · ${formatTime(ordenadas[0].horaInicio)} – ${formatTime(
+        ultima.horaFin
+      )} · ${hechas} ${hechas === 1 ? 'hecha' : 'hechas'}`,
+      MARGEN,
+      280
+    )
+  }
+
   ctx.fillStyle = COLOR.linea
   ctx.fillRect(MARGEN, encabezado - 24, ANCHO - MARGEN * 2, 2)
 
@@ -174,21 +226,58 @@ export async function renderAgendaImage({
     ctx.fillText('Sin actividades.', MARGEN, y + 30)
   }
 
-  for (const { actividad, titulo, detalle, otra, alto } of renglones) {
-    const x = MARGEN + COLUMNA_HORA
-    let fila = y + 36
+  const riel = (desde: number, hasta: number, punteado: boolean) => {
+    ctx.strokeStyle = COLOR.riel
+    ctx.lineWidth = 3
+    ctx.setLineDash(punteado ? [8, 8] : [])
+    ctx.beginPath()
+    ctx.moveTo(RIEL_X, desde)
+    ctx.lineTo(RIEL_X, hasta)
+    ctx.stroke()
+    ctx.setLineDash([])
+  }
 
+  renglones.forEach(({ actividad, titulo, detalle, otra, alto, libre }, i) => {
+    // Hueco antes de la actividad: tramo punteado con lo que queda libre.
+    if (libre) {
+      const tramo = altoLibre(libre)
+      riel(y, y + tramo, true)
+      ctx.fillStyle = COLOR.tenue
+      ctx.font = `400 24px ${FUENTE}`
+      ctx.textBaseline = 'middle'
+      ctx.fillText(`libre ${formatDuration(libre)}`, TEXTO_X, y + tramo / 2)
+      ctx.textBaseline = 'top'
+      y += tramo
+    }
+
+    const punto = y + 24 + 20
+    // El riel arranca en el primer punto y corre hasta el siguiente bloque o hueco.
+    riel(i === 0 ? punto : y, y + alto + (i < renglones.length - 1 ? SEPARACION : 0), false)
+
+    // Bloque con la barra del estado al borde izquierdo.
+    ctx.fillStyle = COLOR.bloque
+    ctx.fillRect(BLOQUE_X, y, ANCHO - MARGEN - BLOQUE_X, alto)
+    ctx.fillStyle = COLOR_ESTADO[actividad.status] ?? COLOR.tenue
+    ctx.fillRect(BLOQUE_X, y, 6, alto)
+
+    // Punto en la hora de inicio, con la hora alineada a él y el fin debajo en gris.
+    ctx.beginPath()
+    ctx.arc(RIEL_X, punto, 9, 0, Math.PI * 2)
+    ctx.fill()
     ctx.fillStyle = COLOR.texto
     ctx.font = `700 30px ${FUENTE}`
-    ctx.fillText(formatTime(actividad.horaInicio), MARGEN, fila + 2)
+    ctx.textBaseline = 'middle'
+    ctx.fillText(formatTime(actividad.horaInicio), MARGEN, punto)
+    ctx.textBaseline = 'top'
     ctx.fillStyle = COLOR.tenue
     ctx.font = `400 26px ${FUENTE}`
-    ctx.fillText(formatTime(actividad.horaFin), MARGEN, fila + 42)
+    ctx.fillText(formatTime(actividad.horaFin), MARGEN, punto + 24)
 
+    let fila = y + 24
     ctx.fillStyle = COLOR.texto
     ctx.font = `600 34px ${FUENTE}`
     for (const renglon of titulo) {
-      ctx.fillText(renglon, x, fila)
+      ctx.fillText(renglon, TEXTO_X, fila)
       fila += 44
     }
 
@@ -196,10 +285,10 @@ export async function renderAgendaImage({
     const etiqueta = STATUS_STYLE[actividad.status]?.label ?? actividad.status
     ctx.font = `600 27px ${FUENTE}`
     ctx.fillStyle = COLOR_ESTADO[actividad.status] ?? COLOR.tenue
-    ctx.fillText(etiqueta, x, fila + 4)
+    ctx.fillText(etiqueta, TEXTO_X, fila + 4)
     const lugar = lugarDe(actividad)
     if (lugar) {
-      const desde = x + ctx.measureText(etiqueta).width
+      const desde = TEXTO_X + ctx.measureText(etiqueta).width
       ctx.font = `400 27px ${FUENTE}`
       ctx.fillStyle = COLOR.tenue
       ctx.fillText(`  ·  ${lugar}`, desde, fila + 4)
@@ -209,18 +298,15 @@ export async function renderAgendaImage({
     ctx.font = `400 27px ${FUENTE}`
     ctx.fillStyle = COLOR.tenue
     for (const renglon of [...detalle, ...otra]) {
-      ctx.fillText(renglon, x, fila)
+      ctx.fillText(renglon, TEXTO_X, fila)
       fila += 36
     }
 
-    y += alto
-    ctx.fillStyle = COLOR.linea
-    ctx.fillRect(x, y - 2, ANCHO - MARGEN - x, 2)
-  }
+    y += alto + SEPARACION
+  })
 
   ctx.fillStyle = COLOR.tenue
   ctx.font = `400 24px ${FUENTE}`
-  const total = `${activities.length} ${activities.length === 1 ? 'actividad' : 'actividades'}`
   ctx.fillText(`${total} · ${marca}`, MARGEN, canvas.height - pie + 40)
 
   return new Promise((resolve, reject) =>
