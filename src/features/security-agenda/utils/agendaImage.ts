@@ -25,6 +25,8 @@ const TEXTO_X = BLOQUE_X + 26
 const PX_POR_MINUTO = 2.2
 const TOPE_ALTO = 2.5
 const SEPARACION = 14
+/** Dirección revisa la otra actividad cuando le comparten la agenda: va con etiqueta propia. */
+const ETIQUETA_OTRA = 'OTRA ACTIVIDAD'
 const FUENTE = '-apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
 
 const COLOR = {
@@ -34,7 +36,10 @@ const COLOR = {
   fondo: '#ffffff',
   banda: '#1d4ed8',
   riel: '#d1d5db',
-  bloque: '#f9fafb'
+  bloque: '#f9fafb',
+  /** El ámbar de aviso del encabezado (agenda sin enviar), y su fondo muy suave. */
+  aviso: '#b45309',
+  avisoFondo: '#fef3c7'
 }
 
 const COLOR_ESTADO: Record<AgendaActivityStatus, string> = {
@@ -142,6 +147,8 @@ export async function renderAgendaImage({
   const ordenadas = [...activities].sort(
     (a, b) => toMinutes(a.horaInicio) - toMinutes(b.horaInicio)
   )
+  medir.font = `700 22px ${FUENTE}`
+  const anchoEtiqueta = medir.measureText(ETIQUETA_OTRA).width + 14
 
   // Primero se mide, para saber el alto; al cambiar el alto el canvas se reinicia.
   const renglones: Renglon[] = ordenadas.map((actividad, i) => {
@@ -151,10 +158,17 @@ export async function renderAgendaImage({
     const textoDetalle =
       actividad.tipo === VISIT_ACTIVITY_TYPE ? '' : actividad.detalle?.trim() ?? ''
     const detalle = textoDetalle ? partir(medir, textoDetalle, anchoTexto, 2) : []
-    // "Otra actividad en este horario": segunda línea bajo el detalle, con un `+`.
+    // "Otra actividad en este horario": renglón propio bajo el detalle, tras su etiqueta.
     const textoOtra = actividad.otraActividad?.trim() ?? ''
-    const otra = textoOtra ? partir(medir, `+ ${textoOtra}`, anchoTexto, 2) : []
-    const minimo = 24 + titulo.length * 44 + 40 + (detalle.length + otra.length) * 36 + 20
+    medir.font = `600 27px ${FUENTE}`
+    const otra = textoOtra ? partir(medir, textoOtra, anchoTexto - anchoEtiqueta, 2) : []
+    const minimo =
+      24 +
+      titulo.length * 44 +
+      40 +
+      detalle.length * 36 +
+      (otra.length ? otra.length * 36 + 28 : 0) +
+      20
     const duracion = toMinutes(actividad.horaFin) - toMinutes(actividad.horaInicio)
     const alto = Math.round(
       Math.min(Math.max(duracion * PX_POR_MINUTO, minimo), minimo * TOPE_ALTO)
@@ -194,7 +208,7 @@ export async function renderAgendaImage({
   ctx.fillStyle = COLOR.tenue
   ctx.fillText(fechaLarga(agenda.fecha), MARGEN, 178)
   ctx.font = `600 30px ${FUENTE}`
-  ctx.fillStyle = agenda.status === 'enviada' ? '#15803d' : '#b45309'
+  ctx.fillStyle = agenda.status === 'enviada' ? '#15803d' : COLOR.aviso
   ctx.fillText(estado, MARGEN, 232)
 
   // Resumen: cuántas, de qué hora a qué hora y cuántas van hechas (como el avance de la vista).
@@ -203,6 +217,7 @@ export async function renderAgendaImage({
     const hechas = activities.filter(
       (a) => a.cuentaEnCumplimiento !== false && DONE_STATUSES.includes(a.status)
     ).length
+    const conOtra = activities.filter((a) => a.otraActividad?.trim()).length
     const fin = Math.max(...ordenadas.map((a) => toMinutes(a.horaFin)))
     const ultima = ordenadas.find((a) => toMinutes(a.horaFin) === fin)!
     ctx.font = `400 28px ${FUENTE}`
@@ -210,7 +225,9 @@ export async function renderAgendaImage({
     ctx.fillText(
       `${total} · ${formatTime(ordenadas[0].horaInicio)} – ${formatTime(
         ultima.horaFin
-      )} · ${hechas} ${hechas === 1 ? 'hecha' : 'hechas'}`,
+      )} · ${hechas} ${hechas === 1 ? 'hecha' : 'hechas'}${
+        conOtra ? ` · ${conOtra} con otra actividad` : ''
+      }`,
       MARGEN,
       280
     )
@@ -297,9 +314,25 @@ export async function renderAgendaImage({
 
     ctx.font = `400 27px ${FUENTE}`
     ctx.fillStyle = COLOR.tenue
-    for (const renglon of [...detalle, ...otra]) {
+    for (const renglon of detalle) {
       ctx.fillText(renglon, TEXTO_X, fila)
       fila += 36
+    }
+
+    // Otra actividad: franja ámbar suave detrás del renglón, etiqueta y el texto en el peso
+    // del título. Resalta sin cortar la lectura del bloque.
+    if (otra.length) {
+      const franja = fila + 4
+      ctx.fillStyle = COLOR.avisoFondo
+      ctx.fillRect(BLOQUE_X + 6, franja, ANCHO - MARGEN - BLOQUE_X - 6, otra.length * 36 + 16)
+      ctx.fillStyle = COLOR.aviso
+      ctx.font = `700 22px ${FUENTE}`
+      ctx.fillText(ETIQUETA_OTRA, TEXTO_X, franja + 12)
+      ctx.fillStyle = COLOR.texto
+      ctx.font = `600 27px ${FUENTE}`
+      otra.forEach((renglon, k) =>
+        ctx.fillText(renglon, TEXTO_X + anchoEtiqueta, franja + 8 + k * 36)
+      )
     }
 
     y += alto + SEPARACION
