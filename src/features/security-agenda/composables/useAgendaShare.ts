@@ -54,7 +54,11 @@ export function useAgendaShare() {
         agenda,
         activities: agenda.actividades,
         estado,
-        marca: marcaDe($store.sucursales)
+        // El layout sólo llena `sucursales` a Seguridad y Regional; al gerente
+        // su marca le sale de su gerencia (GERGC002 → GoCash).
+        marca: marcaDe($store.sucursales.length
+          ? $store.sucursales
+          : [$store.gerenciaSelected ?? ''].filter(Boolean))
       })
     } catch {
       showError('No pudimos generar la imagen de la agenda.')
