@@ -7,7 +7,7 @@ import { useApprovalDialog } from '../composables/useApprovalDialog'
 import { useSolim } from '../composables/useSolim'
 import { useStore } from '@/shared/stores'
 import type { ApprovalType, RevisionApproval } from '../types'
-import { APPROVAL_LABELS, coverageNote } from '../constants/approvals'
+import { APPROVAL_LABELS, coverageNote, shortDate, suplenciaFor } from '../constants/approvals'
 
 import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
@@ -31,6 +31,8 @@ const {
   tablaCargosOptions,
   selectedAgency,
   selectedWeek,
+  gerencia,
+  suplencias,
   isLoadingLoanRequests,
   isLoadingSelectedLoanRequest,
   isProcessingAction,
@@ -45,6 +47,7 @@ const {
   saveGarantiasCheck,
   setSelectedAgency,
   setSelectedWeek,
+  setGerencia,
   selectLoanRequest,
   clearSelectedLoanRequest
 } = useSolim()
@@ -66,6 +69,11 @@ function handleRegisterSale(id: string) {
 const selectedAgencyLabel = computed(() =>
   selectedAgency.value === 'all' ? 'Todas las agencias' : selectedAgency.value
 )
+
+/** La gerencia del menú y las que suple: entre ellas se cambia la lista sin salir de la pantalla. */
+const gerenciaOptions = computed(() => [
+  ...new Set([$store.gerenciaSelected, ...suplencias.value.flatMap((s) => s.gerencias)].filter((g): g is string => !!g))
+])
 
 async function handleShowDetails(id: string): Promise<void> {
   if (selectedRequestId.value === id) {
@@ -106,8 +114,10 @@ function handleOpenDialog(id: string, approvalType: ApprovalType = currentApprov
       null,
     currentPlanId: request?.revision?.tabla_cargos_id_sugerido ?? request?.tabla_cargos_id ?? null
   })
-  // Check ajeno sin comentario previo: queda escrito quién cubrió el puesto.
-  if (approvalType !== currentApprovalType.value && !loanApprovalForm.value.comentario) {
+  // Check ajeno sin comentario previo: queda escrito quién cubrió el puesto. Si es por una
+  // suplencia, la constancia la pone el guardado.
+  const bySuplencia = request ? suplenciaFor(request, approvalType, suplencias.value) : undefined
+  if (approvalType !== currentApprovalType.value && !loanApprovalForm.value.comentario && !bySuplencia) {
     loanApprovalForm.value.comentario = coverageNote(currentApprovalType.value, approvalType)
   }
 }
@@ -169,6 +179,11 @@ function handleBack(): void {
 
 function handleUpdateForm(nextForm: typeof loanApprovalForm.value): void {
   loanApprovalForm.value = nextForm
+}
+
+async function handleGerenciaChange(next: string): Promise<void> {
+  selectedRequestId.value = null
+  await setGerencia(next)
 }
 
 async function handleAgencyChange(agency: string): Promise<void> {
@@ -240,6 +255,28 @@ function handleNextWeek(): void {
     />
 
     <div v-if="!isDetailVisible" class="p-4 pb-0 space-y-3">
+      <div v-if="suplencias.length" class="rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 shadow-sm">
+        <p v-for="s in suplencias" :key="s.ausente.id">
+          Suples a <span class="font-semibold">{{ s.ausente.nombre }}</span>
+          ({{ s.ausente.tipo.toLowerCase() }} · {{ s.gerencias.join(', ') }}) hasta el {{ shortDate(s.hasta) }}
+        </p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button
+            v-for="g in gerenciaOptions"
+            :key="g"
+            type="button"
+            class="rounded-full px-3 py-1 text-xs font-semibold transition"
+            :class="g === gerencia
+              ? 'bg-amber-600 text-white'
+              : 'border border-amber-300 bg-white text-amber-800 hover:bg-amber-100'"
+            :disabled="g === gerencia"
+            @click="handleGerenciaChange(g)"
+          >
+            {{ g === gerencia ? g : `Ver ${g}` }}
+          </button>
+        </div>
+      </div>
+
       <button
         type="button"
         class="flex w-full items-center justify-between rounded-3xl border border-slate-200 bg-white px-5 py-4 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
@@ -295,6 +332,7 @@ function handleNextWeek(): void {
         v-else-if="selectedLoanRequest"
         :request="selectedLoanRequest"
         :approval-type="currentApprovalType"
+        :suplencias="suplencias"
         :role-label="currentRoleLabel"
         :can-register-decision="canApproveSelected"
         :is-loading-action="isProcessingAction"
@@ -314,6 +352,7 @@ function handleNextWeek(): void {
           :key="loanRequest.id"
           :solicitud="loanRequest"
           :approval-type="currentApprovalType"
+          :suplencias="suplencias"
           @action:details="handleShowDetails"
           @action:review="(id) => handleOpenDialog(id)"
         />

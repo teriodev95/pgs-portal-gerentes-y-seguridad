@@ -294,6 +294,14 @@ export interface ApprovalDialogForm {
   plazoAutorizado: string
 }
 
+/** Lo que el usuario cubre hoy por la ausencia de alguien (GET /ausencias/suplencias). */
+export interface Suplencia {
+  ausente: { id: number; nombre: string; tipo: 'Gerente' | 'Seguridad' | 'Regional' }
+  gerencias: string[]
+  /** YYYY-MM-DD, inclusive. */
+  hasta: string
+}
+
 export interface UpdateCheckPayload {
   decision: ApprovalDecision
   userId: string

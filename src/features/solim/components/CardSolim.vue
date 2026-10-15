@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { ApprovalType, Solicitud } from '@/features/solim/types'
+import type { ApprovalType, Solicitud, Suplencia } from '@/features/solim/types'
 import { ChevronDown } from 'lucide-vue-next'
 import { toCurrency } from '@/shared/utils'
 import SolicitudProgressSteps from './SolicitudProgressSteps.vue'
@@ -11,6 +11,8 @@ import { solicitudStatusLabel as statusLabel } from '@/features/solim/constants/
 interface Props {
   solicitud: Solicitud
   approvalType: ApprovalType
+  /** Lo que el usuario cubre hoy por vacaciones de alguien. */
+  suplencias?: Suplencia[]
 }
 
 interface Emits {
@@ -18,7 +20,7 @@ interface Emits {
   (e: 'action:details', id: string): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), { suplencias: () => [] })
 defineEmits<Emits>()
 
 const isExpanded = ref(false)
@@ -50,7 +52,7 @@ const isDecided = computed(() => {
 
 /** Firmas de otro rol que este usuario cubre y siguen pendientes (se registran desde el detalle). */
 const coveredPendingLabel = computed(() => {
-  const covered = getPendingReviews(props.solicitud, props.approvalType).filter((t) => t !== props.approvalType)
+  const covered = getPendingReviews(props.solicitud, props.approvalType, props.suplencias).filter((t) => t !== props.approvalType)
   return covered.length ? covered.map((t) => APPROVAL_LABELS[t]).join(' y ') : null
 })
 

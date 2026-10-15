@@ -1,4 +1,4 @@
-import type { ApprovalType, RevisionApproval, Solicitud } from '../types'
+import type { ApprovalType, RevisionApproval, SolimRole, Solicitud, Suplencia } from '../types'
 
 export const APPROVAL_LABELS: Record<ApprovalType, string> = {
   gerente: 'Gerente',
@@ -29,6 +29,40 @@ export function coverageNote(signer: ApprovalType, covered: ApprovalType): strin
   return `Firma ${APPROVAL_LABELS[signer].toLowerCase()} a falta de ${APPROVAL_LABELS[covered].toLowerCase()}.`
 }
 
+const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
+/** 2026-10-25 → 25-oct, sin pasar por la zona horaria. */
+export function shortDate(date: string): string {
+  const [, month, day] = date.split('-').map(Number)
+  return `${day}-${MONTHS[month - 1]}`
+}
+
+/** Suplencias que tocan la gerencia de la solicitud. */
+function suplenciasIn(request: Solicitud, suplencias: Suplencia[]): Suplencia[] {
+  const gerencia = request.gerencia
+  return gerencia ? suplencias.filter((s) => s.gerencias.includes(gerencia)) : []
+}
+
+const scopeOf = (s: Suplencia) => REVIEW_SCOPE[s.ausente.tipo.toLowerCase() as SolimRole]
+
+/**
+ * Lo que firma el usuario en esta solicitud: lo de su rol y, si suple a alguien en esa
+ * gerencia, también lo del rol del ausente. Lo propio va primero.
+ */
+export function scopeFor(request: Solicitud, role: ApprovalType, suplencias: Suplencia[] = []): ApprovalType[] {
+  return [...new Set([...REVIEW_SCOPE[role], ...suplenciasIn(request, suplencias).flatMap(scopeOf)])]
+}
+
+/** La suplencia por la que el usuario puede firmar este check en esta solicitud, si la hay. */
+export function suplenciaFor(request: Solicitud, tipo: ApprovalType, suplencias: Suplencia[]): Suplencia | undefined {
+  return suplenciasIn(request, suplencias).find((s) => scopeOf(s).includes(tipo))
+}
+
+/** Constancia de la suplencia; va al inicio de las notas de la firma. */
+export function suplenciaNote(signer: string, s: Suplencia): string {
+  return `Firma ${signer} en suplencia de ${s.ausente.nombre} (hasta ${shortDate(s.hasta)}).`
+}
+
 export function getApprovals(request: Solicitud): RevisionApproval[] {
   return request.revision_aprobaciones ?? request.revision?.aprobaciones ?? []
 }
@@ -38,10 +72,10 @@ export function isDecided(approval?: RevisionApproval | null): boolean {
   return d === 'aprobado' || d === 'aprobado_con_ajuste' || d === 'rechazado'
 }
 
-/** Checks dentro del alcance del rol que están requeridos y aún sin decisión. */
-export function getPendingReviews(request: Solicitud, role: ApprovalType): ApprovalType[] {
+/** Checks dentro del alcance del usuario que están requeridos y aún sin decisión. */
+export function getPendingReviews(request: Solicitud, role: ApprovalType, suplencias: Suplencia[] = []): ApprovalType[] {
   const approvals = getApprovals(request)
-  return REVIEW_SCOPE[role].filter((tipo) => {
+  return scopeFor(request, role, suplencias).filter((tipo) => {
     const approval = approvals.find((a) => a.tipo === tipo)
     return approval?.requerido === 1 && !isDecided(approval)
   })

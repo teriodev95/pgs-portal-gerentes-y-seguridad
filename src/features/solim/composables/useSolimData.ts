@@ -7,12 +7,14 @@ import type {
   RevisionApproval,
   Solicitud,
   SolimRole,
+  Suplencia,
   TablaCargosOption,
   UpdateCheckPayload
 } from '../types'
 import { useStore } from '@/shared/stores'
+import { commonService } from '@/shared/services/modules'
 import type { IAgencyBasicInfo } from '@/interfaces'
-import { APPROVAL_LABELS, getPendingReviews } from '../constants/approvals'
+import { APPROVAL_LABELS, getPendingReviews, suplenciaFor, suplenciaNote } from '../constants/approvals'
 
 const ROLE_MAP: Record<string, SolimRole> = {
   gerente: 'gerente',
@@ -43,6 +45,10 @@ export function useSolimData() {
   const selectedLoanRequest = ref<Solicitud | null>(null)
   const tablaCargosOptions = ref<TablaCargosOption[]>([])
   const selectedAgency = ref<string>('all')
+  // Gerencia de la lista: la del menú, salvo que el usuario vea otra que suple. No toca el menú global.
+  const gerenciaOverride = ref<string>()
+  const gerencia = computed(() => gerenciaOverride.value ?? $store.gerenciaSelected)
+  const suplencias = ref<Suplencia[]>([])
   const selectedWeek = ref<number>($store.currentDate.week)
   const isLoadingLoanRequests = ref(false)
   const isLoadingSelectedLoanRequest = ref(false)
@@ -55,11 +61,17 @@ export function useSolimData() {
 
   const currentRoleLabel = computed(() => APPROVAL_LABELS[currentApprovalType.value])
 
+  const signerName = computed(() =>
+    [$store.user?.nombre, $store.user?.apellidoPaterno, $store.user?.apellidoMaterno].filter(Boolean).join(' ').trim()
+  )
+
   const filteredLoanRequests = computed(() => loanRequests.value)
 
   const hasLoanRequests = computed(() => filteredLoanRequests.value.length > 0)
   const loanRequestsCount = computed(() => filteredLoanRequests.value.length)
+  // Las agencias del store son de la gerencia del menú; en otra gerencia solo queda "Todas".
   const availableAgencies = computed<IAgencyBasicInfo[]>(() => {
+    if (gerenciaOverride.value) return []
     const seen = new Set<string>()
     return ($store.agencies ?? []).filter((agency) => {
       if (!agency?.agencia || seen.has(agency.agencia)) {
@@ -92,7 +104,7 @@ export function useSolimData() {
     return (
       Boolean(currentApproval.value?.requerido) ||
       Boolean(requirements?.[currentApprovalType.value]) ||
-      getPendingReviews(request, currentApprovalType.value).length > 0
+      getPendingReviews(request, currentApprovalType.value, suplencias.value).length > 0
     )
   })
 
@@ -101,7 +113,7 @@ export function useSolimData() {
       isLoadingLoanRequests.value = true
       const response = await solimService.getLoanApplications({
         year: $store.currentDate.year,
-        managment: $store.gerenciaSelected,
+        managment: gerencia.value,
         week: selectedWeek.value,
         agency: selectedAgency.value !== 'all' ? selectedAgency.value : undefined
       })
@@ -127,6 +139,16 @@ export function useSolimData() {
     }
   }
 
+  // Sin suplencias la pantalla queda como siempre, así que un error aquí no se avisa.
+  async function fetchSuplencias(): Promise<void> {
+    try {
+      const response = await solimService.getSuplencias()
+      suplencias.value = response.data?.success ? response.data.data : []
+    } catch {
+      suplencias.value = []
+    }
+  }
+
   async function fetchLoanRequestDetail(id: string): Promise<void> {
     try {
       isLoadingSelectedLoanRequest.value = true
@@ -139,6 +161,19 @@ export function useSolimData() {
     } finally {
       isLoadingSelectedLoanRequest.value = false
     }
+  }
+
+  function findRequest(id: string): Solicitud | null {
+    return (selectedLoanRequest.value?.id === id
+      ? selectedLoanRequest.value
+      : loanRequests.value.find((item) => item.id === id)) ?? null
+  }
+
+  /** Notas de la firma. Si el check se firma por una suplencia, la constancia va primero y no se puede borrar. */
+  function signatureNotes(id: string, tipo: ApprovalType, comentario: string): string | undefined {
+    const request = findRequest(id)
+    const suplencia = request ? suplenciaFor(request, tipo, suplencias.value) : undefined
+    return [suplencia && suplenciaNote(signerName.value, suplencia), comentario.trim()].filter(Boolean).join(' ') || undefined
   }
 
   function buildDecisionPayload(loanApprovalForm: ApprovalDialogForm) {
@@ -189,18 +224,12 @@ export function useSolimData() {
     const tablaCargosIdSugerido = numberFromInput(loanApprovalForm.tablaCargosIdSugerido)
     const nivelAutorizado = stringFromInput(loanApprovalForm.nivelAutorizado)
 
+    const tipo = approvalType ?? currentApprovalType.value
     const payload: UpdateCheckPayload = {
       decision: loanApprovalForm.decision,
       userId: String($store.user?.usuarioId ?? $store.user?.usuario ?? ''),
-      userName: [
-        $store.user?.nombre,
-        $store.user?.apellidoPaterno,
-        $store.user?.apellidoMaterno
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .trim(),
-      notas: loanApprovalForm.comentario.trim() || undefined,
+      userName: signerName.value,
+      notas: signatureNotes(id, tipo, loanApprovalForm.comentario),
       pinValidado: true
     }
 
@@ -225,7 +254,6 @@ export function useSolimData() {
 
     try {
       isProcessingAction.value = true
-      const tipo = approvalType ?? currentApprovalType.value
       await solimService.updateLoanApplicationCheck(id, tipo, payload)
       showSuccess(`Revisión de ${APPROVAL_LABELS[tipo].toLowerCase()} guardada.`)
       await fetchLoanRequests()
@@ -248,8 +276,8 @@ export function useSolimData() {
       await solimService.updateLoanApplicationCheck(id, 'garantias', {
         decision: payload.decision,
         userId: String($store.user?.usuarioId ?? $store.user?.usuario ?? ''),
-        userName: [$store.user?.nombre, $store.user?.apellidoPaterno, $store.user?.apellidoMaterno].filter(Boolean).join(' ').trim(),
-        notas: payload.comentario.trim() || undefined,
+        userName: signerName.value,
+        notas: signatureNotes(id, 'garantias', payload.comentario),
         pinValidado: true
       })
       showSuccess('Validación de garantías guardada.')
@@ -271,12 +299,36 @@ export function useSolimData() {
     selectedLoanRequest.value = null
   }
 
+  // La precarga del tablero se corta cuando el usuario no tiene gerencias propias (p. ej. un seguridad
+  // sin asignar que suple a alguien): sin semana ni gerencia, la lista abre en la que suple.
+  async function prepareWithoutGerencia(): Promise<void> {
+    if (!$store.currentDate.week) {
+      const { data } = await commonService.getCurrentDate()
+      $store.currentDate = { week: data.semana, year: data.anio }
+      selectedWeek.value = data.semana
+    }
+    gerenciaOverride.value = suplencias.value[0]?.gerencias[0]
+  }
+
   onBeforeMount(async () => {
     if ($store.agencySelected) {
       selectedAgency.value = $store.agencySelected
     }
-    await Promise.all([fetchLoanRequests(), fetchTablaCargosOptions()])
+    const suplenciasLoaded = fetchSuplencias()
+    if (!$store.gerenciaSelected) {
+      await suplenciasLoaded
+      if (suplencias.value.length) await prepareWithoutGerencia()
+    }
+    await Promise.all([suplenciasLoaded, fetchLoanRequests(), fetchTablaCargosOptions()])
   })
+
+  /** Cambia la lista a otra gerencia (la que suple o la propia) sin tocar el menú global. */
+  async function setGerencia(next: string): Promise<void> {
+    gerenciaOverride.value = next === $store.gerenciaSelected ? undefined : next
+    selectedAgency.value = 'all'
+    clearSelectedLoanRequest()
+    await fetchLoanRequests()
+  }
 
   async function setSelectedAgency(agency: string): Promise<void> {
     selectedAgency.value = agency
@@ -296,6 +348,8 @@ export function useSolimData() {
     tablaCargosOptions,
     selectedAgency,
     selectedWeek,
+    gerencia,
+    suplencias,
     isLoadingLoanRequests,
     isLoadingSelectedLoanRequest,
     isProcessingAction,
@@ -310,6 +364,7 @@ export function useSolimData() {
     fetchTablaCargosOptions,
     setSelectedAgency,
     setSelectedWeek,
+    setGerencia,
     saveApproval,
     saveGarantiasCheck,
     selectLoanRequest,

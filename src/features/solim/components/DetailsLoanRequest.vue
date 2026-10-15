@@ -14,7 +14,8 @@ import type {
   ApprovalDecision,
   ApprovalType,
   RevisionApproval,
-  Solicitud
+  Solicitud,
+  Suplencia
 } from '../types'
 import { getFiltradoHeading, isNarrativeEmpty, NEUTRAL_CLOSE } from '../constants/filtradoCopy'
 import { APPROVAL_LABELS, getPendingReviews, isDecided } from '../constants/approvals'
@@ -25,6 +26,8 @@ interface Props {
   roleLabel: string
   canRegisterDecision: boolean
   isLoadingAction?: boolean
+  /** Lo que el usuario cubre hoy por vacaciones de alguien. */
+  suplencias?: Suplencia[]
 }
 
 interface Emits {
@@ -32,7 +35,7 @@ interface Emits {
   (e: 'register:sale'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), { suplencias: () => [] })
 defineEmits<Emits>()
 
 // Al volver de los pagos del último crédito (?tab=historial) se reabre esa pestaña.
@@ -266,7 +269,7 @@ function approvalDotClass(decision?: ApprovalDecision): string {
 const isApprovalAlreadyDecided = computed(() => isDecided(currentApproval.value))
 
 /** Firmas requeridas y sin decisión que este rol puede registrar (la propia primero). */
-const pendingReviews = computed(() => getPendingReviews(props.request, props.approvalType))
+const pendingReviews = computed(() => getPendingReviews(props.request, props.approvalType, props.suplencias))
 
 const ownCheckApplies = computed(() => currentApproval.value?.requerido === 1)
 

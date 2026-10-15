@@ -6,7 +6,8 @@ import type {
   ApprovalType,
   TablaCargosOptionsResponse,
   UpdateCheckPayload,
-  HistorialResponse
+  HistorialResponse,
+  Suplencia
 } from '../types'
 import {
   mapLoanRequestDetailResponse,
@@ -63,6 +64,11 @@ class SolimService {
     return this.apiClient.get<HistorialResponse>(
       `/filtrado-clientes/historial/${encodeURIComponent(personaId)}`
     )
+  }
+
+  /** Lo que el usuario de la sesión cubre hoy por vacaciones de alguien. */
+  async getSuplencias() {
+    return this.apiClient.get<{ success: boolean; data: Suplencia[] }>('/ausencias/suplencias')
   }
 
   async updateLoanApplicationCheck(id: string, type: ApprovalType, payload: UpdateCheckPayload) {
