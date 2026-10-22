@@ -28,6 +28,8 @@ export type AccionPago = 'showMap' | 'correction'
 // el ciclo de vida de vaul (TypeError emitsOptions).
 interface Props {
   payment: IPayment | null
+  /** Consulta desde una solicitud: sin solicitar corrección. */
+  soloLectura?: boolean
 }
 
 interface Emits {
@@ -251,7 +253,7 @@ function handleOpenChange(open: boolean) {
           <!-- Sin corrección en pagos adelantados: corregir el pago origen
                rompería el marcador y su remanente (solo vía soporte) -->
           <BtnComponent
-            v-if="esSemanaActual && !yaAdelantado"
+            v-if="!soloLectura && esSemanaActual && !yaAdelantado"
             variant="primary"
             outline
             full-width

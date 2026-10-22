@@ -16,6 +16,10 @@ import CalendarIcon from '@/shared/components/icons/CalendarIcon.vue'
 // semana, compararlos por separado contra la tarifa mentiría).
 interface Props {
   historialList: IPayment[]
+  /** Consulta desde una solicitud: sin acciones operativas (adelantar). */
+  soloLectura?: boolean
+  /** Solo las semanas sin pago o con pago parcial. */
+  soloDesfases?: boolean
 }
 
 interface Emits {
@@ -36,6 +40,7 @@ const semanas = computed<SemanaGroup[]>(() => agruparPorSemana(props.historialLi
 // llegue en 1 o N pagos), por eso su affordance vive aquí y no en cada pago.
 // Pre-filtro de visibilidad; la autoridad es el preview del SP.
 function puedeAdelantarGrupo(grupo: SemanaGroup): boolean {
+  if (props.soloLectura) return false
   const tarifa = grupo.pagos[0]?.tarifa ?? 0
   if (tarifa <= 0) return false
   if (grupo.adelantada) return false
@@ -63,12 +68,18 @@ function handleAdelantar(grupo: SemanaGroup) {
   if (ancla) emit('adelantar', ancla)
 }
 
+// El filtro va DESPUÉS de agrupar: la cobertura de una semana depende de la
+// anterior (remanente), y reagrupar una lista ya filtrada la cambiaría.
+const semanasVisibles = computed(() =>
+  props.soloDesfases ? semanas.value.filter((grupo) => grupo.cobertura !== 'completa') : semanas.value
+)
+
 // Separadores de mes: la lista se lee como calendario; el año vive aquí,
 // una sola vez por bloque
 const semanasConMes = computed(() =>
-  semanas.value.map((grupo, i) => ({
+  semanasVisibles.value.map((grupo, i) => ({
     grupo,
-    nuevoMes: i === 0 || grupo.mes !== semanas.value[i - 1].mes
+    nuevoMes: i === 0 || grupo.mes !== semanasVisibles.value[i - 1].mes
   }))
 )
 

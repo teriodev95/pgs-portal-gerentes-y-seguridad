@@ -3,8 +3,10 @@ import { computed, onBeforeMount, ref } from 'vue'
 import { ROUTE_NAME } from '@/router'
 import { useRoute, useRouter } from 'vue-router'
 import { latLng } from 'leaflet'
+import { RotateCw } from 'lucide-vue-next'
 import type { IPayment } from '../types'
 import { usePaymentHistory } from '../composables'
+import { agruparPorSemana, type Cobertura } from '../helpers'
 
 // Components
 import LoadSkeleton from '@/shared/components/LoadSkeleton.vue'
@@ -14,6 +16,7 @@ import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
 import MainCT from '@/shared/components/ui/MainCT.vue'
 import EmptyCT from '@/shared/components/ui/EmptyCT.vue'
 import SectionContainer from '@/shared/components/SectionContainer.vue'
+import BtnComponent from '@/shared/components/BtnComponent.vue'
 import PaymentAccordion from '@/features/payment-details/components/PaymentAccordion.vue'
 import PaymentHistoryMap from '@/features/payment-details/components/PaymentHistoryMap.vue'
 import LoanGeneralInfo from '@/features/payment-details/components/LoanGeneralInfo.vue'
@@ -28,11 +31,35 @@ const {
   loanData,
   mapMarker,
   isLoading,
+  loadError,
   loadLoanHistory,
   hideMap,
   showMap,
   startNavigation
 } = usePaymentHistory()
+
+// Consulta (?modo=consulta&solicitud=ID): quien revisa una solicitud viene a
+// ver cómo pagó el cliente su último crédito. Solo los pagos —el crédito puede
+// estar archivado—, sin acciones operativas, y el atrás regresa a la solicitud.
+const esConsulta = computed(() => route.query.modo === 'consulta')
+
+// Lo que se ve, contado por semana. "Desfase" es la regla del score: semana
+// sin pago o con pago parcial.
+const resumen = computed(() => {
+  const semanas = agruparPorSemana(historyList.value)
+  const contar = (cobertura: Cobertura) => semanas.filter((s) => s.cobertura === cobertura).length
+  return { completas: contar('completa'), parciales: contar('parcial'), sinPago: contar('sin-pago') }
+})
+const hayDesfases = computed(() => resumen.value.parciales + resumen.value.sinPago > 0)
+const soloDesfases = ref(false)
+
+const hayContenido = computed(
+  () => !isLoading.value && (esConsulta.value ? historyList.value.length > 0 : !!loanData.value)
+)
+
+function plural(n: number, singular: string, varios: string) {
+  return `${n} ${n === 1 ? singular : varios}`
+}
 
 // Drawers: "Ver detalles" concentra las acciones del pago; desde ahí puede
 // abrirse el flujo de adelantar semanas (un drawer a la vez).
@@ -105,16 +132,37 @@ function handleAdelantar(payment: IPayment) {
   adelantarPayment.value = payment
 }
 
-async function handleAdelantoMarcado() {
-  // Refresca el historial en segundo plano (Immediate Feedback: el drawer de
-  // éxito sigue visible; al cerrarlo la lista ya trae el chip de adelantado).
+async function cargarHistorial() {
   const loanId = route.query.prestamo as string
   if (loanId) {
-    await loadLoanHistory(loanId)
+    await loadLoanHistory(loanId, { soloPagos: esConsulta.value })
   }
 }
 
+// Refresca el historial en segundo plano (Immediate Feedback: el drawer de
+// éxito sigue visible; al cerrarlo la lista ya trae el chip de adelantado).
+const handleAdelantoMarcado = cargarHistorial
+
+// El detalle de la solicitud es estado local: se reabre con ?solicitud y la
+// pestaña con ?tab. Si se llegó desde ella se regresa en el historial del
+// navegador (lo mismo que hace el atrás del teléfono), saltando el mapa si lo
+// abrió el toggle; si no, se abre en su lugar.
+function volverASolicitud() {
+  if ($router.options.history.state.back) {
+    $router.go(vista.value === 'mapa' && mapaAbiertoPorToggle.value ? -2 : -1)
+    return
+  }
+  $router.replace({
+    name: ROUTE_NAME.ADMIN_SOLIM,
+    query: { solicitud: route.query.solicitud, tab: 'historial' }
+  })
+}
+
 function handleBack() {
+  if (esConsulta.value) {
+    volverASolicitud()
+    return
+  }
   $router.push({
     name: ROUTE_NAME.DASHBOARD_PRESTAMO,
     query: { prestamo: loanData.value?.prestamoId }
@@ -122,12 +170,7 @@ function handleBack() {
 }
 
 // Lifecycle hooks
-onBeforeMount(async () => {
-  const loanId = route.query.prestamo as string
-  if (loanId) {
-    await loadLoanHistory(loanId)
-  }
-})
+onBeforeMount(cargarHistorial)
 </script>
 
 <template>
@@ -135,13 +178,13 @@ onBeforeMount(async () => {
   <MainCT>
     <!-- Top Navigation Bar -->
     <NavbarCT
-      title="Historial"
+      :title="esConsulta ? 'Pagos del crédito' : 'Historial'"
       :show-back-button="true"
       @back="handleBack"
     />
 
     <!-- Loan Data Display -->
-    <template v-if="loanData && !isLoading">
+    <template v-if="hayContenido">
       <!-- Mismo historial, dos lecturas: la lista responde "¿se pagó?" y el
            mapa "¿dónde se cobró?" -->
       <div class="px-4 pb-1 pt-1">
@@ -162,12 +205,52 @@ onBeforeMount(async () => {
       </div>
 
       <SectionContainer v-if="vista === 'lista'">
+        <!-- Consulta: sin datos del cliente ni contrato; la cabecera resume
+             lo que se ve y deja aislar los desfases -->
+        <div v-if="esConsulta" class="rounded-lg border bg-white px-4 py-3">
+          <p class="text-xs font-light text-gray-400">Semanas de este crédito</p>
+          <p class="mt-0.5 flex flex-wrap gap-x-1.5 text-sm">
+            <span class="font-semibold text-gray-700">{{ plural(resumen.completas, 'completa', 'completas') }}</span>
+            <span class="text-gray-300" aria-hidden="true">·</span>
+            <span :class="resumen.parciales ? 'font-semibold text-amber-600' : 'text-gray-500'">
+              {{ plural(resumen.parciales, 'parcial', 'parciales') }}
+            </span>
+            <span class="text-gray-300" aria-hidden="true">·</span>
+            <span :class="resumen.sinPago ? 'font-semibold text-red-500' : 'text-gray-500'">
+              {{ resumen.sinPago }} sin pago
+            </span>
+          </p>
+
+          <button
+            v-if="hayDesfases"
+            type="button"
+            role="switch"
+            :aria-checked="soloDesfases"
+            class="mt-3 flex min-h-11 w-full items-center justify-between gap-3 border-t border-gray-100 pt-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            @click="soloDesfases = !soloDesfases"
+          >
+            <span class="text-sm font-medium text-gray-700">Solo desfases</span>
+            <span
+              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors"
+              :class="soloDesfases ? 'bg-blue-700' : 'bg-gray-300'"
+              aria-hidden="true"
+            >
+              <span
+                class="absolute left-0.5 size-5 rounded-full bg-white shadow transition-transform"
+                :class="soloDesfases ? 'translate-x-5' : ''"
+              />
+            </span>
+          </button>
+        </div>
+
         <!-- General Information Card -->
-        <LoanGeneralInfo :loan-data="loanData" />
+        <LoanGeneralInfo v-else-if="loanData" :loan-data="loanData" />
 
         <!-- History Items List -->
         <PaymentAccordion
           :historial-list="historyList"
+          :solo-lectura="esConsulta"
+          :solo-desfases="esConsulta && soloDesfases"
           @ver-detalles="handleVerDetalles"
           @adelantar="handleAdelantar"
         />
@@ -189,6 +272,27 @@ onBeforeMount(async () => {
     <!-- Loading State -->
     <LoadSkeleton v-else-if="isLoading" :items="9" />
 
+    <!-- Consulta: un fallo de red no es "sin pagos"; se dice y se reintenta -->
+    <div v-else-if="esConsulta && loadError" class="px-4 pb-6">
+      <EmptyCT
+        compact
+        message="No se pudieron cargar los pagos"
+        description="Revisa tu conexión e inténtalo de nuevo."
+      />
+      <BtnComponent variant="primary" full-width @click="cargarHistorial">
+        <template #icon-left>
+          <RotateCw class="size-4" />
+        </template>
+        Reintentar
+      </BtnComponent>
+    </div>
+
+    <EmptyCT
+      v-else-if="esConsulta"
+      message="Sin pagos registrados"
+      description="Este crédito todavía no tiene pagos."
+    />
+
     <!-- Empty State -->
     <EmptyCT
       v-else
@@ -200,6 +304,7 @@ onBeforeMount(async () => {
   <!-- Payment Details Drawer (siempre montado; payment=null lo cierra) -->
   <PagoDetallesDrawer
     :payment="detallesPayment"
+    :solo-lectura="esConsulta"
     @close="detallesPayment = null"
     @accion="handleAccionPago"
   />

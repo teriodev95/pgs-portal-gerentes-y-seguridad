@@ -17,6 +17,7 @@ export function usePaymentHistory() {
   const loanData = ref<ILoan>()
   const isMapVisible = ref(false)
   const mapMarker = ref<LatLng>()
+  const loadError = ref(false)
 
   // Computed properties
   const isLoading = computed(() => $store.loading)
@@ -24,15 +25,25 @@ export function usePaymentHistory() {
   const hasHistoryData = computed(() => historyList.value.length > 0)
 
   // Methods
-  async function loadLoanHistory(loanId: string): Promise<void> {
+  // soloPagos: quien consulta desde una solicitud solo necesita los pagos, y el
+  // crédito puede estar archivado (FAX /prestamos/{id} lee prestamos_view, que
+  // solo trae activos: pedirlo daría 404 y su aviso).
+  async function loadLoanHistory(loanId: string, { soloPagos = false } = {}): Promise<void> {
     if (!loanId) {
       showError('ID de préstamo no proporcionado')
       return
     }
 
     $store.loading = true
+    loadError.value = false
 
     try {
+      if (soloPagos) {
+        const historyResponse = await paymentDetailsService.getLoanPayments(loanId)
+        historyList.value = historyResponse.data.pagos
+        return
+      }
+
       // Execute requests in parallel for better performance
       const [loanResponse, historyResponse] = await Promise.all([
         loanAndPaymentService.getLoanById(loanId),
@@ -43,6 +54,7 @@ export function usePaymentHistory() {
       historyList.value = historyResponse.data.pagos
     } catch (error) {
       console.error('Error al cargar historial de pagos:', error)
+      loadError.value = true
     } finally {
       $store.loading = false
     }
@@ -66,7 +78,7 @@ export function usePaymentHistory() {
   }
 
   function showPaymentLocation(payment: IPayment): void {
-    if (!payment.lat || !payment.lng) return 
+    if (!payment.lat || !payment.lng) return
     const position = latLng(payment.lat, payment.lng)
     showMap(position)
   }
@@ -83,6 +95,7 @@ export function usePaymentHistory() {
     loanData,
     isMapVisible,
     mapMarker,
+    loadError,
 
     // Computed
     isLoading,
