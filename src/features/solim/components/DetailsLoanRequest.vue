@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  AlertCircle,
-  ShieldCheck
-} from 'lucide-vue-next'
+import { useRoute } from 'vue-router'
+import { AlertCircle, ShieldCheck } from 'lucide-vue-next'
 import CardContainer from '@/shared/components/CardContainer.vue'
 import DocumentViewer from './DocumentViewer.vue'
 import DetailSection from './DetailSection.vue'
@@ -35,6 +33,10 @@ interface Emits {
 
 const props = defineProps<Props>()
 defineEmits<Emits>()
+
+// Al volver de los pagos del último crédito (?tab=historial) se reabre esa pestaña.
+const route = useRoute()
+const tabInicial = route.query.tab === 'historial' ? 'historial' : 'revision'
 
 const approvals = computed<RevisionApproval[]>(
   () => props.request.revision_aprobaciones ?? props.request.revision?.aprobaciones ?? []
@@ -340,7 +342,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
 
 <template>
   <div class="relative" :class="canRegisterDecision ? 'pb-40' : 'pb-4'">
-  <Tabs default-value="revision" class="space-y-4">
+  <Tabs :default-value="tabInicial" class="space-y-4">
     <TabsList class="grid h-auto w-full grid-cols-5 rounded-3xl bg-white p-2 shadow-sm">
       <TabsTrigger value="revision" class="rounded-2xl px-1 py-3 text-sm font-semibold">Revisión</TabsTrigger>
       <TabsTrigger value="cliente" class="rounded-2xl px-1 py-3 text-sm font-semibold">Cliente</TabsTrigger>
@@ -527,6 +529,7 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
           v-if="request.cliente_persona_id"
           :persona-id="request.cliente_persona_id"
           :monto-solicitado="request.monto_solicitado"
+          :solicitud-id="request.id"
           full
         />
         <p v-else class="text-sm text-slate-500">

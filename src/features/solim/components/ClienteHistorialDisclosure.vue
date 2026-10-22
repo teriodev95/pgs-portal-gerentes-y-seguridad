@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import {
   ChevronDown,
+  ChevronRight,
   LoaderCircle,
   RotateCw,
   History,
@@ -10,6 +12,7 @@ import {
   AlertTriangle,
   FileX2
 } from 'lucide-vue-next'
+import { ROUTE_NAME } from '@/router'
 import { solimService } from '../services/solim.service'
 import type { Elegibilidad, HistorialData, HistorialPrestamo } from '../types'
 
@@ -26,9 +29,13 @@ interface Props {
    * (diálogo de aprobación) se muestra colapsada y sólo los tres últimos.
    */
   full?: boolean
+  /** Con ella la vista completa enlaza a los pagos del último crédito y el atrás regresa aquí. */
+  solicitudId?: string
 }
 
 const props = defineProps<Props>()
+const route = useRoute()
+const router = useRouter()
 
 const historial = ref<HistorialData | null>(null)
 const isLoading = ref(false)
@@ -150,13 +157,35 @@ const estadoGlobal = computed<{ label: string; tone: Tone }>(() => {
 
 const score = computed(() => historial.value?.score_final ?? null)
 
-const scoreTone = computed<Tone>(() => {
-  const s = score.value
+function toneDeScore(s: number | null): Tone {
   if (s === null) return 'muted'
   if (s >= 80) return 'good'
   if (s >= 50) return 'info'
   return 'warn'
+}
+
+const scoreTone = computed<Tone>(() => toneDeScore(score.value))
+
+/** Desfase es la regla del score: semana sin pago o con pago reducido. */
+const desfasesUltimo = computed(() => {
+  const p = ultimoPrestamo.value
+  return p ? p.semanas_sin_pago + p.semanas_reducidas : 0
 })
+
+/**
+ * El detalle de la solicitud es estado local: antes de salir se deja en la URL
+ * (?solicitud y ?tab) para que el atrás, el de la app y el del teléfono,
+ * regrese a esta pestaña.
+ */
+async function verPagosUltimo(): Promise<void> {
+  const prestamo = ultimoPrestamo.value?.PrestamoID
+  if (!prestamo || !props.solicitudId) return
+  await router.replace({ query: { ...route.query, solicitud: props.solicitudId, tab: 'historial' } })
+  await router.push({
+    name: ROUTE_NAME.DASHBOARD_HISTORIAL_PAGO,
+    query: { prestamo, modo: 'consulta', solicitud: props.solicitudId }
+  })
+}
 
 const toneClasses: Record<Tone, { dot: string; text: string; bg: string }> = {
   good: { dot: 'bg-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-50' },
@@ -311,6 +340,61 @@ function toggle() {
           :class="isExpanded ? 'rotate-180 text-slate-600' : ''"
         />
       </button>
+
+      <!--
+        Cómo pagó el último crédito: con eso se decide si se le aumenta. El
+        resumen sale del historial ya cargado; el botón es lo único que dice
+        "se toca" y abre sus pagos semana por semana. Ámbar y no rojo: informa,
+        no bloquea. Las filas de la lista siguen sin tocarse.
+      -->
+      <div
+        v-if="full && solicitudId && historial && !esNuevo && ultimoPrestamo"
+        class="border-t border-slate-100 px-4 py-3.5"
+      >
+        <p class="text-[11px] font-medium text-slate-500">Cómo pagó el último crédito</p>
+        <div class="mt-1 flex items-center gap-2">
+          <p class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">
+            <span class="tabular-nums">{{ formatMoney(ultimoPrestamo.Monto_otorgado) }}</span>
+            <span class="font-normal text-slate-500">
+              · {{ ultimoPrestamo.plazo }} sem · {{ prestamoStatus(ultimoPrestamo).label }}
+            </span>
+          </p>
+          <span
+            class="inline-flex shrink-0 items-baseline gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold"
+            :class="[toneClasses[toneDeScore(ultimoPrestamo.score)].bg, toneClasses[toneDeScore(ultimoPrestamo.score)].text]"
+          >
+            <span class="text-[10px] font-medium uppercase tracking-wider opacity-70">Score</span>
+            <span class="tabular-nums">{{ ultimoPrestamo.score }}</span>
+          </span>
+        </div>
+
+        <p
+          class="mt-2 flex items-center gap-1.5 text-sm font-semibold"
+          :class="desfasesUltimo ? toneClasses.warn.text : toneClasses.good.text"
+        >
+          <AlertTriangle v-if="desfasesUltimo" class="size-4 shrink-0" />
+          <CheckCircle2 v-else class="size-4 shrink-0" />
+          <template v-if="desfasesUltimo">
+            {{ desfasesUltimo }} semana{{ desfasesUltimo === 1 ? '' : 's' }} con desfase
+          </template>
+          <template v-else>Sin desfases</template>
+        </p>
+        <p class="mt-1 text-xs tabular-nums text-slate-600">
+          {{ ultimoPrestamo.total_semanas_pagadas }} de {{ ultimoPrestamo.plazo }} semanas pagadas
+        </p>
+        <p class="text-xs tabular-nums text-slate-500">
+          {{ ultimoPrestamo.semanas_sin_pago }} sin pago · {{ ultimoPrestamo.semanas_reducidas }} reducidos
+        </p>
+
+        <button
+          type="button"
+          class="mt-3 flex h-11 w-full items-center justify-center gap-1 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          @click="verPagosUltimo"
+        >
+          Ver pagos semana por semana
+          <ChevronRight class="size-4" />
+        </button>
+      </div>
 
       <div
         v-if="isExpanded && historial"
