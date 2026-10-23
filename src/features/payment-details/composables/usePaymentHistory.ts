@@ -39,7 +39,7 @@ export function usePaymentHistory() {
 
     try {
       if (soloPagos) {
-        const historyResponse = await paymentDetailsService.getLoanPayments(loanId)
+        const historyResponse = await paymentDetailsService.getLoanPayments(loanId, { sinAviso: true })
         historyList.value = historyResponse.data.pagos
         return
       }

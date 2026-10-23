@@ -17,7 +17,7 @@ class PaymentDetailsService {
     })
   }
 
-  async getLoanData (id: string) {
+  async getLoanData(id: string) {
     return this.faxClient.get<ILoan>(`/prestamos/datos/${id}`, {
       meta: {
         errorNotification: {
@@ -29,15 +29,19 @@ class PaymentDetailsService {
     })
   }
 
-  async getLoanPayments(id: string) {
+  // sinAviso: quien llama muestra su propio error (la consulta desde una
+  // solicitud lo dice en pantalla con Reintentar) y el diálogo lo duplicaría.
+  async getLoanPayments(id: string, { sinAviso = false } = {}) {
     return this.faxClient.get<ILoanPayments>(`/pagos/historial/${id}`, {
-      meta: {
-        errorNotification: {
-          title: 'Error al cargar historial de pagos',
-          message: 'No se pudo cargar el historial de pagos del préstamo. Por favor, intenta nuevamente.',
-          type: 'error'
-        }
-      }
+      meta: sinAviso
+        ? { skipErrorNotification: true }
+        : {
+            errorNotification: {
+              title: 'Error al cargar historial de pagos',
+              message: 'No se pudo cargar el historial de pagos del préstamo. Por favor, intenta nuevamente.',
+              type: 'error'
+            }
+          }
     })
   }
 }
