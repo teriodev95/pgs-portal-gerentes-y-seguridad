@@ -45,7 +45,7 @@ export function agruparPorSemana(historial: IPayment[]): SemanaGroup[] {
     grupo.total = monetarios.reduce((suma, p) => suma + p.monto, 0)
 
     const tarifa = grupo.pagos[0]?.tarifa ?? 0
-    // Liquidó: pago de liquidación o el pago que deja el saldo en cero. La
+    // Saldo en cero: pago de liquidación o el pago que termina de pagar. La
     // última semana suele cerrar con menos de la tarifa ($526 de $536.25 deja
     // -0.25) y no es un pago parcial; el SP del score tampoco la cuenta como
     // reducida.
@@ -108,7 +108,10 @@ export function estadoSemana(grupo: SemanaGroup): EstadoSemana {
     return { texto: 'Cubierta por adelanto', clase: 'text-teal-700 font-medium' }
   }
   if (grupo.liquido) {
-    return { texto: 'Liquidó', clase: 'text-purple-700 font-medium' }
+    // "Liquidó" es solo la liquidación (pago anticipado con descuento); el
+    // pago normal que deja el saldo en cero es "Terminó de pagar".
+    const liquidacion = grupo.pagos.some((p) => p.tipo === 'Liquidacion')
+    return { texto: liquidacion ? 'Liquidó' : 'Terminó de pagar', clase: 'text-purple-700 font-medium' }
   }
   const tarifa = grupo.pagos[0]?.tarifa ?? 0
   if (grupo.cobertura === 'completa') {
