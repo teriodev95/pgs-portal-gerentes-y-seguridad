@@ -374,16 +374,12 @@ function toggle() {
         >
           <AlertTriangle v-if="desfasesUltimo" class="size-4 shrink-0" />
           <CheckCircle2 v-else class="size-4 shrink-0" />
-          <template v-if="desfasesUltimo">
-            {{ desfasesUltimo }} semana{{ desfasesUltimo === 1 ? '' : 's' }} con desfase
-          </template>
+          <!-- Sin "X de N semanas pagadas": el SP cuenta la semana del primer
+               pago y la lista de pagos no, y las dos cifras se contradecían. -->
+          <span v-if="desfasesUltimo" class="tabular-nums">
+            {{ ultimoPrestamo.semanas_sin_pago }} sin pago · {{ ultimoPrestamo.semanas_reducidas }} reducidos
+          </span>
           <template v-else>Sin desfases</template>
-        </p>
-        <p class="mt-1 text-xs tabular-nums text-slate-600">
-          {{ ultimoPrestamo.total_semanas_pagadas }} de {{ ultimoPrestamo.plazo }} semanas pagadas
-        </p>
-        <p class="text-xs tabular-nums text-slate-500">
-          {{ ultimoPrestamo.semanas_sin_pago }} sin pago · {{ ultimoPrestamo.semanas_reducidas }} reducidos
         </p>
 
         <button
