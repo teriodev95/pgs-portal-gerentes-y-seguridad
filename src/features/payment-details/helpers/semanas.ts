@@ -16,6 +16,7 @@ export interface SemanaGroup {
   total: number
   cobertura: Cobertura
   adelantada: boolean
+  liquido: boolean
   remanenteSiguiente: number | null
   rango: string
   mes: string
@@ -33,7 +34,7 @@ export function agruparPorSemana(historial: IPayment[]): SemanaGroup[] {
     const key = claveSemana(pago)
     let grupo = map.get(key)
     if (!grupo) {
-      grupo = { key, anio: pago.anio, semana: pago.semana, pagos: [], total: 0, cobertura: 'sin-pago', adelantada: false, remanenteSiguiente: null, rango: '', mes: '' }
+      grupo = { key, anio: pago.anio, semana: pago.semana, pagos: [], total: 0, cobertura: 'sin-pago', adelantada: false, liquido: false, remanenteSiguiente: null, rango: '', mes: '' }
       map.set(key, grupo)
     }
     grupo.pagos.push(pago)
@@ -44,7 +45,11 @@ export function agruparPorSemana(historial: IPayment[]): SemanaGroup[] {
     grupo.total = monetarios.reduce((suma, p) => suma + p.monto, 0)
 
     const tarifa = grupo.pagos[0]?.tarifa ?? 0
-    const liquidacion = grupo.pagos.some((p) => p.tipo === 'Liquidacion')
+    // Liquidó: pago de liquidación o el pago que deja el saldo en cero. La
+    // última semana suele cerrar con menos de la tarifa ($526 de $536.25 deja
+    // -0.25) y no es un pago parcial; el SP del score tampoco la cuenta como
+    // reducida.
+    grupo.liquido = monetarios.some((p) => p.tipo === 'Liquidacion' || p.cierraCon <= 0.01)
     grupo.adelantada = grupo.pagos.some((p) => p.tipo === 'Adelantado')
 
     // El último marcador de un adelanto puede dejar un abono para la semana
@@ -58,7 +63,7 @@ export function agruparPorSemana(historial: IPayment[]): SemanaGroup[] {
     grupo.rango = rango ? formatoRango(rango) : `Semana ${grupo.semana} / ${grupo.anio}`
     grupo.mes = rango ? etiquetaMes(rango) : String(grupo.anio)
 
-    if (grupo.adelantada || liquidacion || (tarifa > 0 && grupo.total >= tarifa)) {
+    if (grupo.adelantada || grupo.liquido || (tarifa > 0 && grupo.total >= tarifa)) {
       grupo.cobertura = 'completa'
     } else if (grupo.total > 0) {
       grupo.cobertura = 'parcial'
@@ -102,7 +107,7 @@ export function estadoSemana(grupo: SemanaGroup): EstadoSemana {
   if (grupo.adelantada) {
     return { texto: 'Cubierta por adelanto', clase: 'text-teal-700 font-medium' }
   }
-  if (grupo.pagos.some((p) => p.tipo === 'Liquidacion')) {
+  if (grupo.liquido) {
     return { texto: 'Liquidó', clase: 'text-purple-700 font-medium' }
   }
   const tarifa = grupo.pagos[0]?.tarifa ?? 0
@@ -125,7 +130,7 @@ export function estadoSemana(grupo: SemanaGroup): EstadoSemana {
 export function colorPinSemana(grupo: SemanaGroup | undefined): string {
   if (!grupo) return 'bg-gray-500'
   if (grupo.adelantada) return 'bg-teal-600'
-  if (grupo.pagos.some((p) => p.tipo === 'Liquidacion')) return 'bg-purple-600'
+  if (grupo.liquido) return 'bg-purple-600'
   if (grupo.cobertura === 'completa') return 'bg-green-600'
   if (grupo.cobertura === 'parcial') return 'bg-amber-500'
   return 'bg-red-500'

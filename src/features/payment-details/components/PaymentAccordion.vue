@@ -44,7 +44,7 @@ function puedeAdelantarGrupo(grupo: SemanaGroup): boolean {
   const tarifa = grupo.pagos[0]?.tarifa ?? 0
   if (tarifa <= 0) return false
   if (grupo.adelantada) return false
-  if (grupo.pagos.some((p) => p.tipo === 'Liquidacion')) return false
+  if (grupo.liquido) return false
   if (grupo.pagos.some((p) => p.comentario?.includes('ADELANTO:'))) return false
   if (grupo.total - tarifa < tarifa) return false
   const { week, year } = $store.currentDate
