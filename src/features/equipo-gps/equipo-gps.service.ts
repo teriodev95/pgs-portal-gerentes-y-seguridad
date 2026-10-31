@@ -1,7 +1,7 @@
 import type { AxiosRequestHeaders, InternalAxiosRequestConfig } from 'axios'
 import { createApiClientFromPreset } from '@/shared/services/core/api-client'
 import { useStore } from '@/shared/stores'
-import type { EquipoRespuesta, RecorridoHoy } from './equipo-gps.types'
+import type { EquipoRespuesta, RecorridoHoy, ResumenHoy } from './equipo-gps.types'
 
 // FAX valida la sesión de PGS en el mismo `pax-me` de Elysia, así que viaja el mismo
 // Bearer `base64(usuario:pin)` que ya usan las llamadas a Elysia. Los GET a FAX no llevan
@@ -31,6 +31,15 @@ export const equipoGpsService = {
   async equipo(): Promise<EquipoRespuesta> {
     const { data } = await client.get<EquipoRespuesta>('/rastreo/monitor/equipo', {
       params: incluirPrueba() ? { incluir_prueba: true } : undefined,
+      timeout: 20_000
+    })
+    return data
+  },
+
+  /** La ficha del mapa: qué hace ahora y cómo va el día, sin la ruta. */
+  async resumenHoy(gerenteId: number): Promise<ResumenHoy> {
+    const { data } = await client.get<ResumenHoy>(`/rastreo/monitor/equipo/${gerenteId}/hoy`, {
+      params: { resumen: 1, ...(incluirPrueba() ? { incluir_prueba: true } : {}) },
       timeout: 20_000
     })
     return data

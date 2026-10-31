@@ -2,10 +2,12 @@
 // Único componente del detalle que importa Leaflet: entra al chunk perezoso que ya existe para MapWidget.
 import { computed, ref, watch } from 'vue'
 import { latLngBounds, type Map as LeafletMap, type PointExpression } from 'leaflet'
-import { LCircleMarker, LPolyline, LTooltip } from '@vue-leaflet/vue-leaflet'
+import { LCircleMarker, LIcon, LMarker, LPolyline, LTooltip } from '@vue-leaflet/vue-leaflet'
 import MapWidget from '@/shared/components/MapWidget.vue'
 import { EQUIPO_GPS_COLOR } from '../equipo-gps.constants'
-import { formatDuration, formatTime, gapLinks, routeBands, routeEnds, shade } from '../equipo-gps.helpers'
+import {
+  formatDuration, formatTime, gapLinks, longestStops, paradasVisibles, routeBands, routeEnds, shade, STOP_PX, stopSize
+} from '../equipo-gps.helpers'
 import type { RecorridoHoy, UbicacionGerente } from '../equipo-gps.types'
 
 const props = defineProps<{
@@ -15,10 +17,23 @@ const props = defineProps<{
   enVivo: boolean
   /** Alto (px) que el panel inferior tapa: el encuadre deja la ruta en la parte visible. */
   margenInferior?: number
+  /** Color de la persona (borde de las paradas); por defecto el azul de acción. */
+  color?: string
+  /** Parada resaltada (índice), compartida con la línea del día. */
+  paradaSeleccionada?: number | null
 }>()
+const emit = defineEmits<{ (e: 'parada', index: number): void }>()
 
 const BANDS = 12
 const mapa = ref<LeafletMap>()
+const zoom = ref(15)
+const colorPersona = computed(() => props.color ?? EQUIPO_GPS_COLOR)
+
+// Paradas: punto blanco numerado con borde del color de la persona, tres tamaños por duración (como MOX);
+// sólo las dos más largas llevan su duración fija; si dos se enciman en este zoom, sólo la más larga.
+const paradas = computed(() => props.recorrido?.paradas ?? [])
+const masLargas = computed(() => longestStops(paradas.value))
+const visibles = computed(() => paradasVisibles(paradas.value, zoom.value))
 
 // Puebla por defecto cuando aún no hay dónde centrar; `encuadrar` manda en cuanto hay datos.
 const centro = computed<PointExpression>(() =>
@@ -67,6 +82,8 @@ function centrar(lugar: [number, number], zoom = 16) {
 
 function onReady(map: LeafletMap) {
   mapa.value = map
+  zoom.value = map.getZoom()
+  map.on('zoomend', () => (zoom.value = map.getZoom()))
   encuadrar()
 }
 
@@ -115,6 +132,42 @@ defineExpose({ encuadrar, centrar })
       </LTooltip>
     </LPolyline>
 
+    <LMarker
+      v-for="index in visibles"
+      :key="`parada-${index}`"
+      :lat-lng="[paradas[index].lat, paradas[index].lon]"
+      :z-index-offset="paradaSeleccionada === index ? 900 : 500"
+      @click="emit('parada', index)"
+    >
+      <LIcon
+        :icon-size="[STOP_PX[stopSize(paradas[index].segundos)], STOP_PX[stopSize(paradas[index].segundos)]]"
+        :icon-anchor="[STOP_PX[stopSize(paradas[index].segundos)] / 2, STOP_PX[stopSize(paradas[index].segundos)] / 2]"
+        class-name="equipo-gps-parada"
+      >
+        <span
+          class="equipo-gps-parada__punto"
+          :data-size="stopSize(paradas[index].segundos)"
+          :data-selected="paradaSeleccionada === index"
+          :style="{ borderColor: colorPersona }"
+        >{{ index + 1 }}</span>
+      </LIcon>
+      <LTooltip
+        :key="paradaSeleccionada === index ? 'fija' : masLargas.includes(index) ? 'larga' : 'toque'"
+        :options="{
+          permanent: paradaSeleccionada === index || masLargas.includes(index),
+          direction: 'right',
+          offset: [STOP_PX[stopSize(paradas[index].segundos)] / 2 + 2, 0],
+          className: paradaSeleccionada === index ? 'equipo-gps-label' : 'equipo-gps-parada-label'
+        }"
+      >
+        <template v-if="paradaSeleccionada === index">
+          Parada {{ index + 1 }} · {{ formatTime(paradas[index].inicio) }} · {{ formatDuration(paradas[index].segundos) }}
+        </template>
+        <template v-else-if="masLargas.includes(index)">{{ formatDuration(paradas[index].segundos) }}</template>
+        <template v-else>{{ formatTime(paradas[index].inicio) }} · {{ formatDuration(paradas[index].segundos) }}</template>
+      </LTooltip>
+    </LMarker>
+
     <LCircleMarker
       v-if="extremos"
       :lat-lng="[extremos.start[0], extremos.start[1]]"
@@ -161,6 +214,51 @@ defineExpose({ encuadrar, centrar })
   padding: 4px 8px;
 }
 .leaflet-tooltip.equipo-gps-label::before {
+  display: none;
+}
+/* Paradas: sutiles, en blanco con borde del color de la persona; el número coincide con la línea del día. */
+.equipo-gps-parada {
+  background: transparent;
+  border: 0;
+}
+.equipo-gps-parada__punto {
+  align-items: center;
+  background: #ffffff;
+  border: 2px solid;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+  box-sizing: border-box;
+  color: #0f172a;
+  display: flex;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+.equipo-gps-parada__punto[data-size='1'] {
+  font-size: 11px;
+}
+.equipo-gps-parada__punto[data-size='2'] {
+  border-width: 3px;
+  font-size: 12px;
+}
+.equipo-gps-parada__punto[data-selected='true'] {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+.leaflet-tooltip.equipo-gps-parada-label {
+  background: rgba(255, 255, 255, 0.92);
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.14);
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+}
+.leaflet-tooltip.equipo-gps-parada-label::before {
   display: none;
 }
 </style>

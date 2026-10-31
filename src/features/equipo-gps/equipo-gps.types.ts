@@ -58,6 +58,24 @@ export interface RecorridoHoy {
   server_time: string
 }
 
+/** Respuesta de `/equipo/:id/hoy?resumen=1`: la ficha del mapa, sin puntos de ruta (< 1 KB). */
+export interface ResumenHoy {
+  user_id: number
+  fecha: string
+  telefono: string | null
+  /** Primera captura del día en horario, o null. */
+  inicio: string | null
+  bateria: number | null
+  resumen: { distancia_m: number; puntos: number; paradas: number; huecos: number }
+  ahora: {
+    estado: 'detenido' | 'en_movimiento' | 'sin_senal' | 'sin_datos'
+    desde: string | null
+    segundos: number | null
+    cerca_ultima_parada: boolean
+  }
+  server_time: string
+}
+
 /** Filtro de la lista: los tres botones con conteo. */
 export type FiltroEquipo = 'todos' | 'activos' | 'sin_senal'
 

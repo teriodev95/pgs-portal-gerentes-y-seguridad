@@ -396,3 +396,56 @@ export function guardarFiltro(estado: FiltroEquipo, sucursal: string | null) {
     /* sin almacenamiento: el filtro vive sólo en la sesión */
   }
 }
+
+// --- Paradas en el mapa: tamaños y «las más largas», copiados de MOX (stopSize, longestStops). ---
+/** 0: menos de 15 min · 1: de 15 a 60 · 2: más de 60. */
+export function stopSize(seconds: number): 0 | 1 | 2 {
+  return seconds < 900 ? 0 : seconds <= 3600 ? 1 : 2
+}
+/** Diámetro en px por tamaño: sutil, sin competir con la línea. */
+export const STOP_PX = [16, 20, 24] as const
+
+/** Índices de las `count` paradas más largas; en empate gana la anterior. */
+export function longestStops(stops: { segundos: number }[], count = 2): number[] {
+  return stops
+    .map((stop, index) => ({ index, seconds: stop.segundos }))
+    .sort((a, b) => b.seconds - a.seconds || a.index - b.index)
+    .slice(0, count)
+    .map((item) => item.index)
+}
+
+/**
+ * Qué paradas se dibujan en este zoom: si dos se enciman en pantalla (a menos de `radioPx`), sólo la más larga.
+ * Devuelve los índices originales, para que el número coincida con «Parada N».
+ */
+export function paradasVisibles(paradas: RecorridoHoy['paradas'], zoom: number, radioPx = 18): number[] {
+  const orden = paradas.map((p, index) => ({ index, p, xy: proyectar(p.lat, p.lon, zoom) })).sort((a, b) => b.p.segundos - a.p.segundos)
+  const puestas: typeof orden = []
+  for (const item of orden) {
+    if (!puestas.some((q) => Math.hypot(q.xy[0] - item.xy[0], q.xy[1] - item.xy[1]) < radioPx)) puestas.push(item)
+  }
+  return puestas.map((item) => item.index).sort((a, b) => a - b)
+}
+
+/** La sucursal con más gerentes en un grupo «+N»: su color va en el anillo. */
+export function sucursalMayoritaria(gerentes: Pick<GerenteEquipo, 'sucursal'>[]): string | null {
+  const cuenta = new Map<string, number>()
+  for (const g of gerentes) if (g.sucursal) cuenta.set(g.sucursal, (cuenta.get(g.sucursal) ?? 0) + 1)
+  let mejor: string | null = null
+  for (const [codigo, n] of cuenta) if (mejor === null || n > (cuenta.get(mejor) ?? 0)) mejor = codigo
+  return mejor
+}
+
+/** «Detenido desde 11:20 · 25 min» / «En movimiento» / «Sin señal» para la ficha del mapa. */
+export function textoAhora(ahora: { estado: string; desde: string | null; segundos: number | null }): string {
+  switch (ahora.estado) {
+    case 'detenido':
+      return `Detenido desde ${ahora.desde ? formatTime(ahora.desde) : '—'} · ${formatDuration(ahora.segundos ?? 0)}`
+    case 'en_movimiento':
+      return 'En movimiento'
+    case 'sin_senal':
+      return 'Sin señal'
+    default:
+      return 'Sin datos hoy'
+  }
+}

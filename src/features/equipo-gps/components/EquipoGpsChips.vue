@@ -34,12 +34,17 @@ function elegirSucursal(codigo: string) {
 </script>
 
 <template>
-  <div class="flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtros">
+  <!-- Al deslizar, el chip donde se detiene queda alineado al margen de 16 px (scroll-snap + scroll-padding). -->
+  <div
+    class="flex snap-x snap-proximity gap-2 overflow-x-auto px-4 py-1 [scroll-padding-inline:16px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    role="group"
+    aria-label="Filtros"
+  >
     <button
       v-for="e in estados"
       :key="e.id"
       type="button"
-      class="inline-flex h-8 shrink-0 items-center gap-1 rounded-full px-3 text-[13px] font-medium transition-colors"
+      class="inline-flex h-8 shrink-0 snap-start items-center gap-1 rounded-full px-3 text-[13px] font-medium transition-colors"
       :class="filtro === e.id ? activo : base"
       :aria-pressed="filtro === e.id"
       @click="emit('update:filtro', e.id)"
@@ -53,7 +58,7 @@ function elegirSucursal(codigo: string) {
         v-for="s in sucursales"
         :key="s.codigo"
         type="button"
-        class="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors"
+        class="inline-flex h-8 shrink-0 snap-start items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors"
         :class="sucursal === s.codigo ? activo : base"
         :aria-pressed="sucursal === s.codigo"
         @click="elegirSucursal(s.codigo)"

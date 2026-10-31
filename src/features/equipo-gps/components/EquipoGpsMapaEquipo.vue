@@ -5,7 +5,7 @@ import { computed, ref, watch } from 'vue'
 import { latLngBounds, type Map as LeafletMap, type PointExpression } from 'leaflet'
 import { LIcon, LMarker } from '@vue-leaflet/vue-leaflet'
 import MapWidget from '@/shared/components/MapWidget.vue'
-import { agruparMarcadores, colorDe, conBlanco, initials } from '../equipo-gps.helpers'
+import { agruparMarcadores, colorDe, conBlanco, getSucursalColor, initials, sucursalMayoritaria } from '../equipo-gps.helpers'
 import type { GerenteEquipo, MarcadorMapa } from '../equipo-gps.types'
 
 const props = defineProps<{ gerentes: GerenteEquipo[]; seleccionado: number | null; margenInferior?: number }>()
@@ -14,7 +14,12 @@ const emit = defineEmits<{ (e: 'seleccionar', gerente: GerenteEquipo): void; (e:
 const mapa = ref<LeafletMap>()
 const zoom = ref(13)
 const ubicados = computed(() => props.gerentes.filter((g) => g.ubicacion && g.id !== null))
-const marcadores = computed<MarcadorMapa[]>(() => agruparMarcadores(ubicados.value, zoom.value))
+// Radio chico (24 px): sólo se agrupa lo que de verdad se encima.
+const marcadores = computed<MarcadorMapa[]>(() => agruparMarcadores(ubicados.value, zoom.value, 24))
+const anillo = (m: MarcadorMapa) => {
+  const propio = getSucursalColor(sucursalMayoritaria(m.gerentes))
+  return propio === '#cbd5e1' ? '#334155' : propio
+}
 const centro = computed<PointExpression>(() => {
   const primero = ubicados.value[0]
   return primero?.ubicacion ? [primero.ubicacion.lat, primero.ubicacion.lon] : [19.0414, -98.2063]
@@ -37,7 +42,7 @@ function tocar(marcador: MarcadorMapa) {
   // Un grupo: acercarse hasta que se separen; si en el zoom tope siguen juntos, la lista del grupo.
   if (map && map.getZoom() < 17) {
     const objetivo = Math.min(17, map.getZoom() + 2)
-    if (agruparMarcadores(marcador.gerentes, objetivo).length > 1) {
+    if (agruparMarcadores(marcador.gerentes, objetivo, 24).length > 1) {
       map.setView([marcador.lat, marcador.lon], objetivo, { animate: true })
       return
     }
@@ -76,7 +81,12 @@ defineExpose({ encuadrar })
       @click="tocar(m)"
     >
       <LIcon :icon-size="[36, 36]" :icon-anchor="[18, 18]" class-name="equipo-gps-pin">
-        <span v-if="m.gerentes.length > 1" class="equipo-gps-pin__chip is-grupo" :aria-label="`${m.gerentes.length} gerentes juntos`">
+        <span
+          v-if="m.gerentes.length > 1"
+          class="equipo-gps-pin__chip is-grupo"
+          :style="{ borderColor: anillo(m) }"
+          :aria-label="`${m.gerentes.length} gerentes juntos`"
+        >
           +{{ m.gerentes.length }}
         </span>
         <span
@@ -121,9 +131,10 @@ defineExpose({ encuadrar })
   background: var(--color-suave);
   border: 2px dotted #64748b;
 }
+/* Grupo «+N»: neutro, con el anillo del color de la sucursal que más gerentes tiene ahí. */
 .equipo-gps-pin__chip.is-grupo {
   background: #ffffff;
-  border: 2px solid #cbd5e1;
+  border: 3px solid #cbd5e1;
   color: #0f172a;
 }
 .equipo-gps-pin__chip.is-seleccionado {

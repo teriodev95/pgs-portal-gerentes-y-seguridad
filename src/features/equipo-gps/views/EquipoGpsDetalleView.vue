@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ChevronLeft, Crosshair, MessageCircle, Phone } from 'lucide-vue-next'
 import EquipoGpsEstado from '../components/EquipoGpsEstado.vue'
 import EquipoGpsPanel from '../components/EquipoGpsPanel.vue'
 import { useEquipoGps } from '../composables/useEquipoGps'
-import { formatDistance, formatTime, lineaDelDia, sucursalNombre, telUrl, titleCase, whatsappUrl } from '../equipo-gps.helpers'
+import { colorDe, formatDistance, formatTime, lineaDelDia, sucursalNombre, telUrl, titleCase, whatsappUrl } from '../equipo-gps.helpers'
 import { equipoGpsError, equipoGpsService } from '../equipo-gps.service'
 import type { EventoDia, RecorridoHoy } from '../equipo-gps.types'
 
@@ -25,6 +25,16 @@ const errorRecorrido = ref('')
 const abierto = ref(false)
 const altoPanel = ref(0)
 const mapa = ref<{ encuadrar: () => void; centrar: (lugar: [number, number], zoom?: number) => void }>()
+/** Parada resaltada: tocarla en el mapa marca su fila; tocar la fila centra el mapa en ella. */
+const paradaSeleccionada = ref<number | null>(null)
+const filas = ref<HTMLElement>()
+
+// Resalta la fila sin tapar el mapa: si el panel ya está abierto, la trae a la vista.
+function seleccionarParada(index: number) {
+  paradaSeleccionada.value = index
+  if (abierto.value)
+    void nextTick(() => filas.value?.querySelector<HTMLElement>(`[data-parada="${index}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))
+}
 
 async function cargarRecorrido() {
   if (cargando.value || !Number.isFinite(id.value)) return
@@ -47,11 +57,14 @@ onMounted(() => {
 
 watch(id, () => {
   recorrido.value = null
+  paradaSeleccionada.value = null
   void cargarRecorrido()
 })
 
 const enVivo = computed(() => gerente.value?.estado === 'activo')
 const eventos = computed<EventoDia[]>(() => (recorrido.value ? lineaDelDia(recorrido.value, enVivo.value) : []))
+/** Índice de parada de cada fila «Parada N» (N − 1), para resaltar la misma que el mapa. */
+const paradaDe = (evento: EventoDia) => (evento.tipo === 'parada' ? Number(evento.titulo.replace(/\D/g, '')) - 1 : null)
 const telefono = computed(() => recorrido.value?.telefono ?? null)
 
 const datos = computed(() => [
@@ -61,6 +74,8 @@ const datos = computed(() => [
 ])
 
 function irA(evento: EventoDia) {
+  const index = paradaDe(evento)
+  paradaSeleccionada.value = index
   if (evento.lugar) mapa.value?.centrar(evento.lugar)
 }
 </script>
@@ -76,6 +91,9 @@ function irA(evento: EventoDia) {
         :recorrido="recorrido"
         :en-vivo="enVivo"
         :margen-inferior="altoPanel"
+        :color="colorDe(gerente)"
+        :parada-seleccionada="paradaSeleccionada"
+        @parada="seleccionarParada"
       />
     </div>
 
@@ -145,13 +163,14 @@ function irA(evento: EventoDia) {
         <p v-if="gerente.ubicacion" class="mt-1 text-[13px] leading-4 text-slate-500">
           {{ formatTime(gerente.ubicacion.registrado_at) }} · ±{{ gerente.ubicacion.precision_m }} m<template v-if="gerente.ubicacion.bateria !== null"> · batería {{ gerente.ubicacion.bateria }} %</template>
         </p>
-        <ol v-if="eventos.length" class="mt-2 divide-y divide-slate-100">
-          <li v-for="(evento, index) in eventos" :key="index">
+        <ol v-if="eventos.length" ref="filas" class="mt-2 divide-y divide-slate-100">
+          <li v-for="(evento, index) in eventos" :key="index" :data-parada="paradaDe(evento) ?? undefined">
             <button
               type="button"
-              class="flex h-12 w-full items-center gap-3 text-left"
-              :class="evento.lugar ? 'active:bg-slate-50' : 'cursor-default'"
+              class="flex h-12 w-full items-center gap-3 rounded-lg text-left"
+              :class="[evento.lugar ? 'active:bg-slate-50' : 'cursor-default', paradaDe(evento) !== null && paradaDe(evento) === paradaSeleccionada && '-mx-2 bg-blue-50 px-2']"
               :disabled="!evento.lugar"
+              :aria-current="paradaDe(evento) !== null && paradaDe(evento) === paradaSeleccionada ? 'true' : undefined"
               @click="irA(evento)"
             >
               <span

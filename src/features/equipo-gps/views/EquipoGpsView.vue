@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronRight, ChevronLeft, Crosshair, Search, X } from 'lucide-vue-next'
+import { BatteryLow, BatteryMedium, ChevronRight, ChevronLeft, Crosshair, Layers, MessageCircle, Phone, Search, X } from 'lucide-vue-next'
 import { ROUTE_NAME } from '@/router'
 import EquipoGpsChips from '../components/EquipoGpsChips.vue'
 import EquipoGpsEstado from '../components/EquipoGpsEstado.vue'
 import EquipoGpsPanel from '../components/EquipoGpsPanel.vue'
 import { useEquipoGps } from '../composables/useEquipoGps'
-import { agoShort, agruparPorSucursal, colorDe, estadoTexto, initials, sucursalNombre, titleCase } from '../equipo-gps.helpers'
-import type { GerenteEquipo } from '../equipo-gps.types'
+import { agoShort, agruparPorSucursal, colorDe, estadoTexto, formatDistance, formatTime, initials, sucursalNombre, telUrl, textoAhora, titleCase, whatsappUrl } from '../equipo-gps.helpers'
+import { equipoGpsService } from '../equipo-gps.service'
+import type { GerenteEquipo, ResumenHoy } from '../equipo-gps.types'
 
 // Lista primero: ~2 KB de API y nada de mapa. Leaflet entra sólo al cambiar al modo Mapa.
 const EquipoGpsMapaEquipo = defineAsyncComponent(() => import('../components/EquipoGpsMapaEquipo.vue'))
@@ -45,11 +46,34 @@ function abrir(gerente: GerenteEquipo) {
   router.push({ name: ROUTE_NAME.EQUIPO_GPS_DETALLE, params: { id: String(gerente.id) } })
 }
 
+// Ficha del mapa: al tocar un marcador se pide el resumen ligero del día (< 1 KB); mientras llega, esqueleto.
+const resumenes = new Map<number, ResumenHoy>()
+const resumen = ref<ResumenHoy | null>(null)
+const cargandoResumen = ref(false)
 function elegir(gerente: GerenteEquipo) {
   seleccionado.value = gerente
   grupo.value = null
   panelAbierto.value = false
+  resumen.value = gerente.id !== null ? resumenes.get(gerente.id) ?? null : null
+  if (gerente.id !== null && !resumen.value) {
+    const id = gerente.id
+    cargandoResumen.value = true
+    equipoGpsService
+      .resumenHoy(id)
+      .then((data) => {
+        resumenes.set(id, data)
+        if (seleccionado.value?.id === id) resumen.value = data
+      })
+      .catch(() => {})
+      .finally(() => (cargandoResumen.value = false))
+  }
 }
+const cifras = computed(() => [
+  { etiqueta: 'Recorrido', valor: resumen.value ? formatDistance(resumen.value.resumen.distancia_m) : null },
+  { etiqueta: 'Paradas', valor: resumen.value ? String(resumen.value.resumen.paradas) : null },
+  { etiqueta: 'Huecos', valor: resumen.value ? String(resumen.value.resumen.huecos) : null }
+])
+const bateria = computed(() => resumen.value?.bateria ?? seleccionado.value?.ubicacion?.bateria ?? null)
 function elegirGrupo(lista: GerenteEquipo[]) {
   grupo.value = lista
   seleccionado.value = null
@@ -287,7 +311,7 @@ function tiraFin() {
           <span class="inline-flex items-center gap-1.5"><span class="size-2.5 rounded-full border border-dotted border-slate-500 bg-slate-300" /> Sin señal</span>
           <span class="inline-flex items-center gap-1.5"><span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-slate-300 px-1 text-[10px] font-bold">+N</span> juntos</span>
         </template>
-        <span v-else class="font-medium">?</span>
+        <span v-else class="inline-flex items-center gap-1.5 font-medium"><Layers class="size-4" /> Leyenda</span>
       </button>
       <button
         type="button"
@@ -312,7 +336,7 @@ function tiraFin() {
 
     <!-- Panel inferior: ficha corta de una persona o la lista de un grupo «+N» -->
     <!-- Nunca pasa de 60 %: los chips y el selector siguen a la vista. -->
-    <EquipoGpsPanel v-if="hayPanel" v-model:abierto="panelAbierto" :asomado="grupo ? 0.42 : 0.3" :expandido="0.6" @altura="altoPanel = $event">
+    <EquipoGpsPanel v-if="hayPanel" v-model:abierto="panelAbierto" :asomado="grupo ? 0.42 : 0.3" :expandido="0.6" ajustado @altura="altoPanel = $event">
       <template #encabezado>
         <template v-if="seleccionado">
           <div class="flex items-center gap-3">
@@ -332,14 +356,46 @@ function tiraFin() {
         </template>
       </template>
 
-      <button
-        v-if="seleccionado"
-        type="button"
-        class="mt-3 h-11 w-full rounded-xl bg-blue-600 text-[16px] font-semibold text-white active:bg-blue-700"
-        @click="abrir(seleccionado)"
-      >
-        Ver recorrido
-      </button>
+      <template v-if="seleccionado">
+        <!-- Ahora: qué está haciendo; Hoy: cómo va su día. -->
+        <dl class="mt-3 space-y-2 text-[13px]">
+          <div class="flex items-baseline gap-3">
+            <dt class="w-12 shrink-0 font-semibold uppercase tracking-wide text-slate-400">Ahora</dt>
+            <dd class="min-w-0 flex-1 text-[16px] leading-5 text-slate-900">
+              <span v-if="resumen">{{ textoAhora(resumen.ahora) }}<span v-if="resumen.ahora.cerca_ultima_parada && resumen.ahora.estado !== 'detenido'" class="text-slate-500"> · cerca de su última parada</span></span>
+              <span v-else class="block h-4 w-2/3 animate-pulse rounded bg-slate-100" />
+            </dd>
+          </div>
+          <div class="flex items-baseline gap-3">
+            <dt class="w-12 shrink-0 font-semibold uppercase tracking-wide text-slate-400">Hoy</dt>
+            <dd class="min-w-0 flex-1 text-slate-600">
+              <span v-if="resumen">Inició {{ resumen.inicio ? formatTime(resumen.inicio) : '—' }}</span>
+              <span v-else class="block h-3 w-1/3 animate-pulse rounded bg-slate-100" />
+            </dd>
+            <dd v-if="bateria !== null" class="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 tabular-nums" :class="bateria < 20 ? 'bg-amber-50 font-semibold text-amber-800' : 'text-slate-600'">
+              <component :is="bateria < 20 ? BatteryLow : BatteryMedium" class="size-3.5" /> {{ bateria }} %
+            </dd>
+          </div>
+        </dl>
+        <div class="mt-3 grid grid-cols-3 gap-2" :aria-busy="cargandoResumen">
+          <div v-for="c in cifras" :key="c.etiqueta" class="rounded-xl bg-slate-50 px-3 py-2 text-center">
+            <p class="text-[13px] leading-4 text-slate-500">{{ c.etiqueta }}</p>
+            <p v-if="c.valor !== null" class="mt-0.5 text-[16px] font-semibold tabular-nums leading-5 text-slate-900">{{ c.valor }}</p>
+            <span v-else class="mx-auto mt-1.5 block h-4 w-10 animate-pulse rounded bg-slate-200" />
+          </div>
+        </div>
+        <div v-if="resumen?.telefono" class="mt-3 grid grid-cols-2 gap-2">
+          <a :href="telUrl(resumen.telefono)" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-600 text-[16px] font-semibold text-blue-700 active:bg-blue-50"><Phone class="size-4" /> Llamar</a>
+          <a :href="whatsappUrl(resumen.telefono)" target="_blank" rel="noopener" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-600 text-[16px] font-semibold text-blue-700 active:bg-blue-50"><MessageCircle class="size-4" /> WhatsApp</a>
+        </div>
+        <button
+          type="button"
+          class="mt-2 h-11 w-full rounded-xl bg-blue-600 text-[16px] font-semibold text-white active:bg-blue-700"
+          @click="abrir(seleccionado)"
+        >
+          Ver recorrido
+        </button>
+      </template>
       <ul v-else-if="grupo" class="mt-2 divide-y divide-slate-100">
         <li v-for="p in grupo" :key="p.id ?? p.gerencia">
           <button type="button" class="flex h-14 w-full items-center gap-3 text-left active:bg-slate-50" @click="elegir(p)">
