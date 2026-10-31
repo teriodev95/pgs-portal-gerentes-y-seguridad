@@ -5,7 +5,7 @@ import { latLngBounds, type Map as LeafletMap, type PointExpression } from 'leaf
 import { LCircleMarker, LPolyline, LTooltip } from '@vue-leaflet/vue-leaflet'
 import MapWidget from '@/shared/components/MapWidget.vue'
 import { EQUIPO_GPS_COLOR } from '../equipo-gps.constants'
-import { formatTime, gapLinks, routeBands, routeEnds, shade } from '../equipo-gps.helpers'
+import { formatDuration, formatTime, gapLinks, routeBands, routeEnds, shade } from '../equipo-gps.helpers'
 import type { RecorridoHoy, UbicacionGerente } from '../equipo-gps.types'
 
 const props = defineProps<{
@@ -96,17 +96,24 @@ defineExpose({ encuadrar, centrar })
       :interactive="false"
     />
 
+    <!-- Tramos medidos: línea sólida. Tramos estimados (sin puntos en medio): delgada y punteada, mismo color,
+         y al tocarla dice cuánto tiempo estuvo sin puntos. Igual que en MOX. -->
     <LPolyline
       v-for="(banda, index) in bandas"
       :key="`banda-${index}`"
       :lat-lngs="banda.points"
       :color="shade(EQUIPO_GPS_COLOR, banda.band / (BANDS - 1))"
-      :weight="5"
+      :weight="banda.estimated ? 3 : 5"
       :opacity="1"
+      :dash-array="banda.estimated ? '4 8' : undefined"
       :line-cap="'round'"
       :line-join="'round'"
-      :interactive="false"
-    />
+      :interactive="banda.estimated"
+    >
+      <LTooltip v-if="banda.estimated" :options="{ direction: 'top', className: 'equipo-gps-label' }">
+        Tramo estimado · sin puntos {{ formatDuration(banda.seconds) }}
+      </LTooltip>
+    </LPolyline>
 
     <LCircleMarker
       v-if="extremos"

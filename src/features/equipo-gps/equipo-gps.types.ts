@@ -50,7 +50,8 @@ export interface RecorridoHoy {
   hasta: string
   /** 10 dígitos del celular del gerente, o null si no está en su ficha. */
   telefono: string | null
-  tramos: { puntos: Vertice[] }[]
+  /** `estimado`: [desde, hasta, segundos] de los tramos sin puntos en medio (>800 m o >120 s en movimiento). */
+  tramos: { puntos: Vertice[]; estimado?: [string, string, number][] }[]
   paradas: { lat: number; lon: number; inicio: string; fin: string; segundos: number }[]
   huecos: { desde: string; hasta: string; segundos: number }[]
   resumen: { distancia_m: number; puntos: number; paradas: number }

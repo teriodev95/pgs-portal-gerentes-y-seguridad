@@ -37,17 +37,22 @@ export function routeBands(tramos: RecorridoHoy['tramos'], bands = 12) {
   const tracks = tramos.map((tramo) => tramo.puntos.filter(validVertex))
   const steps = tracks.map((points) => points.map((point, i) => (i ? meters(points[i - 1], point) : 0)))
   const total = steps.flat().reduce((sum, step) => sum + step, 0)
-  const lines: { band: number; points: Position[] }[] = []
+  const lines: { band: number; points: Position[]; estimated: boolean; seconds: number }[] = []
   let travelled = 0
   tracks.forEach((points, track) => {
+    // Un tramo estimado (FAX no tuvo puntos en medio) es su propia pieza punteada en el color de la banda; la
+    // línea sólida sigue en su otro extremo. Igual que MOX `routeBands`.
+    const estimated = new Map((tramos[track].estimado ?? []).map(([desde, hasta, segundos]) => [`${desde}|${hasta}`, segundos]))
     let line = undefined as (typeof lines)[number] | undefined
     points.forEach((point, i) => {
       travelled += steps[track][i]
       const band = total ? Math.min(bands - 1, Math.floor((travelled / total) * bands)) : bands - 1
-      if (line?.band === band) line.points.push(position(point))
+      const seconds = i > 0 ? estimated.get(`${points[i - 1][2]}|${point[2]}`) : undefined
+      const dashed = seconds !== undefined
+      if (line && line.band === band && !line.estimated && !dashed) line.points.push(position(point))
       else {
         const joint = line?.points[line.points.length - 1]
-        line = { band, points: joint ? [joint, position(point)] : [position(point)] }
+        line = { band, points: joint ? [joint, position(point)] : [position(point)], estimated: dashed, seconds: seconds ?? 0 }
         lines.push(line)
       }
     })
