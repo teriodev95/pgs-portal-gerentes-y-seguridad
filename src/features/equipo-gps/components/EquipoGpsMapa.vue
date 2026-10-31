@@ -1,12 +1,11 @@
 <script setup lang="ts">
-// Este componente es el único que importa Leaflet: entra al chunk perezoso que ya existe para
-// MapWidget y se descarga sólo cuando alguien abre el detalle de un gerente.
+// Único componente del detalle que importa Leaflet: entra al chunk perezoso que ya existe para MapWidget.
 import { computed, ref, watch } from 'vue'
 import { latLngBounds, type Map as LeafletMap, type PointExpression } from 'leaflet'
 import { LCircleMarker, LPolyline, LTooltip } from '@vue-leaflet/vue-leaflet'
 import MapWidget from '@/shared/components/MapWidget.vue'
 import { EQUIPO_GPS_COLOR } from '../equipo-gps.constants'
-import { formatDuration, formatTime, gapLinks, routeBands, routeEnds, shade } from '../equipo-gps.helpers'
+import { formatTime, gapLinks, routeBands, routeEnds, shade } from '../equipo-gps.helpers'
 import type { RecorridoHoy, UbicacionGerente } from '../equipo-gps.types'
 
 const props = defineProps<{
@@ -14,6 +13,8 @@ const props = defineProps<{
   recorrido: RecorridoHoy | null
   /** La persona sigue en movimiento: el marcador cierra la ruta como «Último punto», no «Fin». */
   enVivo: boolean
+  /** Alto (px) que el panel inferior tapa: el encuadre deja la ruta en la parte visible. */
+  margenInferior?: number
 }>()
 
 const BANDS = 12
@@ -29,11 +30,18 @@ const bandas = computed(() => (props.recorrido ? routeBands(props.recorrido.tram
 const huecos = computed(() => (props.recorrido ? gapLinks(props.recorrido) : []))
 const extremos = computed(() => (props.recorrido ? routeEnds(props.recorrido.tramos) : null))
 
+// Sólo dos etiquetas en el mapa: «Inicio HH:MM» y «Fin HH:MM» (o «Último punto»). Los huecos van
+// punteados y tenues, sin rótulo: su duración se lee en la línea del día del panel.
 const etiquetaInicio = computed(() => (extremos.value ? `Inicio ${formatTime(extremos.value.start[2])}` : ''))
 const etiquetaFin = computed(() => {
-  if (!extremos.value) return props.ubicacion ? `Último punto ${formatTime(props.ubicacion.registrado_at)}` : ''
-  const hora = formatTime(props.ubicacion?.registrado_at ?? extremos.value.end[2])
+  const hora = formatTime(props.ubicacion?.registrado_at ?? extremos.value?.end[2] ?? '')
   return `${props.enVivo ? 'Último punto' : 'Fin'} ${hora}`
+})
+// Si el último punto y el inicio caen en el mismo sitio, la etiqueta de inicio cede para no encimarse.
+const inicioSeparado = computed(() => {
+  if (!extremos.value || !props.ubicacion) return true
+  const [lat, lon] = extremos.value.start
+  return Math.hypot(lat - props.ubicacion.lat, lon - props.ubicacion.lon) > 0.0006
 })
 
 function encuadrar() {
@@ -42,8 +50,19 @@ function encuadrar() {
   map.invalidateSize()
   const puntos = bandas.value.flatMap((banda) => banda.points)
   if (props.ubicacion) puntos.push([props.ubicacion.lat, props.ubicacion.lon])
-  if (puntos.length > 1) map.fitBounds(latLngBounds(puntos), { padding: [24, 24], maxZoom: 16 })
+  const abajo = (props.margenInferior ?? 0) + 24
+  if (puntos.length > 1)
+    map.fitBounds(latLngBounds(puntos), { paddingTopLeft: [24, 72], paddingBottomRight: [24, abajo], maxZoom: 16 })
   else if (puntos.length === 1) map.setView(puntos[0], 15)
+}
+
+function centrar(lugar: [number, number], zoom = 16) {
+  const map = mapa.value
+  if (!map) return
+  // El panel tapa la mitad inferior: el punto se deja arriba del panel, no detrás.
+  const offset = (props.margenInferior ?? 0) / 2
+  const target = map.project(lugar, zoom).add([0, offset])
+  map.setView(map.unproject(target, zoom), zoom, { animate: true })
 }
 
 function onReady(map: LeafletMap) {
@@ -52,97 +71,89 @@ function onReady(map: LeafletMap) {
 }
 
 watch(bandas, encuadrar)
+defineExpose({ encuadrar, centrar })
 </script>
 
 <template>
-  <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
-    <MapWidget
-      :center="centro"
-      :zoom="15"
-      :max-zoom="17"
-      :options="{ preferCanvas: true, zoomControl: false, attributionControl: true }"
-      height-class="h-[52vh] min-h-[280px]"
-      no-remount
-      readonly
-      @ready="onReady"
+  <MapWidget
+    :center="centro"
+    :zoom="15"
+    :max-zoom="17"
+    :options="{ preferCanvas: true, zoomControl: false, attributionControl: false }"
+    height-class="h-full"
+    no-remount
+    readonly
+    @ready="onReady"
+  >
+    <LPolyline
+      v-for="(hueco, index) in huecos"
+      :key="`hueco-${index}`"
+      :lat-lngs="[hueco.from, hueco.to]"
+      :color="'#94a3b8'"
+      :weight="2"
+      :opacity="0.7"
+      :dash-array="'2 6'"
+      :interactive="false"
+    />
+
+    <LPolyline
+      v-for="(banda, index) in bandas"
+      :key="`banda-${index}`"
+      :lat-lngs="banda.points"
+      :color="shade(EQUIPO_GPS_COLOR, banda.band / (BANDS - 1))"
+      :weight="5"
+      :opacity="1"
+      :line-cap="'round'"
+      :line-join="'round'"
+      :interactive="false"
+    />
+
+    <LCircleMarker
+      v-if="extremos"
+      :lat-lng="[extremos.start[0], extremos.start[1]]"
+      :radius="6"
+      :color="'#ffffff'"
+      :fill-color="shade(EQUIPO_GPS_COLOR, 0)"
+      :fill-opacity="1"
+      :weight="2"
     >
-      <!-- Huecos sin ubicación: punteados y nunca unidos a la ruta. -->
-      <LPolyline
-        v-for="(hueco, index) in huecos"
-        :key="`hueco-${index}`"
-        :lat-lngs="[hueco.from, hueco.to]"
-        :color="'#64748b'"
-        :weight="2"
-        :opacity="0.9"
-        :dash-array="'2 6'"
-        :interactive="false"
+      <LTooltip
+        v-if="inicioSeparado"
+        :options="{ permanent: true, direction: 'top', offset: [0, -6], className: 'equipo-gps-label' }"
       >
-        <LTooltip :options="{ permanent: true, direction: 'center', className: 'equipo-gps-gap' }">
-          Sin ubicación {{ formatDuration(hueco.seconds) }}
-        </LTooltip>
-      </LPolyline>
+        {{ etiquetaInicio }}
+      </LTooltip>
+    </LCircleMarker>
 
-      <LPolyline
-        v-for="(banda, index) in bandas"
-        :key="`banda-${index}`"
-        :lat-lngs="banda.points"
-        :color="shade(EQUIPO_GPS_COLOR, banda.band / (BANDS - 1))"
-        :weight="5"
-        :opacity="1"
-        :line-cap="'round'"
-        :line-join="'round'"
-        :interactive="false"
-      />
-
-      <LCircleMarker
-        v-if="extremos"
-        :lat-lng="[extremos.start[0], extremos.start[1]]"
-        :radius="6"
-        :color="'#ffffff'"
-        :fill-color="shade(EQUIPO_GPS_COLOR, 0)"
-        :fill-opacity="1"
-        :weight="2"
-      >
-        <LTooltip :options="{ permanent: true, direction: 'top', offset: [0, -6] }">{{ etiquetaInicio }}</LTooltip>
-      </LCircleMarker>
-
-      <LCircleMarker
-        v-if="ubicacion"
-        :lat-lng="[ubicacion.lat, ubicacion.lon]"
-        :radius="8"
-        :color="'#ffffff'"
-        :fill-color="EQUIPO_GPS_COLOR"
-        :fill-opacity="1"
-        :weight="3"
-      >
-        <LTooltip :options="{ permanent: true, direction: 'top', offset: [0, -8] }">{{ etiquetaFin }}</LTooltip>
-      </LCircleMarker>
-    </MapWidget>
-
-    <!-- Leyenda del degradado: Inicio ▬ Fin -->
-    <div
-      v-if="bandas.length"
-      class="pointer-events-none absolute bottom-2 left-2 z-[400] flex items-center gap-2 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-medium text-slate-700 shadow"
+    <LCircleMarker
+      v-if="ubicacion"
+      :lat-lng="[ubicacion.lat, ubicacion.lon]"
+      :radius="8"
+      :color="'#ffffff'"
+      :fill-color="EQUIPO_GPS_COLOR"
+      :fill-opacity="1"
+      :weight="3"
     >
-      Inicio
-      <span
-        class="h-1.5 w-14 rounded-full"
-        :style="{ background: `linear-gradient(90deg, ${shade(EQUIPO_GPS_COLOR, 0)}, ${shade(EQUIPO_GPS_COLOR, 1)})` }"
-      />
-      Fin
-    </div>
-  </div>
+      <LTooltip :options="{ permanent: true, direction: 'top', offset: [0, -8], className: 'equipo-gps-label' }">
+        {{ etiquetaFin }}
+      </LTooltip>
+    </LCircleMarker>
+  </MapWidget>
 </template>
 
 <style>
-.equipo-gps-gap {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px dashed #94a3b8;
-  color: #475569;
-  font-size: 11px;
-  padding: 1px 6px;
+/* Etiquetas del mapa: una sola superficie blanca, esquinas de 8, texto 13. */
+.leaflet-tooltip.equipo-gps-label {
+  background: #ffffff;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.16);
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 8px;
 }
-.equipo-gps-gap::before {
+.leaflet-tooltip.equipo-gps-label::before {
   display: none;
 }
 </style>

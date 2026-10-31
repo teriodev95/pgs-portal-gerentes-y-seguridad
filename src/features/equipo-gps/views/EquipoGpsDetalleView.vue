@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { BatteryMedium, Crosshair, Route } from 'lucide-vue-next'
-import MainCT from '@/shared/components/ui/MainCT.vue'
-import NavbarCT from '@/shared/components/ui/NavbarCT.vue'
+import { ChevronLeft, Crosshair, MessageCircle, Phone } from 'lucide-vue-next'
 import EquipoGpsEstado from '../components/EquipoGpsEstado.vue'
+import EquipoGpsPanel from '../components/EquipoGpsPanel.vue'
 import { useEquipoGps } from '../composables/useEquipoGps'
-import { formatDistance, formatTime } from '../equipo-gps.helpers'
+import { formatDistance, formatTime, lineaDelDia, sucursalNombre, telUrl, titleCase, whatsappUrl } from '../equipo-gps.helpers'
 import { equipoGpsError, equipoGpsService } from '../equipo-gps.service'
-import type { RecorridoHoy } from '../equipo-gps.types'
+import type { EventoDia, RecorridoHoy } from '../equipo-gps.types'
 
 // El mapa (Leaflet) se descarga sólo al llegar aquí; la lista nunca lo paga.
 const EquipoGpsMapa = defineAsyncComponent(() => import('../components/EquipoGpsMapa.vue'))
@@ -21,103 +20,159 @@ const id = computed(() => Number(route.params.id))
 const gerente = computed(() => buscar(id.value))
 
 const recorrido = ref<RecorridoHoy | null>(null)
-const cargandoRecorrido = ref(false)
+const cargando = ref(false)
 const errorRecorrido = ref('')
+const abierto = ref(false)
+const altoPanel = ref(0)
+const mapa = ref<{ encuadrar: () => void; centrar: (lugar: [number, number], zoom?: number) => void }>()
 
-onMounted(() => {
-  // Entrada directa por URL: todavía no hay equipo en memoria.
-  if (!equipo.value) void cargar()
-})
-
-async function verRecorrido() {
-  if (cargandoRecorrido.value) return
-  cargandoRecorrido.value = true
+async function cargarRecorrido() {
+  if (cargando.value || !Number.isFinite(id.value)) return
+  cargando.value = true
   errorRecorrido.value = ''
   try {
     recorrido.value = await equipoGpsService.recorridoHoy(id.value)
   } catch (cause) {
     errorRecorrido.value = equipoGpsError(cause, 'No se pudo cargar el recorrido.')
   } finally {
-    cargandoRecorrido.value = false
+    cargando.value = false
   }
 }
 
-// Si cambia de gerente sin salir de la vista, el recorrido anterior no aplica.
+onMounted(() => {
+  // Entrada directa por URL: todavía no hay equipo en memoria.
+  if (!equipo.value) void cargar()
+  void cargarRecorrido()
+})
+
 watch(id, () => {
   recorrido.value = null
-  errorRecorrido.value = ''
+  void cargarRecorrido()
 })
 
-const resumen = computed(() => {
-  const r = recorrido.value
-  if (!r) return ''
-  const paradas = `${r.resumen.paradas} ${r.resumen.paradas === 1 ? 'parada' : 'paradas'}`
-  return `${formatDistance(r.resumen.distancia_m)} · ${paradas}${r.huecos.length ? ` · ${r.huecos.length} sin ubicación` : ''}`
-})
+const enVivo = computed(() => gerente.value?.estado === 'activo')
+const eventos = computed<EventoDia[]>(() => (recorrido.value ? lineaDelDia(recorrido.value, enVivo.value) : []))
+const telefono = computed(() => recorrido.value?.telefono ?? null)
 
-const titulo = computed(() => gerente.value?.nombre ?? 'Gerente')
-const subtitulos = computed(() =>
-  gerente.value ? [`${gerente.value.gerencia} · ${gerente.value.usuario ?? ''}`] : ['Hoy · 07:00 a 20:00']
-)
+const datos = computed(() => [
+  { etiqueta: 'Recorrido', valor: recorrido.value ? formatDistance(recorrido.value.resumen.distancia_m) : '—' },
+  { etiqueta: 'Paradas', valor: recorrido.value ? String(recorrido.value.resumen.paradas) : '—' },
+  { etiqueta: 'Huecos', valor: recorrido.value ? String(recorrido.value.huecos.length) : '—' }
+])
+
+function irA(evento: EventoDia) {
+  if (evento.lugar) mapa.value?.centrar(evento.lugar)
+}
 </script>
 
 <template>
-  <MainCT>
-    <NavbarCT :title="titulo" :subtitles="subtitulos" show-back-button @back="router.back()" />
+  <div class="relative h-dvh w-full overflow-hidden bg-slate-100">
+    <!-- Mapa a pantalla completa -->
+    <div class="absolute inset-0">
+      <EquipoGpsMapa
+        v-if="gerente"
+        ref="mapa"
+        :ubicacion="gerente.ubicacion"
+        :recorrido="recorrido"
+        :en-vivo="enVivo"
+        :margen-inferior="altoPanel"
+      />
+    </div>
 
-    <div class="mx-auto w-full max-w-2xl space-y-3 px-4 py-4 pb-12">
-      <p
-        v-if="equipo && !gerente"
-        class="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600"
-      >
-        Ese gerente no está en tu equipo.
-      </p>
+    <!-- Botones flotantes 44 px: regresar y centrar -->
+    <button
+      type="button"
+      class="absolute left-4 top-4 z-[600] inline-flex size-11 items-center justify-center rounded-full bg-white text-slate-800 shadow-[0_2px_8px_rgba(15,23,42,0.16)] active:bg-slate-50"
+      style="top: calc(env(safe-area-inset-top) + 16px)"
+      aria-label="Regresar"
+      @click="router.back()"
+    >
+      <ChevronLeft class="size-6" />
+    </button>
+    <button
+      type="button"
+      class="absolute right-4 top-4 z-[600] inline-flex size-11 items-center justify-center rounded-full bg-white text-blue-600 shadow-[0_2px_8px_rgba(15,23,42,0.16)] active:bg-slate-50"
+      style="top: calc(env(safe-area-inset-top) + 16px)"
+      aria-label="Centrar el recorrido"
+      @click="mapa?.encuadrar()"
+    >
+      <Crosshair class="size-5" />
+    </button>
+    <a
+      v-show="!abierto"
+      class="absolute right-4 z-[600] rounded bg-white/80 px-1.5 text-[10px] text-slate-500"
+      :style="{ bottom: `${altoPanel + 8}px` }"
+      href="https://www.openstreetmap.org/copyright"
+      target="_blank"
+      rel="noopener"
+    >© OpenStreetMap</a>
 
-      <template v-else-if="gerente">
-        <section class="space-y-1 rounded-2xl border border-slate-200 bg-white p-4">
-          <EquipoGpsEstado :gerente="gerente" :now="now" />
-          <dl v-if="gerente.ubicacion" class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
-            <div class="inline-flex items-center gap-1">
-              <Crosshair class="size-3.5" />
-              <dt class="sr-only">Hora y precisión</dt>
-              <dd>{{ formatTime(gerente.ubicacion.registrado_at) }} · ±{{ gerente.ubicacion.precision_m }} m</dd>
-            </div>
-            <div v-if="gerente.ubicacion.bateria !== null" class="inline-flex items-center gap-1">
-              <BatteryMedium class="size-3.5" />
-              <dt class="sr-only">Batería</dt>
-              <dd>{{ gerente.ubicacion.bateria }} %</dd>
-            </div>
-          </dl>
-          <p v-else class="text-xs text-slate-500">
-            Sin ubicación que mostrar hoy en horario. El historial completo está en MOX.
-          </p>
-        </section>
-
-        <EquipoGpsMapa
-          v-if="gerente.ubicacion || recorrido"
-          :ubicacion="gerente.ubicacion"
-          :recorrido="recorrido"
-          :en-vivo="gerente.estado === 'activo'"
-        />
-
-        <button
-          v-if="gerente.estado !== 'sin_app' && !recorrido"
-          type="button"
-          class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white disabled:opacity-60"
-          :disabled="cargandoRecorrido"
-          @click="verRecorrido"
-        >
-          <Route class="size-4" />
-          {{ cargandoRecorrido ? 'Cargando recorrido…' : 'Ver recorrido de hoy' }}
-        </button>
-
-        <p v-if="resumen" class="px-1 text-sm text-slate-700">{{ resumen }}</p>
-        <p v-if="errorRecorrido" class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900" role="alert">
-          {{ errorRecorrido }}
-        </p>
+    <!-- Panel inferior -->
+    <EquipoGpsPanel v-if="gerente" v-model:abierto="abierto" @altura="altoPanel = $event">
+      <template #encabezado>
+        <!-- El nombre completo en su línea; gerencia y estado comparten la segunda. -->
+        <h1 class="truncate text-[20px] font-semibold leading-6 text-slate-900">{{ titleCase(gerente.nombre) }}</h1>
+        <div class="mt-1 flex items-center justify-between gap-3">
+          <p class="truncate text-[13px] leading-4 text-slate-500">{{ gerente.gerencia }} · {{ sucursalNombre(gerente.sucursal) }}</p>
+          <EquipoGpsEstado :gerente="gerente" :now="now" chip />
+        </div>
       </template>
 
-      <div v-else class="h-24 animate-pulse rounded-2xl bg-white" aria-busy="true" />
-    </div>
-  </MainCT>
+      <dl class="mt-3 grid grid-cols-3 gap-2">
+        <div v-for="d in datos" :key="d.etiqueta" class="rounded-xl bg-slate-50 px-3 py-2 text-center">
+          <dt class="text-[13px] leading-4 text-slate-500">{{ d.etiqueta }}</dt>
+          <dd class="mt-0.5 text-[16px] font-semibold tabular-nums leading-5 text-slate-900" :class="cargando && 'animate-pulse'">{{ d.valor }}</dd>
+        </div>
+      </dl>
+
+      <div v-if="telefono" class="mt-3 grid grid-cols-2 gap-2">
+        <a :href="telUrl(telefono)" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 text-[16px] font-semibold text-white active:bg-blue-700">
+          <Phone class="size-4" /> Llamar
+        </a>
+        <a :href="whatsappUrl(telefono)" target="_blank" rel="noopener" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-600 text-[16px] font-semibold text-blue-700 active:bg-blue-50">
+          <MessageCircle class="size-4" /> WhatsApp
+        </a>
+      </div>
+
+      <p v-if="errorRecorrido" class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-3 text-[13px] text-amber-900" role="alert">
+        <span>{{ errorRecorrido }}</span>
+        <button type="button" class="shrink-0 font-semibold text-blue-700" @click="cargarRecorrido">Reintentar</button>
+      </p>
+
+      <!-- Abierto: la línea del día -->
+      <section class="mt-4">
+        <h2 class="text-[13px] font-semibold uppercase tracking-wide text-slate-500">Línea del día</h2>
+        <p v-if="gerente.ubicacion" class="mt-1 text-[13px] leading-4 text-slate-500">
+          {{ formatTime(gerente.ubicacion.registrado_at) }} · ±{{ gerente.ubicacion.precision_m }} m<template v-if="gerente.ubicacion.bateria !== null"> · batería {{ gerente.ubicacion.bateria }} %</template>
+        </p>
+        <ol v-if="eventos.length" class="mt-2 divide-y divide-slate-100">
+          <li v-for="(evento, index) in eventos" :key="index">
+            <button
+              type="button"
+              class="flex h-12 w-full items-center gap-3 text-left"
+              :class="evento.lugar ? 'active:bg-slate-50' : 'cursor-default'"
+              :disabled="!evento.lugar"
+              @click="irA(evento)"
+            >
+              <span
+                class="size-2 shrink-0 rounded-full"
+                :class="evento.tipo === 'hueco' ? 'border border-dashed border-slate-400' : evento.tipo === 'parada' ? 'bg-slate-400' : 'bg-blue-600'"
+                aria-hidden="true"
+              />
+              <span class="flex-1 text-[16px] leading-5" :class="evento.tipo === 'hueco' ? 'text-slate-400' : 'text-slate-900'">{{ evento.titulo }}</span>
+              <span class="text-[13px] tabular-nums leading-4" :class="evento.tipo === 'hueco' ? 'text-slate-400' : 'text-slate-500'">{{ evento.detalle }}</span>
+            </button>
+          </li>
+        </ol>
+        <p v-else-if="!cargando && recorrido" class="mt-2 text-[13px] text-slate-500">Sin recorrido hoy en horario.</p>
+        <ul v-else-if="cargando" class="mt-2 space-y-3" aria-busy="true">
+          <li v-for="n in 4" :key="n" class="h-4 w-2/3 animate-pulse rounded bg-slate-100" />
+        </ul>
+      </section>
+    </EquipoGpsPanel>
+
+    <p v-else-if="equipo" class="absolute inset-x-4 top-20 z-[600] rounded-xl bg-white p-4 text-[16px] text-slate-600 shadow">
+      Ese gerente no está en tu equipo.
+    </p>
+  </div>
 </template>

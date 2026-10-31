@@ -1,7 +1,8 @@
 // Funciones puras del recorrido, copiadas de MOX `modules/rastreo-gps/helpers.ts` (routeBands, routeEnds,
 // shade, pointAge, isFresh) y adaptadas al contrato compacto de FAX para PGS (vértices como arreglos).
 // Así PGS y MOX pintan idéntico: línea clara al inicio, oscura al final; huecos punteados sin unir.
-import type { RecorridoHoy, Vertice } from './equipo-gps.types'
+import type { EstadoGerente, EventoDia, FiltroEquipo, GerenteEquipo, RecorridoHoy, Vertice } from './equipo-gps.types'
+import { SUCURSALES } from './equipo-gps.constants'
 
 export type Position = [number, number]
 
@@ -139,4 +140,158 @@ export function formatDuration(seconds: number) {
   const minutes = Math.round(Math.max(0, seconds) / 60)
   if (minutes < 60) return `${minutes} min`
   return `${Math.floor(minutes / 60)} h${minutes % 60 ? ` ${minutes % 60} min` : ''}`
+}
+
+// --- Lista y panel: texto, orden y agrupación. Puras, sin Vue. ---
+
+const MINUSCULAS = new Set(['de', 'del', 'la', 'las', 'los', 'y', 'e', 'da', 'do', 'dos', 'das'])
+
+/** «MA. CARMEN TEPATZI SANCHEZ» → «Ma. Carmen Tepatzi Sanchez». Las mayúsculas sostenidas cansan la lectura. */
+export function titleCase(value: string | null | undefined): string {
+  if (!value) return ''
+  return value
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, index) =>
+      index > 0 && MINUSCULAS.has(word) ? word : word.charAt(0).toUpperCase() + word.slice(1)
+    )
+    .join(' ')
+}
+
+/** Dos letras para el marcador del mapa: «Ana López» → «AL». */
+export function initials(value: string | null | undefined): string {
+  const parts = (value ?? '').trim().split(/\s+/).filter(Boolean)
+  if (!parts.length) return '·'
+  const first = parts[0].charAt(0)
+  const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : ''
+  return (first + last).toUpperCase()
+}
+
+export function sucursalNombre(codigo: string | null | undefined): string {
+  return (codigo && SUCURSALES[codigo]) || codigo || 'Sin sucursal'
+}
+
+/** «hace 1 min», «hace 2 h»: la antigüedad corta que va a la derecha de cada fila. */
+export function agoShort(iso: string | null | undefined, now = Date.now()): string {
+  if (!iso || !Number.isFinite(Date.parse(iso))) return ''
+  const seconds = Math.max(0, (now - Date.parse(iso)) / 1000)
+  if (seconds < 60) return 'ahora'
+  if (seconds < 3600) return `hace ${Math.floor(seconds / 60)} min`
+  if (seconds < 86400) return `hace ${Math.floor(seconds / 3600)} h`
+  return `hace ${Math.floor(seconds / 86400)} d`
+}
+
+/** Texto del estado; siempre acompaña al color. */
+export function estadoTexto(estado: EstadoGerente): string {
+  switch (estado) {
+    case 'activo':
+      return 'Activa'
+    case 'sin_senal':
+      return 'Sin señal'
+    case 'sin_hoy':
+      return 'Sin ubicación hoy'
+    case 'fuera_horario':
+      return 'Fuera de horario'
+    case 'sin_app':
+      return 'Sin la app'
+    case 'vacante':
+      return 'Vacante'
+  }
+}
+
+/** Para los filtros: lo que no es activo ni vacante cuenta como «sin señal» (no hay dónde ubicarlo hoy). */
+export function esSinSenal(gerente: GerenteEquipo): boolean {
+  return gerente.estado !== 'activo' && gerente.estado !== 'vacante'
+}
+
+export function pasaFiltro(gerente: GerenteEquipo, filtro: FiltroEquipo, busqueda: string): boolean {
+  if (gerente.estado === 'vacante') return false
+  if (filtro === 'activos' && gerente.estado !== 'activo') return false
+  if (filtro === 'sin_senal' && !esSinSenal(gerente)) return false
+  const q = busqueda.trim().toLowerCase()
+  if (!q) return true
+  return `${gerente.nombre ?? ''} ${gerente.gerencia} ${gerente.usuario ?? ''}`.toLowerCase().includes(q)
+}
+
+const registrado = (g: GerenteEquipo) => Date.parse(g.ubicacion?.registrado_at ?? '') || 0
+
+/** Primero sin señal, empezando por quien lleva más tiempo; después los activos (los más recientes al final). */
+export function ordenarGerentes(gerentes: GerenteEquipo[]): GerenteEquipo[] {
+  return [...gerentes].sort((a, b) => {
+    const grupo = (g: GerenteEquipo) => (g.estado === 'sin_app' ? 0 : g.estado === 'sin_hoy' || g.estado === 'fuera_horario' ? 1 : g.estado === 'sin_senal' ? 2 : 3)
+    const ga = grupo(a)
+    const gb = grupo(b)
+    if (ga !== gb) return ga - gb
+    if (ga === 2 || ga === 3) return registrado(a) - registrado(b)
+    return (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es')
+  })
+}
+
+export interface GrupoSucursal {
+  codigo: string
+  nombre: string
+  gerentes: GerenteEquipo[]
+}
+
+/** Grupos por sucursal en el orden fijo de la empresa, cada uno ya filtrado y ordenado. */
+export function agruparPorSucursal(
+  gerentes: GerenteEquipo[],
+  filtro: FiltroEquipo,
+  busqueda: string
+): GrupoSucursal[] {
+  const orden = Object.keys(SUCURSALES)
+  const porCodigo = new Map<string, GerenteEquipo[]>()
+  for (const g of gerentes) {
+    if (!pasaFiltro(g, filtro, busqueda)) continue
+    const codigo = g.sucursal ?? '—'
+    if (!porCodigo.has(codigo)) porCodigo.set(codigo, [])
+    porCodigo.get(codigo)!.push(g)
+  }
+  return [...porCodigo.entries()]
+    .sort(([a], [b]) => (orden.indexOf(a) + 1 || 99) - (orden.indexOf(b) + 1 || 99))
+    .map(([codigo, lista]) => ({ codigo, nombre: sucursalNombre(codigo), gerentes: ordenarGerentes(lista) }))
+}
+
+export function telUrl(telefono: string): string {
+  return `tel:+52${telefono}`
+}
+
+export function whatsappUrl(telefono: string): string {
+  return `https://wa.me/52${telefono}`
+}
+
+/** La línea del día del panel abierto: Inicio, cada parada con su duración, los huecos en gris y el Fin. */
+export function lineaDelDia(recorrido: RecorridoHoy, enVivo: boolean): EventoDia[] {
+  const ends = routeEnds(recorrido.tramos)
+  if (!ends) return []
+  const eventos: (EventoDia & { at: number })[] = [
+    { tipo: 'inicio', titulo: 'Inicio', detalle: formatTime(ends.start[2]), lugar: [ends.start[0], ends.start[1]], at: time(ends.start) }
+  ]
+  recorrido.paradas.forEach((parada, index) => {
+    eventos.push({
+      tipo: 'parada',
+      titulo: `Parada ${index + 1}`,
+      detalle: `${formatTime(parada.inicio)} · ${formatDuration(parada.segundos)}`,
+      lugar: [parada.lat, parada.lon],
+      at: Date.parse(parada.inicio)
+    })
+  })
+  for (const hueco of recorrido.huecos) {
+    eventos.push({
+      tipo: 'hueco',
+      titulo: 'Sin ubicación',
+      detalle: `${formatTime(hueco.desde)} · ${formatDuration(hueco.segundos)}`,
+      lugar: null,
+      at: Date.parse(hueco.desde)
+    })
+  }
+  eventos.push({
+    tipo: 'fin',
+    titulo: enVivo ? 'Último punto' : 'Fin',
+    detalle: formatTime(ends.end[2]),
+    lugar: [ends.end[0], ends.end[1]],
+    at: time(ends.end) + 1
+  })
+  return eventos.sort((a, b) => a.at - b.at).map(({ at: _at, ...evento }) => evento)
 }

@@ -22,6 +22,8 @@ export interface GerenteEquipo {
   nombre: string | null
   usuario: string | null
   gerencia: string
+  /** Código de sucursal de la gerencia (GERC, GERD, GERDC, GERE, GERGC, GERM, GERP). */
+  sucursal: string | null
   estado: EstadoGerente
   ubicacion: UbicacionGerente | null
 }
@@ -42,9 +44,23 @@ export interface RecorridoHoy {
   fecha: string
   desde: string
   hasta: string
+  /** 10 dígitos del celular del gerente, o null si no está en su ficha. */
+  telefono: string | null
   tramos: { puntos: Vertice[] }[]
   paradas: { lat: number; lon: number; inicio: string; fin: string; segundos: number }[]
   huecos: { desde: string; hasta: string; segundos: number }[]
   resumen: { distancia_m: number; puntos: number; paradas: number }
   server_time: string
+}
+
+/** Filtro de la lista: los tres botones con conteo. */
+export type FiltroEquipo = 'todos' | 'activos' | 'sin_senal'
+
+/** Una fila de la línea del día en el panel del detalle. */
+export interface EventoDia {
+  tipo: 'inicio' | 'parada' | 'hueco' | 'fin'
+  titulo: string
+  detalle: string
+  /** Dónde centrar el mapa al tocar la fila; un hueco no tiene lugar. */
+  lugar: [number, number] | null
 }
