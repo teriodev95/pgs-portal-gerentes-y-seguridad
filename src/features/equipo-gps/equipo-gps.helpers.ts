@@ -34,15 +34,25 @@ export function meters(a: Vertice, b: Vertice): number {
  * el último punto del anterior (sin costuras). Teléfonos distintos nunca se unen.
  */
 export function routeBands(tramos: RecorridoHoy['tramos'], bands = 12) {
-  const tracks = tramos.map((tramo) => tramo.puntos.filter(validVertex))
+  // Con `ajustado` (OSRM) la línea del tramo es la calle: sus vértices no tienen hora ni estimados. Sin él, los
+  // puntos del teléfono como hoy.
+  const tracks = tramos.map((tramo) =>
+    tramo.ajustado?.length
+      ? tramo.ajustado.map(([lat, lon]) => [lat, lon, '', 0] as Vertice)
+      : tramo.puntos.filter(validVertex)
+  )
   const steps = tracks.map((points) => points.map((point, i) => (i ? meters(points[i - 1], point) : 0)))
   const total = steps.flat().reduce((sum, step) => sum + step, 0)
   const lines: { band: number; points: Position[]; estimated: boolean; seconds: number }[] = []
   let travelled = 0
   tracks.forEach((points, track) => {
     // Un tramo estimado (FAX no tuvo puntos en medio) es su propia pieza punteada en el color de la banda; la
-    // línea sólida sigue en su otro extremo. Igual que MOX `routeBands`.
-    const estimated = new Map((tramos[track].estimado ?? []).map(([desde, hasta, segundos]) => [`${desde}|${hasta}`, segundos]))
+    // línea sólida sigue en su otro extremo. Igual que MOX `routeBands`. Pegado a la calle no hay estimados.
+    const estimated = new Map(
+      tramos[track].ajustado?.length
+        ? []
+        : (tramos[track].estimado ?? []).map(([desde, hasta, segundos]) => [`${desde}|${hasta}`, segundos])
+    )
     let line = undefined as (typeof lines)[number] | undefined
     points.forEach((point, i) => {
       travelled += steps[track][i]
@@ -477,7 +487,13 @@ export function sliceDay(recorrido: RecorridoHoy, horas: RangoHoras): RecorridoH
     .map((tramo) => {
       const puntos = tramo.puntos.filter(inside)
       const kept = new Set(puntos.map((v) => v[2]))
-      return { puntos, estimado: (tramo.estimado ?? []).filter(([desde, hasta]) => kept.has(desde) && kept.has(hasta)) }
+      // La línea pegada a la calle no tiene horas: sólo sigue si el tramo entra completo en el rango.
+      const ajustado = puntos.length === tramo.puntos.length ? tramo.ajustado : undefined
+      return {
+        puntos,
+        estimado: (tramo.estimado ?? []).filter(([desde, hasta]) => kept.has(desde) && kept.has(hasta)),
+        ...(ajustado ? { ajustado } : {}),
+      }
     })
     .filter((tramo) => tramo.puntos.length)
   const paradas = recorrido.paradas.filter((p) => touches(p.inicio, p.fin))
@@ -493,7 +509,8 @@ export function sliceDay(recorrido: RecorridoHoy, horas: RangoHoras): RecorridoH
     tramos,
     paradas,
     huecos: recorrido.huecos.filter((h) => touches(h.desde, h.hasta)),
-    resumen: { distancia_m, puntos, paradas: paradas.length }
+    resumen: { distancia_m, puntos, paradas: paradas.length },
+    ajustado: tramos.some((tramo) => tramo.ajustado?.length)
   }
 }
 
