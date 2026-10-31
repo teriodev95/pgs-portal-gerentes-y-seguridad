@@ -24,12 +24,16 @@ export interface GerenteEquipo {
   gerencia: string
   /** Código de sucursal de la gerencia (GERC, GERD, GERDC, GERE, GERGC, GERM, GERP). */
   sucursal: string | null
+  /** Color que Oficina guardó en MOX; null = el color por defecto de la sucursal (`colorDe`). */
+  color: string | null
   estado: EstadoGerente
   ubicacion: UbicacionGerente | null
 }
 
 export interface EquipoRespuesta {
   gerentes: GerenteEquipo[]
+  /** Sucursales permitidas a quien mira (de sus gerencias y usuarios_sucursales): los chips salen de aquí. */
+  sucursales: string[]
   fecha: string
   desde: string
   hasta: string
@@ -55,6 +59,13 @@ export interface RecorridoHoy {
 
 /** Filtro de la lista: los tres botones con conteo. */
 export type FiltroEquipo = 'todos' | 'activos' | 'sin_senal'
+
+/** Un marcador del modo Mapa: una persona o un grupo de personas encimadas en pantalla. */
+export interface MarcadorMapa {
+  lat: number
+  lon: number
+  gerentes: GerenteEquipo[]
+}
 
 /** Una fila de la línea del día en el panel del detalle. */
 export interface EventoDia {

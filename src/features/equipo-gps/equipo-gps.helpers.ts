@@ -1,7 +1,7 @@
 // Funciones puras del recorrido, copiadas de MOX `modules/rastreo-gps/helpers.ts` (routeBands, routeEnds,
 // shade, pointAge, isFresh) y adaptadas al contrato compacto de FAX para PGS (vértices como arreglos).
 // Así PGS y MOX pintan idéntico: línea clara al inicio, oscura al final; huecos punteados sin unir.
-import type { EstadoGerente, EventoDia, FiltroEquipo, GerenteEquipo, RecorridoHoy, Vertice } from './equipo-gps.types'
+import type { EstadoGerente, EventoDia, FiltroEquipo, GerenteEquipo, MarcadorMapa, RecorridoHoy, Vertice } from './equipo-gps.types'
 import { SUCURSALES } from './equipo-gps.constants'
 
 export type Position = [number, number]
@@ -238,12 +238,13 @@ export interface GrupoSucursal {
 export function agruparPorSucursal(
   gerentes: GerenteEquipo[],
   filtro: FiltroEquipo,
-  busqueda: string
+  busqueda: string,
+  sucursal: string | null = null
 ): GrupoSucursal[] {
   const orden = Object.keys(SUCURSALES)
   const porCodigo = new Map<string, GerenteEquipo[]>()
   for (const g of gerentes) {
-    if (!pasaFiltro(g, filtro, busqueda)) continue
+    if (!pasaFiltro(g, filtro, busqueda) || !pasaSucursal(g, sucursal)) continue
     const codigo = g.sucursal ?? '—'
     if (!porCodigo.has(codigo)) porCodigo.set(codigo, [])
     porCodigo.get(codigo)!.push(g)
@@ -294,4 +295,99 @@ export function lineaDelDia(recorrido: RecorridoHoy, enVivo: boolean): EventoDia
     at: time(ends.end) + 1
   })
   return eventos.sort((a, b) => a.at - b.at).map(({ at: _at, ...evento }) => evento)
+}
+
+// --- Colores de Oficina: la misma regla que el monitor de MOX. ---
+// Copia de MOX `modules/shared/utils/sucursal-color.ts` (hex) y `defaultAppearance` de `rastreo-gps/helpers.ts`:
+// tomados del reporte impreso de Dirección; GoCash y DEC no tienen color de marca y caen a Pizarra.
+const COLOR_SUCURSAL: Record<string, string> = {
+  GERE: '#16a34a', // efectivo
+  GERD: '#d97706', // dinero
+  GERC: '#0891b2', // capital
+  GERM: '#78350f', // moneda
+  GERP: '#71717a' // plata
+}
+const NEUTRO = '#cbd5e1'
+const PIZARRA = '#334155'
+
+/** Color de marca de una sucursal (`GERE`…); sin color definido, neutro. Igual que MOX `getSucursalColor(...).hex`. */
+export function getSucursalColor(sucursal: string | null | undefined): string {
+  return COLOR_SUCURSAL[sucursal ?? ''] ?? NEUTRO
+}
+
+/** El color del marcador: el que Oficina guardó en MOX o, si no, el de la sucursal; neutro → Pizarra (como MOX). */
+export function colorDe(gerente: Pick<GerenteEquipo, 'color' | 'sucursal'>): string {
+  if (gerente.color && /^#[0-9a-f]{6}$/i.test(gerente.color)) return gerente.color
+  const propio = getSucursalColor(gerente.sucursal)
+  return propio === NEUTRO ? PIZARRA : propio
+}
+
+/** El color mezclado con blanco (t = 0.55 deja el 45 % del color): el «sin señal» sin depender de color-mix(). */
+export function conBlanco(hex: string, t: number): string {
+  return `#${[1, 3, 5]
+    .map((i) => {
+      const v = parseInt(hex.slice(i, i + 2), 16)
+      return Math.round(v + (255 - v) * Math.min(1, Math.max(0, t))).toString(16).padStart(2, '0')
+    })
+    .join('')}`
+}
+
+// --- Marcadores encimados: agrupar por cercanía en pantalla, sin librería. ---
+/** Proyección Web Mercator a píxeles para un zoom dado (la misma de Leaflet, 256 px por tesela). */
+export function proyectar(lat: number, lon: number, zoom: number): [number, number] {
+  const escala = 256 * 2 ** zoom
+  const x = ((lon + 180) / 360) * escala
+  const seno = Math.sin((lat * Math.PI) / 180)
+  const y = (0.5 - Math.log((1 + seno) / (1 - seno)) / (4 * Math.PI)) * escala
+  return [x, y]
+}
+
+/**
+ * Agrupa a quienes caerían a menos de `radioPx` entre sí en el zoom actual (greedy, de norte a sur): los
+ * marcadores no se enciman y el grupo dice «+N». Con 40 personas es inmediato.
+ */
+export function agruparMarcadores(gerentes: GerenteEquipo[], zoom: number, radioPx = 36): MarcadorMapa[] {
+  const puntos = gerentes
+    .filter((g) => g.ubicacion && g.id !== null)
+    .map((g) => ({ g, p: proyectar(g.ubicacion!.lat, g.ubicacion!.lon, zoom) }))
+    .sort((a, b) => a.p[1] - b.p[1])
+  const grupos: { x: number; y: number; items: typeof puntos }[] = []
+  for (const punto of puntos) {
+    const cerca = grupos.find((grupo) => Math.hypot(grupo.x - punto.p[0], grupo.y - punto.p[1]) < radioPx)
+    if (cerca) cerca.items.push(punto)
+    else grupos.push({ x: punto.p[0], y: punto.p[1], items: [punto] })
+  }
+  return grupos.map((grupo) => ({
+    lat: grupo.items.reduce((s, i) => s + i.g.ubicacion!.lat, 0) / grupo.items.length,
+    lon: grupo.items.reduce((s, i) => s + i.g.ubicacion!.lon, 0) / grupo.items.length,
+    gerentes: grupo.items.map((i) => i.g)
+  }))
+}
+
+/** Filtro por sucursal además del de estado; `null` = todas. */
+export function pasaSucursal(gerente: GerenteEquipo, sucursal: string | null): boolean {
+  return !sucursal || gerente.sucursal === sucursal
+}
+
+const FILTRO_KEY = 'equipo-gps-filtro'
+
+/** El filtro elegido sobrevive a cerrar la app; el almacenamiento puede fallar (privado, lleno) y no pasa nada. */
+export function leerFiltroGuardado(): { estado: FiltroEquipo; sucursal: string | null } | null {
+  try {
+    const raw = localStorage.getItem(FILTRO_KEY)
+    if (!raw) return null
+    const value = JSON.parse(raw)
+    const estado: FiltroEquipo = ['todos', 'activos', 'sin_senal'].includes(value?.estado) ? value.estado : 'todos'
+    return { estado, sucursal: typeof value?.sucursal === 'string' ? value.sucursal : null }
+  } catch {
+    return null
+  }
+}
+
+export function guardarFiltro(estado: FiltroEquipo, sucursal: string | null) {
+  try {
+    localStorage.setItem(FILTRO_KEY, JSON.stringify({ estado, sucursal }))
+  } catch {
+    /* sin almacenamiento: el filtro vive sólo en la sesión */
+  }
 }

@@ -100,7 +100,7 @@ function irA(evento: EventoDia) {
     </button>
     <a
       v-show="!abierto"
-      class="absolute right-4 z-[600] rounded bg-white/80 px-1.5 text-[10px] text-slate-500"
+      class="absolute left-1/2 z-[600] -translate-x-1/2 rounded bg-white/80 px-1.5 text-[10px] text-slate-500"
       :style="{ bottom: `${altoPanel + 8}px` }"
       href="https://www.openstreetmap.org/copyright"
       target="_blank"

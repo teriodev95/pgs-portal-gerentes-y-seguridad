@@ -20,7 +20,8 @@ const altoExpandido = computed(() => Math.round(alto.value * props.expandido))
 
 function fijar(abierto: boolean) {
   altoActual.value = abierto ? altoExpandido.value : altoAsomado.value
-  emit('altura', altoAsomado.value)
+  // La altura real: quien está debajo (mapa, botones flotantes) se acomoda encima del panel.
+  emit('altura', altoActual.value)
   if (abierto !== props.abierto) emit('update:abierto', abierto)
 }
 

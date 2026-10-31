@@ -2,8 +2,8 @@ import { computed, ref, watch } from 'vue'
 import { useDocumentVisibility, useIntervalFn, useOnline } from '@vueuse/core'
 import { EQUIPO_GPS_POLL_MS } from '../equipo-gps.constants'
 import { equipoGpsError, equipoGpsService } from '../equipo-gps.service'
-import { esSinSenal } from '../equipo-gps.helpers'
-import type { EquipoRespuesta, GerenteEquipo } from '../equipo-gps.types'
+import { esSinSenal, guardarFiltro, leerFiltroGuardado, pasaFiltro, pasaSucursal } from '../equipo-gps.helpers'
+import type { EquipoRespuesta, FiltroEquipo, GerenteEquipo } from '../equipo-gps.types'
 
 // Estado compartido entre la lista, el modo mapa y el detalle: abrir a un gerente no vuelve a pedir el
 // equipo, y volver a la lista la muestra al instante con lo último que se tenía.
@@ -14,6 +14,12 @@ const now = ref(Date.now())
 /** Momento del último refresco que llegó bien; alimenta «Actualizado hace X s». */
 const updatedAt = ref<number | null>(null)
 let inflight: Promise<void> | null = null
+
+// El filtro (estado + sucursal) es uno para la lista y el mapa, y se recuerda entre sesiones.
+const guardado = leerFiltroGuardado()
+const filtro = ref<FiltroEquipo>(guardado?.estado ?? 'todos')
+const sucursalFiltro = ref<string | null>(guardado?.sucursal ?? null)
+watch([filtro, sucursalFiltro], ([estado, sucursal]) => guardarFiltro(estado, sucursal))
 
 async function cargar() {
   if (inflight) return inflight
@@ -64,12 +70,33 @@ export function useEquipoGps() {
   const gerentes = computed<GerenteEquipo[]>(() => equipo.value?.gerentes ?? [])
   const conGerente = computed(() => gerentes.value.filter((g) => g.estado !== 'vacante'))
   const vacantes = computed(() => gerentes.value.filter((g) => g.estado === 'vacante'))
-  const activos = computed(() => conGerente.value.filter((g) => g.estado === 'activo').length)
-  const sinSenal = computed(() => conGerente.value.filter(esSinSenal).length)
+  /** Conteos de estado dentro de la sucursal elegida, y de sucursal dentro del estado elegido: se combinan. */
+  const enSucursal = computed(() => conGerente.value.filter((g) => pasaSucursal(g, sucursalFiltro.value)))
+  const activos = computed(() => enSucursal.value.filter((g) => g.estado === 'activo').length)
+  const sinSenal = computed(() => enSucursal.value.filter(esSinSenal).length)
+  /** Sólo las sucursales que FAX dice que el usuario puede ver; una sucursal no se vuelve una lista fija. */
+  const sucursales = computed(() =>
+    (equipo.value?.sucursales ?? []).map((codigo) => ({
+      codigo,
+      n: conGerente.value.filter((g) => g.sucursal === codigo && pasaFiltro(g, filtro.value, '')).length
+    }))
+  )
+  /** Los que pasan ambos filtros (sin búsqueda): lo que pinta el mapa. */
+  const visibles = computed(() =>
+    conGerente.value.filter((g) => pasaFiltro(g, filtro.value, '') && pasaSucursal(g, sucursalFiltro.value))
+  )
+
+  // Si el alcance cambió y la sucursal guardada ya no existe, el filtro vuelve a «todas».
+  watch(sucursales, (lista) => {
+    if (sucursalFiltro.value && lista.length && !lista.some((s) => s.codigo === sucursalFiltro.value)) sucursalFiltro.value = null
+  })
 
   function gerente(id: number) {
     return gerentes.value.find((g) => g.id === id) ?? null
   }
 
-  return { equipo, gerentes, conGerente, vacantes, activos, sinSenal, loading, error, now, updatedAt, cargar, gerente }
+  return {
+    equipo, gerentes, conGerente, vacantes, activos, sinSenal, sucursales, visibles, filtro, sucursalFiltro,
+    loading, error, now, updatedAt, cargar, gerente
+  }
 }
