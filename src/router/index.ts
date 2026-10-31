@@ -1,4 +1,4 @@
-import { AgendaGuard, AuthGuard, CashReportGuard } from './guard'
+import { AgendaGuard, AuthGuard, CashReportGuard, EquipoGpsGuard } from './guard'
 import { createRouter, createWebHistory } from 'vue-router'
 import { ROUTE_NAME } from './names'
 // Pages
@@ -153,6 +153,18 @@ const router = createRouter({
           name: ROUTE_NAME.CASH_REPORT,
           beforeEnter: CashReportGuard,
           component: () => import('@/features/cash-report/views/CashReportView.vue')
+        },
+        {
+          path: 'equipo-gps',
+          name: ROUTE_NAME.EQUIPO_GPS,
+          beforeEnter: EquipoGpsGuard,
+          component: () => import('@/features/equipo-gps/views/EquipoGpsView.vue')
+        },
+        {
+          path: 'equipo-gps/:id',
+          name: ROUTE_NAME.EQUIPO_GPS_DETALLE,
+          beforeEnter: EquipoGpsGuard,
+          component: () => import('@/features/equipo-gps/views/EquipoGpsDetalleView.vue')
         },
         {
           path: 'incident',

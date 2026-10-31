@@ -36,6 +36,7 @@ import {
   Banknote,
 } from 'lucide-vue-next'
 import { hasCashReportPermission } from '@/features/cash-report/cash-report.constants'
+import { hasEquipoGpsPermission } from '@/features/equipo-gps/equipo-gps.constants'
 
 /**
  * Tipos para el menú
@@ -163,6 +164,14 @@ export function useHomeMenu() {
       route: ROUTE_NAME.CASH_REPORT,
       disabled: !hasCashReportPermission($store.user),
       description: 'Por sucursal'
+    },
+    {
+      id: 'equipo-gps',
+      title: 'Mi equipo GPS',
+      icon: MapPin,
+      route: ROUTE_NAME.EQUIPO_GPS,
+      disabled: !hasEquipoGpsPermission($store.user),
+      description: 'Gerentes hoy'
     },
     {
       id: 'detalles',

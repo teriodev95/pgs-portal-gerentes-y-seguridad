@@ -47,6 +47,11 @@ const $props = withDefaults(
      *  media interacción: quien lo maneja por código (fitBounds sobre el
      *  objeto Leaflet del evento ready) lo desactiva. */
     noRemount?: boolean
+    /** Opciones crudas de Leaflet (p. ej. `preferCanvas` para dibujar muchas
+     *  polilíneas en un teléfono sin crear cientos de nodos SVG). */
+    options?: Record<string, unknown>
+    /** Tope de zoom; OSM no tiene teselas más allá de 19 y en móvil 17 basta. */
+    maxZoom?: number
   }>(),
   { heightClass: 'h-screen' }
 )
@@ -101,7 +106,8 @@ function doMoveZoom(_zoom: number) {
     :zoom="Number(zoom)"
     :center="center"
     :min-zoom="settings.zoom.min"
-    :max-zoom="settings.zoom.max"
+    :max-zoom="maxZoom ?? settings.zoom.max"
+    :options="options"
     @click="addMarker"
     @update:center="doMoveCenter"
     @update:zoom="doMoveZoom"

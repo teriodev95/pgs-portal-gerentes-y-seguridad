@@ -3,6 +3,7 @@ import type { NavigationGuard } from 'vue-router'
 import { ROUTE_NAME } from '.'
 import { getCashReportBranches, hasCashReportPermission } from '@/features/cash-report/cash-report.constants'
 import { AGENDA_RELEASED } from '@/features/security-agenda/constants'
+import { hasEquipoGpsPermission } from '@/features/equipo-gps/equipo-gps.constants'
 
 export const AuthGuard: NavigationGuard = (to, from, next) => {
   const $store = useStore()
@@ -31,5 +32,12 @@ export const CashReportGuard: NavigationGuard = (_to, _from, next) => {
   const $store = useStore()
   const hasAccess = hasCashReportPermission($store.user) && getCashReportBranches($store.user).length > 0
   if (hasAccess) next()
+  else next({ name: ROUTE_NAME.DASHBOARD_HOME })
+}
+
+/** Rastreo del equipo: sólo con el módulo `rastreo-equipo` de PGS; FAX vuelve a exigirlo. */
+export const EquipoGpsGuard: NavigationGuard = (_to, _from, next) => {
+  const $store = useStore()
+  if (hasEquipoGpsPermission($store.user)) next()
   else next({ name: ROUTE_NAME.DASHBOARD_HOME })
 }
