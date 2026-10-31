@@ -45,6 +45,11 @@ function abrir(gerente: GerenteEquipo) {
   if (gerente.id === null) return
   router.push({ name: ROUTE_NAME.EQUIPO_GPS_DETALLE, params: { id: String(gerente.id) } })
 }
+/** Abre el detalle con el seguimiento en vivo ya encendido. */
+function seguirEnVivo(gerente: GerenteEquipo) {
+  if (gerente.id === null) return
+  router.push({ name: ROUTE_NAME.EQUIPO_GPS_DETALLE, params: { id: String(gerente.id) }, query: { vivo: '1' } })
+}
 
 // Ficha del mapa: al tocar un marcador se pide el resumen ligero del día (< 1 KB); mientras llega, esqueleto.
 const resumenes = new Map<number, ResumenHoy>()
@@ -388,13 +393,22 @@ function tiraFin() {
           <a :href="telUrl(resumen.telefono)" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-600 text-[16px] font-semibold text-blue-700 active:bg-blue-50"><Phone class="size-4" /> Llamar</a>
           <a :href="whatsappUrl(resumen.telefono)" target="_blank" rel="noopener" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-600 text-[16px] font-semibold text-blue-700 active:bg-blue-50"><MessageCircle class="size-4" /> WhatsApp</a>
         </div>
-        <button
-          type="button"
-          class="mt-2 h-11 w-full rounded-xl bg-blue-600 text-[16px] font-semibold text-white active:bg-blue-700"
-          @click="abrir(seleccionado)"
-        >
-          Ver recorrido
-        </button>
+        <div class="mt-2 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-600 text-[16px] font-semibold text-blue-700 active:bg-blue-50"
+            @click="seguirEnVivo(seleccionado)"
+          >
+            <span class="size-2 rounded-full bg-emerald-500" aria-hidden="true" /> Seguir en vivo
+          </button>
+          <button
+            type="button"
+            class="h-11 rounded-xl bg-blue-600 text-[16px] font-semibold text-white active:bg-blue-700"
+            @click="abrir(seleccionado)"
+          >
+            Ver recorrido
+          </button>
+        </div>
       </template>
       <ul v-else-if="grupo" class="mt-2 divide-y divide-slate-100">
         <li v-for="p in grupo" :key="p.id ?? p.gerencia">

@@ -21,12 +21,20 @@ const props = defineProps<{
   color?: string
   /** Parada resaltada (índice), compartida con la línea del día. */
   paradaSeleccionada?: number | null
+  /** «Solo paradas»: sin líneas sólidas ni estimadas; quedan paradas, Inicio y último punto. */
+  soloParadas?: boolean
+  /** Modo «En vivo»: estela de los últimos minutos y pulso del marcador (sólo con señal fresca). */
+  estela?: [number, number, string][] | null
+  pulsa?: boolean
 }>()
-const emit = defineEmits<{ (e: 'parada', index: number): void }>()
+const emit = defineEmits<{ (e: 'parada', index: number): void; (e: 'arrastre'): void }>()
 
 const BANDS = 12
 const mapa = ref<LeafletMap>()
 const zoom = ref(15)
+// Cambia con cada movimiento: las etiquetas que tocarían el borde derecho se voltean a la izquierda.
+const vista = ref(0)
+const reducido = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 const colorPersona = computed(() => props.color ?? EQUIPO_GPS_COLOR)
 
 // Paradas: punto blanco numerado con borde del color de la persona, tres tamaños por duración (como MOX);
@@ -59,36 +67,70 @@ const inicioSeparado = computed(() => {
   return Math.hypot(lat - props.ubicacion.lat, lon - props.ubicacion.lon) > 0.0006
 })
 
-function encuadrar() {
+function encuadrarPuntos(puntos: [number, number][]) {
   const map = mapa.value
   if (!map) return
   map.invalidateSize()
-  const puntos = bandas.value.flatMap((banda) => banda.points)
-  if (props.ubicacion) puntos.push([props.ubicacion.lat, props.ubicacion.lon])
-  const abajo = (props.margenInferior ?? 0) + 24
+  const abajo = (props.margenInferior ?? 0) + 80
   if (puntos.length > 1)
-    map.fitBounds(latLngBounds(puntos), { paddingTopLeft: [24, 72], paddingBottomRight: [24, abajo], maxZoom: 16 })
-  else if (puntos.length === 1) map.setView(puntos[0], 15)
+    map.fitBounds(latLngBounds(puntos), { paddingTopLeft: [24, 120], paddingBottomRight: [24, abajo], maxZoom: 16, animate: !reducido })
+  else if (puntos.length === 1) map.setView(puntos[0], 15, { animate: !reducido })
 }
 
+function encuadrar() {
+  const puntos = props.soloParadas ? [] : bandas.value.flatMap((banda) => banda.points)
+  if (props.soloParadas) puntos.push(...paradas.value.map((p) => [p.lat, p.lon] as [number, number]), ...(extremos.value ? [[extremos.value.start[0], extremos.value.start[1]] as [number, number]] : []))
+  if (props.ubicacion) puntos.push([props.ubicacion.lat, props.ubicacion.lon])
+  encuadrarPuntos(puntos)
+}
+
+/** Vuela a un lugar con zoom cómodo; con «movimiento reducido» salta directo. */
 function centrar(lugar: [number, number], zoom = 16) {
   const map = mapa.value
   if (!map) return
-  // El panel tapa la mitad inferior: el punto se deja arriba del panel, no detrás.
+  // El panel tapa la parte inferior: el punto se deja arriba del panel, no detrás.
   const offset = (props.margenInferior ?? 0) / 2
   const target = map.project(lugar, zoom).add([0, offset])
-  map.setView(map.unproject(target, zoom), zoom, { animate: true })
+  const destino = map.unproject(target, zoom)
+  if (reducido) map.setView(destino, zoom, { animate: false })
+  else map.flyTo(destino, zoom, { duration: 0.6 })
+}
+
+/** Dirección de una etiqueta fija según dónde cae en pantalla: cerca del borde derecho, a la izquierda. */
+function direccion(lat: number, lon: number): 'top' | 'left' | 'right' {
+  void vista.value
+  const map = mapa.value
+  if (!map) return 'top'
+  const size = map.getSize()
+  const p = map.latLngToContainerPoint([lat, lon])
+  if (p.x > size.x - 120) return 'left'
+  if (p.x < 120) return 'right'
+  return 'top'
 }
 
 function onReady(map: LeafletMap) {
   mapa.value = map
   zoom.value = map.getZoom()
   map.on('zoomend', () => (zoom.value = map.getZoom()))
+  map.on('moveend zoomend resize', () => (vista.value += 1))
+  // Mover el mapa con el dedo pausa el seguimiento en vivo (convención de Google Maps).
+  map.on('dragstart', () => emit('arrastre'))
   encuadrar()
 }
 
+/** Seguir en vivo: desplaza al lugar sin cambiar el zoom del usuario. */
+function seguir(lugar: [number, number]) {
+  const map = mapa.value
+  if (!map) return
+  const offset = (props.margenInferior ?? 0) / 2
+  const zoomActual = map.getZoom()
+  const target = map.project(lugar, zoomActual).add([0, offset])
+  map.panTo(map.unproject(target, zoomActual), { animate: !reducido, duration: 0.5 })
+}
+
 watch(bandas, encuadrar)
-defineExpose({ encuadrar, centrar })
+watch(() => props.soloParadas, encuadrar)
+defineExpose({ encuadrar, centrar, seguir })
 </script>
 
 <template>
@@ -103,7 +145,7 @@ defineExpose({ encuadrar, centrar })
     @ready="onReady"
   >
     <LPolyline
-      v-for="(hueco, index) in huecos"
+      v-for="(hueco, index) in soloParadas ? [] : huecos"
       :key="`hueco-${index}`"
       :lat-lngs="[hueco.from, hueco.to]"
       :color="'#94a3b8'"
@@ -116,7 +158,7 @@ defineExpose({ encuadrar, centrar })
     <!-- Tramos medidos: línea sólida. Tramos estimados (sin puntos en medio): delgada y punteada, mismo color,
          y al tocarla dice cuánto tiempo estuvo sin puntos. Igual que en MOX. -->
     <LPolyline
-      v-for="(banda, index) in bandas"
+      v-for="(banda, index) in soloParadas ? [] : bandas"
       :key="`banda-${index}`"
       :lat-lngs="banda.points"
       :color="shade(EQUIPO_GPS_COLOR, banda.band / (BANDS - 1))"
@@ -152,11 +194,11 @@ defineExpose({ encuadrar, centrar })
         >{{ index + 1 }}</span>
       </LIcon>
       <LTooltip
-        :key="paradaSeleccionada === index ? 'fija' : masLargas.includes(index) ? 'larga' : 'toque'"
+        :key="`${paradaSeleccionada === index ? 'fija' : masLargas.includes(index) ? 'larga' : 'toque'}-${direccion(paradas[index].lat, paradas[index].lon) === 'left' ? 'izq' : 'der'}`"
         :options="{
           permanent: paradaSeleccionada === index || masLargas.includes(index),
-          direction: 'right',
-          offset: [STOP_PX[stopSize(paradas[index].segundos)] / 2 + 2, 0],
+          direction: direccion(paradas[index].lat, paradas[index].lon) === 'left' ? 'left' : 'right',
+          offset: [(direccion(paradas[index].lat, paradas[index].lon) === 'left' ? -1 : 1) * (STOP_PX[stopSize(paradas[index].segundos)] / 2 + 2), 0],
           className: paradaSeleccionada === index ? 'equipo-gps-label' : 'equipo-gps-parada-label'
         }"
       >
@@ -179,12 +221,34 @@ defineExpose({ encuadrar, centrar })
     >
       <LTooltip
         v-if="inicioSeparado"
-        :options="{ permanent: true, direction: 'top', offset: [0, -6], className: 'equipo-gps-label' }"
+        :key="`inicio-${direccion(extremos.start[0], extremos.start[1])}`"
+        :options="{ permanent: true, direction: direccion(extremos.start[0], extremos.start[1]), offset: direccion(extremos.start[0], extremos.start[1]) === 'top' ? [0, -6] : [direccion(extremos.start[0], extremos.start[1]) === 'left' ? -8 : 8, 0], className: 'equipo-gps-label' }"
       >
         {{ etiquetaInicio }}
       </LTooltip>
     </LCircleMarker>
 
+    <!-- Estela en vivo: los últimos minutos, delgada, en el color de la persona. -->
+    <LPolyline
+      v-if="estela && estela.length > 1"
+      :lat-lngs="estela.map((v) => [v[0], v[1]])"
+      :color="colorPersona"
+      :weight="3"
+      :opacity="0.9"
+      :line-cap="'round'"
+      :line-join="'round'"
+      :interactive="false"
+    />
+    <LCircleMarker
+      v-if="ubicacion && pulsa"
+      :lat-lng="[ubicacion.lat, ubicacion.lon]"
+      :radius="18"
+      :stroke="false"
+      :fill-color="EQUIPO_GPS_COLOR"
+      :fill-opacity="0.18"
+      :interactive="false"
+      :class-name="'equipo-gps-pulso'"
+    />
     <LCircleMarker
       v-if="ubicacion"
       :lat-lng="[ubicacion.lat, ubicacion.lon]"
@@ -194,7 +258,10 @@ defineExpose({ encuadrar, centrar })
       :fill-opacity="1"
       :weight="3"
     >
-      <LTooltip :options="{ permanent: true, direction: 'top', offset: [0, -8], className: 'equipo-gps-label' }">
+      <LTooltip
+        :key="`fin-${direccion(ubicacion.lat, ubicacion.lon)}`"
+        :options="{ permanent: true, direction: direccion(ubicacion.lat, ubicacion.lon), offset: direccion(ubicacion.lat, ubicacion.lon) === 'top' ? [0, -8] : [direccion(ubicacion.lat, ubicacion.lon) === 'left' ? -10 : 10, 0], className: 'equipo-gps-label' }"
+      >
         {{ etiquetaFin }}
       </LTooltip>
     </LCircleMarker>
@@ -202,16 +269,30 @@ defineExpose({ encuadrar, centrar })
 </template>
 
 <style>
-/* Etiquetas del mapa: una sola superficie blanca, esquinas de 8, texto 13. */
+/* Etiquetas informativas del mapa («Inicio 09:16»): sin sombra, no parecen botones (Norman). */
 .leaflet-tooltip.equipo-gps-label {
-  background: #ffffff;
-  border: 0;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.16);
+  box-shadow: none;
   color: #0f172a;
   font-size: 13px;
   font-weight: 600;
   padding: 4px 8px;
+}
+/* Pulso suave del punto en vivo (canvas: se anima la opacidad del contenedor por clase). */
+@keyframes equipo-gps-pulso {
+  0% { opacity: 0.9; }
+  50% { opacity: 0.25; }
+  100% { opacity: 0.9; }
+}
+.equipo-gps-pulso {
+  animation: equipo-gps-pulso 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .equipo-gps-pulso {
+    animation: none;
+  }
 }
 .leaflet-tooltip.equipo-gps-label::before {
   display: none;

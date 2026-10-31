@@ -76,6 +76,38 @@ export interface ResumenHoy {
   server_time: string
 }
 
+/** Un día con datos (de `/equipo/:id/dias`), para la tira de días. */
+export interface DiaConDatos {
+  fecha: string
+  puntos: number
+  distancia_m: number
+}
+
+/** Horas del día que se muestran (epoch ms); `to` null = hasta el final. Igual que MOX `HourRange`. */
+export interface RangoHoras {
+  from: number
+  to: number | null
+}
+
+/** Una «pista» del navegador de paradas: Inicio, cada parada y el Fin/Último punto. */
+export interface Pista {
+  tipo: 'inicio' | 'parada' | 'fin'
+  titulo: string
+  detalle: string
+  lugar: [number, number]
+  /** Índice de la parada (sólo tipo parada). */
+  parada: number | null
+}
+
+/** `/equipo/:id/ultima`: la última captura para «En vivo» (< 300 B) y, con `estela=1`, los últimos 15 min. */
+export interface UltimaPosicion {
+  user_id: number
+  estado: 'activo' | 'sin_senal' | 'sin_hoy' | 'fuera_horario'
+  ubicacion: UbicacionGerente | null
+  estela?: [number, number, string][]
+  server_time: string
+}
+
 /** Filtro de la lista: los tres botones con conteo. */
 export type FiltroEquipo = 'todos' | 'activos' | 'sin_senal'
 

@@ -1,7 +1,7 @@
 import type { AxiosRequestHeaders, InternalAxiosRequestConfig } from 'axios'
 import { createApiClientFromPreset } from '@/shared/services/core/api-client'
 import { useStore } from '@/shared/stores'
-import type { EquipoRespuesta, RecorridoHoy, ResumenHoy } from './equipo-gps.types'
+import type { DiaConDatos, EquipoRespuesta, RecorridoHoy, ResumenHoy, UltimaPosicion } from './equipo-gps.types'
 
 // FAX valida la sesión de PGS en el mismo `pax-me` de Elysia, así que viaja el mismo
 // Bearer `base64(usuario:pin)` que ya usan las llamadas a Elysia. Los GET a FAX no llevan
@@ -41,6 +41,33 @@ export const equipoGpsService = {
     const { data } = await client.get<ResumenHoy>(`/rastreo/monitor/equipo/${gerenteId}/hoy`, {
       params: { resumen: 1, ...(incluirPrueba() ? { incluir_prueba: true } : {}) },
       timeout: 20_000
+    })
+    return data
+  },
+
+  /** Un día anterior (hasta 30 días), misma ventana 07:00–20:00 y mismo alcance. */
+  async recorridoDia(gerenteId: number, fecha: string): Promise<RecorridoHoy> {
+    const { data } = await client.get<RecorridoHoy>(`/rastreo/monitor/equipo/${gerenteId}/dia`, {
+      params: { fecha, ...(incluirPrueba() ? { incluir_prueba: true } : {}) },
+      timeout: 30_000
+    })
+    return data
+  },
+
+  /** Los días con datos de los últimos 30: la tira de días sólo ofrece éstos. */
+  async diasConDatos(gerenteId: number): Promise<DiaConDatos[]> {
+    const { data } = await client.get<{ dias: DiaConDatos[] }>(`/rastreo/monitor/equipo/${gerenteId}/dias`, {
+      params: incluirPrueba() ? { incluir_prueba: true } : undefined,
+      timeout: 20_000
+    })
+    return data.dias
+  },
+
+  /** «En vivo»: la última captura con la estela de 15 min; se pide cada 15 s sólo con la pantalla visible. */
+  async ultima(gerenteId: number): Promise<UltimaPosicion> {
+    const { data } = await client.get<UltimaPosicion>(`/rastreo/monitor/equipo/${gerenteId}/ultima`, {
+      params: { estela: 1, ...(incluirPrueba() ? { incluir_prueba: true } : {}) },
+      timeout: 12_000
     })
     return data
   },

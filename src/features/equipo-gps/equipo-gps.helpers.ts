@@ -1,7 +1,7 @@
 // Funciones puras del recorrido, copiadas de MOX `modules/rastreo-gps/helpers.ts` (routeBands, routeEnds,
 // shade, pointAge, isFresh) y adaptadas al contrato compacto de FAX para PGS (vértices como arreglos).
 // Así PGS y MOX pintan idéntico: línea clara al inicio, oscura al final; huecos punteados sin unir.
-import type { EstadoGerente, EventoDia, FiltroEquipo, GerenteEquipo, MarcadorMapa, RecorridoHoy, Vertice } from './equipo-gps.types'
+import type { EstadoGerente, EventoDia, FiltroEquipo, GerenteEquipo, MarcadorMapa, Pista, RangoHoras, RecorridoHoy, Vertice } from './equipo-gps.types'
 import { SUCURSALES } from './equipo-gps.constants'
 
 export type Position = [number, number]
@@ -125,7 +125,7 @@ export function pointAge(value: string | null | undefined, now = Date.now()) {
   return `Hace ${Math.floor(seconds / 86400)} d`
 }
 
-const clock = new Intl.DateTimeFormat('es-MX', {
+const HORA_FMT = new Intl.DateTimeFormat('es-MX', {
   timeZone: 'America/Mexico_City',
   hour: '2-digit',
   minute: '2-digit',
@@ -134,7 +134,7 @@ const clock = new Intl.DateTimeFormat('es-MX', {
 
 export function formatTime(iso: string) {
   const at = Date.parse(iso)
-  return Number.isFinite(at) ? clock.format(new Date(at)) : '--:--'
+  return Number.isFinite(at) ? HORA_FMT.format(new Date(at)) : '--:--'
 }
 
 export function formatDistance(metersValue: number) {
@@ -447,5 +447,133 @@ export function textoAhora(ahora: { estado: string; desde: string | null; segund
       return 'Sin señal'
     default:
       return 'Sin datos hoy'
+  }
+}
+
+// --- Horas y días del recorrido: ports de MOX (hourBounds, sliceDay, dayActivity, clock, dayLabel). ---
+const QUARTER = 15 * 60_000
+
+/** «13:15» para un instante (epoch ms), hora de México. */
+export const clock = (ms: number) => formatTime(new Date(ms).toISOString())
+
+/** Escala del deslizador: cuartos de hora alrededor de la primera y la última captura, más esas dos. */
+export function hourBounds(recorrido: RecorridoHoy) {
+  const ends = routeEnds(recorrido.tramos)
+  if (!ends) return null
+  const min = Math.floor(time(ends.start) / QUARTER) * QUARTER
+  const max = Math.max(min + QUARTER, Math.ceil(time(ends.end) / QUARTER) * QUARTER)
+  return { min, max, step: QUARTER, ...ends }
+}
+
+/**
+ * El día recortado a unas horas con sus propias reglas: sus puntos, las paradas y huecos que las tocan, los tramos
+ * estimados cuyos dos extremos siguen, y la distancia sumada dentro de cada tramo (ya filtrado por FAX).
+ */
+export function sliceDay(recorrido: RecorridoHoy, horas: RangoHoras): RecorridoHoy {
+  const to = horas.to ?? Infinity
+  const inside = (vertex: Vertice) => time(vertex) >= horas.from && time(vertex) <= to
+  const touches = (start: string, end: string) => Date.parse(end) >= horas.from && Date.parse(start) <= to
+  const tramos = recorrido.tramos
+    .map((tramo) => {
+      const puntos = tramo.puntos.filter(inside)
+      const kept = new Set(puntos.map((v) => v[2]))
+      return { puntos, estimado: (tramo.estimado ?? []).filter(([desde, hasta]) => kept.has(desde) && kept.has(hasta)) }
+    })
+    .filter((tramo) => tramo.puntos.length)
+  const paradas = recorrido.paradas.filter((p) => touches(p.inicio, p.fin))
+  let distancia_m = 0
+  let puntos = 0
+  for (const tramo of tramos) {
+    const valid = tramo.puntos.filter(validVertex)
+    puntos += valid.length
+    for (let i = 1; i < valid.length; i++) distancia_m += meters(valid[i - 1], valid[i])
+  }
+  return {
+    ...recorrido,
+    tramos,
+    paradas,
+    huecos: recorrido.huecos.filter((h) => touches(h.desde, h.hasta)),
+    resumen: { distancia_m, puntos, paradas: paradas.length }
+  }
+}
+
+/** La tira de actividad: cuándo se movió cada teléfono, las paradas encima y los huecos sin ubicación. */
+export function dayActivity(recorrido: RecorridoHoy) {
+  const blocks: { from: number; to: number; kind: 'move' | 'stop' | 'gap' }[] = []
+  for (const tramo of recorrido.tramos) {
+    const ends = routeEnds([tramo])
+    if (ends) blocks.push({ from: time(ends.start), to: time(ends.end), kind: 'move' })
+  }
+  for (const p of recorrido.paradas) blocks.push({ from: Date.parse(p.inicio), to: Date.parse(p.fin), kind: 'stop' })
+  for (const h of recorrido.huecos) blocks.push({ from: Date.parse(h.desde), to: Date.parse(h.hasta), kind: 'gap' })
+  return blocks
+}
+
+/** «Jue 30» para una fecha AAAA-MM-DD (día de México, sin correrse de día). */
+export function dayLabelCorto(fecha: string): string {
+  const [y, m, d] = fecha.split('-').map(Number)
+  const texto = new Intl.DateTimeFormat('es-MX', { timeZone: 'UTC', weekday: 'short', day: 'numeric' }).format(new Date(Date.UTC(y, m - 1, d)))
+  const limpio = texto.replace('.', '').replace(',', '')
+  return limpio.charAt(0).toUpperCase() + limpio.slice(1)
+}
+
+/** Hoy en México como AAAA-MM-DD. */
+export function hoyMexico(now = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now)
+}
+
+/** «09:00» de un día de México → epoch ms; inválido → null. */
+export function horaAEpoch(fecha: string, hhmm: string | null | undefined): number | null {
+  if (!hhmm || !/^\d{2}:\d{2}$/.test(hhmm)) return null
+  const [h, m] = hhmm.split(':').map(Number)
+  if (h > 23 || m > 59) return null
+  // Octubre–marzo México es UTC-6 sin horario de verano; se calcula contra el día local real.
+  const base = Date.parse(`${fecha}T00:00:00-06:00`)
+  return base + (h * 60 + m) * 60_000
+}
+
+/** Epoch ms → «09:00» en hora de México, para la URL. */
+export const epochAHora = (ms: number) => clock(ms)
+
+/** Las pistas del navegador: Inicio, cada parada en orden y el Fin / Último punto. */
+export function pistas(recorrido: RecorridoHoy, enVivo: boolean): Pista[] {
+  const ends = routeEnds(recorrido.tramos)
+  if (!ends) return []
+  const lista: Pista[] = [
+    { tipo: 'inicio', titulo: 'Inicio', detalle: formatTime(ends.start[2]), lugar: [ends.start[0], ends.start[1]], parada: null }
+  ]
+  recorrido.paradas.forEach((p, index) => {
+    lista.push({
+      tipo: 'parada',
+      titulo: `Parada ${index + 1} de ${recorrido.paradas.length}`,
+      detalle: `${formatTime(p.inicio)} · ${formatDuration(p.segundos)}`,
+      lugar: [p.lat, p.lon],
+      parada: index
+    })
+  })
+  lista.push({ tipo: 'fin', titulo: enVivo ? 'Último punto' : 'Fin', detalle: formatTime(ends.end[2]), lugar: [ends.end[0], ends.end[1]], parada: null })
+  return lista
+}
+
+const SOLO_PARADAS_KEY = 'equipo-gps-solo-paradas'
+
+/** «Solo paradas» se recuerda por persona; el almacenamiento puede fallar y no pasa nada. */
+export function leerSoloParadas(gerenteId: number): boolean {
+  try {
+    const raw = localStorage.getItem(SOLO_PARADAS_KEY)
+    return raw ? Boolean(JSON.parse(raw)?.[String(gerenteId)]) : false
+  } catch {
+    return false
+  }
+}
+
+export function guardarSoloParadas(gerenteId: number, valor: boolean) {
+  try {
+    const raw = localStorage.getItem(SOLO_PARADAS_KEY)
+    const todo = raw ? JSON.parse(raw) : {}
+    todo[String(gerenteId)] = valor
+    localStorage.setItem(SOLO_PARADAS_KEY, JSON.stringify(todo))
+  } catch {
+    /* sin almacenamiento */
   }
 }
