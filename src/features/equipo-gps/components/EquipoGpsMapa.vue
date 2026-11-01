@@ -295,6 +295,7 @@ defineExpose({ encuadrar, centrar, seguir })
         :pila="pilaDe(index)!"
         :color="colorPersona"
         :seleccionada="paradaSeleccionada === index"
+        :parada-seleccionada="paradaSeleccionada ?? null"
         :lado="direccion(paradas[index].lat, paradas[index].lon) === 'left' ? 'left' : 'right'"
         @elegir="elegirDePila"
       />
@@ -552,7 +553,17 @@ defineExpose({ encuadrar, centrar, seguir })
 }
 .leaflet-popup.equipo-gps-pila-globo .leaflet-popup-content {
   margin: 0;
-  min-width: 160px;
+  min-width: 220px;
+}
+.leaflet-popup.equipo-gps-pila-globo .leaflet-popup-content p {
+  margin: 0;
+}
+/* El circulito de cada fila: el mismo de la parada en el mapa, en chico (la regla del mapa lo pone al 100 %). */
+.leaflet-popup.equipo-gps-pila-globo .equipo-gps-parada__punto {
+  flex: none;
+  font-size: 11px;
+  height: 22px;
+  width: 22px;
 }
 .leaflet-popup.equipo-gps-pila-globo .leaflet-popup-tip {
   box-shadow: none;
