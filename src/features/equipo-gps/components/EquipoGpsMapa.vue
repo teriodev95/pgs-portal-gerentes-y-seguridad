@@ -7,9 +7,9 @@ import MapWidget from '@/shared/components/MapWidget.vue'
 import EquipoGpsPilaParadas from './EquipoGpsPilaParadas.vue'
 import { EQUIPO_GPS_COLOR } from '../equipo-gps.constants'
 import {
-  clock, desproyectar, flechasVisibles, FLECHAS_SEPARACION_PX, formatDuration, formatTime, gapLinks, longestStops, marcasDeHora,
+  CARRIL_PX, clock, desproyectar, flechasVisibles, FLECHAS_SEPARACION_PX, formatDuration, formatTime, gapLinks, longestStops, marcasDeHora,
   paradasVisibles, passesNear, passLabel, pathArrows, pilasDeParadas, proyectar, proyectarDia, routeBands, routeEnds, shade, STOP_PX,
-  stopSize, ZOOM_HORAS
+  stopSize, tramosDesplazados, ZOOM_HORAS
 } from '../equipo-gps.helpers'
 import type { RecorridoHoy, UbicacionGerente } from '../equipo-gps.types'
 
@@ -58,7 +58,14 @@ const centro = computed<PointExpression>(() =>
 
 // Degradado inicio → fin como MOX: 12 polilíneas de clara a oscura según la distancia del día.
 const bandas = computed(() => (props.recorrido ? routeBands(props.recorrido.tramos, BANDS) : []))
-const huecos = computed(() => (props.recorrido ? gapLinks(props.recorrido) : []))
+// Carriles por sentido (v6e): la línea se dibuja 3 px a la derecha del avance, así una ida y vuelta por el mismo camino
+// queda en dos carriles. Cada tramo se desplaza completo (sólido y estimados) en el zoom actual y luego se parte en
+// bandas: las uniones coinciden. Sólo al cambiar el zoom. La línea invisible del toque y las marcas de hora siguen sobre
+// la línea original (`bandas`, `proyeccion`).
+const tramosDibujo = computed(() => (props.recorrido ? tramosDesplazados(props.recorrido.tramos, zoom.value, CARRIL_PX) : []))
+const bandasDibujo = computed(() => routeBands(tramosDibujo.value, BANDS))
+// Los huecos punteados unen los extremos ya desplazados, para empatar con la sólida.
+const huecos = computed(() => (props.recorrido ? gapLinks({ ...props.recorrido, tramos: tramosDibujo.value }) : []))
 const extremos = computed(() => (props.recorrido ? routeEnds(props.recorrido.tramos) : null))
 
 // --- Horas de paso (v6): marcas de reloj desde zoom 15 y «¿A qué hora pasó por aquí?» al tocar la ruta. ---
@@ -94,7 +101,9 @@ const marcas = computed(() => {
 // --- Flechas de sentido (v6b): cada ~110 px de pantalla sobre la línea sólida, fijas por zoom; mover sólo muestra u oculta. ---
 const flechas = computed(() => {
   const z = zoom.value
-  return proyeccion.value.lineas.flatMap((linea) =>
+  // Sobre la línea desplazada: las piezas sólidas de los tramos ya corridos.
+  const lineas = props.soloParadas ? [] : proyectarDia(tramosDibujo.value, z).lineas
+  return lineas.flatMap((linea) =>
     pathArrows(linea, FLECHAS_SEPARACION_PX).map((f) => {
       const [lat, lon] = desproyectar(f.x, f.y, z)
       return { ...f, lat, lon }
@@ -234,7 +243,7 @@ defineExpose({ encuadrar, centrar, seguir })
     <!-- Tramos medidos: línea sólida. Tramos estimados (sin puntos en medio): delgada y punteada, mismo color,
          y al tocarla dice cuánto tiempo estuvo sin puntos. Igual que en MOX. -->
     <LPolyline
-      v-for="(banda, index) in soloParadas ? [] : bandas"
+      v-for="(banda, index) in soloParadas ? [] : bandasDibujo"
       :key="`banda-${index}`"
       :lat-lngs="banda.points"
       :color="shade(EQUIPO_GPS_COLOR, banda.band / (BANDS - 1))"

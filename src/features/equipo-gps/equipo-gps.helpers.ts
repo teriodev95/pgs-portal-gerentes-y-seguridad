@@ -808,6 +808,66 @@ export function proyectarDia(tramos: RecorridoHoy['tramos'], zoom: number, pasoP
   return { puntos: salida, lineas }
 }
 
+// --- Carriles por sentido (v6e): la línea sólida se dibuja corrida a la derecha del avance. ---
+
+export const CARRIL_PX = 3
+
+/**
+ * Desplaza una polilínea proyectada `px` píxeles a la derecha del sentido de avance (pantalla: y hacia abajo): por la
+ * normal de cada segmento y, en los vértices, por la bisectriz con el inglete limitado a 2 × px (una vuelta cerrada no
+ * hace pico). Devuelve un punto por vértice, en el mismo orden, para que las bandas de color y los tramos estimados que
+ * se cortan de la misma línea sigan coincidiendo en las uniones. Una ida y vuelta por el mismo camino queda en dos
+ * carriles paralelos sin detectar nada; una sola pasada ni se nota.
+ */
+export function desplazarLinea(linea: Pixel[], px: number): Pixel[] {
+  if (linea.length < 2 || !px) return linea.map((p) => ({ x: p.x, y: p.y }))
+  // Normal derecha unitaria de cada segmento; un segmento de largo cero hereda la del anterior (o la del siguiente).
+  const normales: (Pixel | null)[] = linea.slice(1).map((b, i) => {
+    const a = linea[i]
+    const largo = Math.hypot(b.x - a.x, b.y - a.y)
+    return largo > 1e-9 ? { x: -(b.y - a.y) / largo, y: (b.x - a.x) / largo } : null
+  })
+  for (let i = 1; i < normales.length; i++) normales[i] ??= normales[i - 1]
+  for (let i = normales.length - 2; i >= 0; i--) normales[i] ??= normales[i + 1]
+  return linea.map((p, i) => {
+    const n1 = normales[i - 1] ?? null
+    const n2 = normales[i] ?? null
+    if (!n1 || !n2) {
+      const n = n1 ?? n2
+      return n ? { x: p.x + n.x * px, y: p.y + n.y * px } : { x: p.x, y: p.y }
+    }
+    const bx = n1.x + n2.x
+    const by = n1.y + n2.y
+    const largo = Math.hypot(bx, by)
+    // cos del medio ángulo: el inglete mide px / cos; se limita a 2 × px (un giro de 180° exacto cae al segmento anterior).
+    const cos = largo ? (bx * n1.x + by * n1.y) / largo : 0
+    if (cos <= 1e-6) return { x: p.x + n1.x * px, y: p.y + n1.y * px }
+    const medida = Math.min(px / cos, 2 * px)
+    return { x: p.x + (bx / largo) * medida, y: p.y + (by / largo) * medida }
+  })
+}
+
+/**
+ * Los tramos con su línea dibujada (la calle ajustada o los fijos crudos) corrida `px` a la derecha del avance en el
+ * zoom dado, pieza completa por pieza, antes de partirla en bandas de color: así las uniones entre bandas coinciden y
+ * los tramos estimados (punteados) empatan con la sólida. Horas y precisión de cada vértice se conservan.
+ */
+export function tramosDesplazados(tramos: RecorridoHoy['tramos'], zoom: number, px: number): RecorridoHoy['tramos'] {
+  const mover = <T extends [number, number, ...unknown[]]>(lista: T[]): T[] => {
+    const movidos = desplazarLinea(
+      lista.map(([lat, lon]) => {
+        const [x, y] = proyectar(lat, lon, zoom)
+        return { x, y }
+      }),
+      px
+    )
+    return lista.map((v, i) => [...desproyectar(movidos[i].x, movidos[i].y, zoom), ...v.slice(2)] as T)
+  }
+  return tramos.map((tramo) =>
+    tramo.ajustado && tramo.ajustado.length > 1 ? { ...tramo, ajustado: mover(tramo.ajustado) } : { ...tramo, puntos: mover(tramo.puntos.filter(validVertex)) }
+  )
+}
+
 // --- Flechas de sentido (v6b): puerto de MOX `heading` y `pathArrows`; cuáles se ven, como las marcas de hora. ---
 
 export const FLECHAS_SEPARACION_PX = 110
