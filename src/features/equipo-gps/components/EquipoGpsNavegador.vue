@@ -43,8 +43,8 @@ function mover(paso: number) {
       @click="emit('centro')"
     >
       <template v-if="actual">
-        <span class="truncate text-[13px] font-semibold leading-4 text-slate-900">{{ actual.titulo }}</span>
-        <span class="truncate text-[13px] leading-4 tabular-nums text-slate-500">{{ actual.detalle }}</span>
+        <span class="max-w-full truncate text-[13px] font-semibold leading-4 text-slate-900">{{ actual.titulo }}</span>
+        <span class="max-w-full truncate text-[13px] leading-4 tabular-nums text-slate-500">{{ actual.detalle }}<span v-if="actual.nota" class="text-slate-400"> · {{ actual.nota }}</span></span>
       </template>
       <span v-else class="text-[13px] text-slate-500">{{ pistas.length - 2 }} {{ pistas.length - 2 === 1 ? 'parada' : 'paradas' }} · toca ‹ › para recorrerlas</span>
     </button>

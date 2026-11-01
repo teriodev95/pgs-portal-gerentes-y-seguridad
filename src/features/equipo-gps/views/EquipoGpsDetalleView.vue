@@ -14,8 +14,8 @@ import EquipoGpsPanel from '../components/EquipoGpsPanel.vue'
 import { useEquipoGps } from '../composables/useEquipoGps'
 import {
   agoShort, clock, colorDe, dayLabelCorto, epochAHora, formatDistance, formatTime, guardarSoloParadas, horaAEpoch,
-  hoyMexico, isFresh, leerSoloParadas, lineaDelDia, pistas as armarPistas, sliceDay, sucursalNombre, telUrl,
-  titleCase, whatsappUrl
+  hoyMexico, isFresh, leerSoloParadas, lineaDelDia, notaMismoLugar, paradasCoincidentes, pistas as armarPistas, sliceDay,
+  sucursalNombre, telUrl, titleCase, whatsappUrl
 } from '../equipo-gps.helpers'
 import { equipoGpsError, equipoGpsService } from '../equipo-gps.service'
 import type { DiaConDatos, EventoDia, RangoHoras, RecorridoHoy, UltimaPosicion } from '../equipo-gps.types'
@@ -75,7 +75,15 @@ const vista = computed(() => (recorrido.value && horas.value ? sliceDay(recorrid
 const enVivoPosible = computed(() => esHoy.value && !horas.value)
 const enMovimiento = computed(() => esHoy.value && gerente.value?.estado === 'activo')
 const eventos = computed<EventoDia[]>(() => (vista.value ? lineaDelDia(vista.value, enMovimiento.value) : []))
-const pistas = computed(() => (vista.value ? armarPistas(vista.value, enMovimiento.value) : []))
+// Zoom actual del mapa: decide qué paradas se ven encimadas y, en el navegador, «mismo lugar que la 18».
+const zoomMapa = ref(15)
+const pistas = computed(() => {
+  const dia = vista.value
+  if (!dia) return []
+  return armarPistas(dia, enMovimiento.value).map((pista) =>
+    pista.parada === null ? pista : { ...pista, nota: notaMismoLugar(paradasCoincidentes(dia.paradas, pista.parada, zoomMapa.value)) }
+  )
+})
 const telefono = computed(() => recorrido.value?.telefono ?? null)
 const paradaDe = (evento: EventoDia) => (evento.tipo === 'parada' ? Number(evento.titulo.replace(/\D/g, '')) - 1 : null)
 
@@ -280,6 +288,7 @@ const titulo = computed(() => titleCase(gerente.value?.nombre))
         :pulsa="enVivo && fresca"
         @parada="tocarParadaEnMapa"
         @arrastre="pausarSeguimiento"
+        @zoom="zoomMapa = $event"
       />
     </div>
 

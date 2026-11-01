@@ -103,6 +103,8 @@ export interface Pista {
   lugar: [number, number]
   /** Índice de la parada (sólo tipo parada). */
   parada: number | null
+  /** Discreto, tras el detalle: «mismo lugar que la 18» cuando otra parada comparte el sitio. */
+  nota?: string
 }
 
 /** `/equipo/:id/ultima`: la última captura para «En vivo» (< 300 B) y, con `estela=1`, los últimos 15 min. */

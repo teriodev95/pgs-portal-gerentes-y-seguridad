@@ -29,7 +29,7 @@ const props = defineProps<{
   estela?: [number, number, string][] | null
   pulsa?: boolean
 }>()
-const emit = defineEmits<{ (e: 'parada', index: number): void; (e: 'arrastre'): void }>()
+const emit = defineEmits<{ (e: 'parada', index: number): void; (e: 'arrastre'): void; (e: 'zoom', zoom: number): void }>()
 
 const BANDS = 12
 const mapa = ref<LeafletMap>()
@@ -43,7 +43,8 @@ const colorPersona = computed(() => props.color ?? EQUIPO_GPS_COLOR)
 // sólo las dos más largas llevan su duración fija; si dos se enciman en este zoom, sólo la más larga.
 const paradas = computed(() => props.recorrido?.paradas ?? [])
 const masLargas = computed(() => longestStops(paradas.value))
-const visibles = computed(() => paradasVisibles(paradas.value, zoom.value))
+// La seleccionada se dibuja siempre, encima (z 900) de las que coinciden con ella.
+const visibles = computed(() => paradasVisibles(paradas.value, zoom.value, 18, props.paradaSeleccionada ?? null))
 
 // Puebla por defecto cuando aún no hay dónde centrar; `encuadrar` manda en cuanto hay datos.
 const centro = computed<PointExpression>(() =>
@@ -173,7 +174,8 @@ function direccion(lat: number, lon: number): 'top' | 'left' | 'right' {
 function onReady(map: LeafletMap) {
   mapa.value = map
   zoom.value = map.getZoom()
-  map.on('zoomend', () => (zoom.value = map.getZoom()))
+  emit('zoom', zoom.value)
+  map.on('zoomend', () => emit('zoom', (zoom.value = map.getZoom())))
   map.on('moveend zoomend resize', () => (vista.value += 1))
   map.on('click', () => (pase.value = null))
   // Mover el mapa con el dedo pausa el seguimiento en vivo (convención de Google Maps).

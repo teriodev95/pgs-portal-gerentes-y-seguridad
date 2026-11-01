@@ -425,16 +425,45 @@ export function longestStops(stops: { segundos: number }[], count = 2): number[]
 }
 
 /**
- * Qué paradas se dibujan en este zoom: si dos se enciman en pantalla (a menos de `radioPx`), sólo la más larga.
- * Devuelve los índices originales, para que el número coincida con «Parada N».
+ * Qué paradas se dibujan en este zoom: si dos se enciman en pantalla (a menos de `radioPx`), sólo la más larga; la
+ * `seleccionada` se dibuja siempre (va encima de las coincidentes, como en MOX). Devuelve los índices originales, para
+ * que el número coincida con «Parada N».
  */
-export function paradasVisibles(paradas: RecorridoHoy['paradas'], zoom: number, radioPx = 18): number[] {
+export function paradasVisibles(paradas: RecorridoHoy['paradas'], zoom: number, radioPx = 18, seleccionada: number | null = null): number[] {
   const orden = paradas.map((p, index) => ({ index, p, xy: proyectar(p.lat, p.lon, zoom) })).sort((a, b) => b.p.segundos - a.p.segundos)
   const puestas: typeof orden = []
   for (const item of orden) {
     if (!puestas.some((q) => Math.hypot(q.xy[0] - item.xy[0], q.xy[1] - item.xy[1]) < radioPx)) puestas.push(item)
   }
-  return puestas.map((item) => item.index).sort((a, b) => a - b)
+  const indices = puestas.map((item) => item.index)
+  if (seleccionada !== null && paradas[seleccionada] && !indices.includes(seleccionada)) indices.push(seleccionada)
+  return indices.sort((a, b) => a - b)
+}
+
+/**
+ * Las otras paradas que comparten lugar con la `indice`: a menos de `metros`, o a menos de `radioPx` en pantalla cuando
+ * el zoom ya es de calle (≥ 15); más lejos, encimarse es cosa de la escala y no del lugar.
+ */
+export function paradasCoincidentes(paradas: RecorridoHoy['paradas'], indice: number, zoom: number, radioPx = 18, metros = 40): number[] {
+  const p = paradas[indice]
+  if (!p) return []
+  const [x, y] = proyectar(p.lat, p.lon, zoom)
+  return paradas
+    .map((q, i) => ({ q, i }))
+    .filter(({ q, i }) => {
+      if (i === indice) return false
+      const [qx, qy] = proyectar(q.lat, q.lon, zoom)
+      return meters([p.lat, p.lon, '', 0], [q.lat, q.lon, '', 0]) < metros || (zoom >= ZOOM_HORAS && Math.hypot(qx - x, qy - y) < radioPx)
+    })
+    .map(({ i }) => i)
+}
+
+/** «mismo lugar que la 18», «… que la 5 y la 18», «… que la 3, la 5 y la 18»; vacío sin coincidentes. */
+export function notaMismoLugar(indices: number[]): string {
+  if (!indices.length) return ''
+  const numeros = indices.map((i) => `la ${i + 1}`)
+  const ultima = numeros.pop()
+  return `mismo lugar que ${numeros.length ? `${numeros.join(', ')} y ` : ''}${ultima}`
 }
 
 /** La sucursal con más gerentes en un grupo «+N»: su color va en el anillo. */
