@@ -1,7 +1,7 @@
 // Funciones puras del recorrido, copiadas de MOX `modules/rastreo-gps/helpers.ts` (routeBands, routeEnds,
 // shade, pointAge, isFresh) y adaptadas al contrato compacto de FAX para PGS (vértices como arreglos).
 // Así PGS y MOX pintan idéntico: línea clara al inicio, oscura al final; huecos punteados sin unir.
-import type { EstadoGerente, EventoDia, FiltroEquipo, GerenteEquipo, MarcadorMapa, Pista, RangoHoras, RecorridoHoy, Vertice } from './equipo-gps.types'
+import type { EstadoGerente, EventoDia, FiltroEquipo, GerenteEquipo, MarcadorMapa, PilaParadas, Pista, RangoHoras, RecorridoHoy, Vertice } from './equipo-gps.types'
 import { SUCURSALES } from './equipo-gps.constants'
 
 export type Position = [number, number]
@@ -425,37 +425,44 @@ export function longestStops(stops: { segundos: number }[], count = 2): number[]
 }
 
 /**
- * Qué paradas se dibujan en este zoom: si dos se enciman en pantalla (a menos de `radioPx`), sólo la más larga; la
- * `seleccionada` se dibuja siempre (va encima de las coincidentes, como en MOX). Devuelve los índices originales, para
- * que el número coincida con «Parada N».
+ * Agrupa las paradas por lugar: a menos de `metros` de la primera del grupo, o a menos de `radioPx` en pantalla cuando el
+ * zoom ya es de calle (≥ 15); más lejos, encimarse es cosa de la escala y no del lugar. Una parada sola también sale,
+ * como pila de una, para que el mapa recorra una sola lista. Función pura; `paradasVisibles` y el navegador la usan.
  */
-export function paradasVisibles(paradas: RecorridoHoy['paradas'], zoom: number, radioPx = 18, seleccionada: number | null = null): number[] {
-  const orden = paradas.map((p, index) => ({ index, p, xy: proyectar(p.lat, p.lon, zoom) })).sort((a, b) => b.p.segundos - a.p.segundos)
-  const puestas: typeof orden = []
-  for (const item of orden) {
-    if (!puestas.some((q) => Math.hypot(q.xy[0] - item.xy[0], q.xy[1] - item.xy[1]) < radioPx)) puestas.push(item)
-  }
-  const indices = puestas.map((item) => item.index)
-  if (seleccionada !== null && paradas[seleccionada] && !indices.includes(seleccionada)) indices.push(seleccionada)
-  return indices.sort((a, b) => a - b)
+export function pilasDeParadas(paradas: RecorridoHoy['paradas'], zoom: number, seleccionada: number | null = null, radioPx = 18, metros = 40): PilaParadas[] {
+  const pilas: (PilaParadas & { xy: [number, number] })[] = []
+  paradas.forEach((p, i) => {
+    const xy = proyectar(p.lat, p.lon, zoom)
+    const pila = pilas.find(({ indices, xy: q }) => {
+      const primera = paradas[indices[0]]
+      return meters([p.lat, p.lon, '', 0], [primera.lat, primera.lon, '', 0]) < metros || (zoom >= ZOOM_HORAS && Math.hypot(q[0] - xy[0], q[1] - xy[1]) < radioPx)
+    })
+    if (pila) pila.indices.push(i)
+    else pilas.push({ indices: [i], encima: i, xy })
+  })
+  return pilas.map(({ indices }) => ({ indices, encima: seleccionada !== null && indices.includes(seleccionada) ? seleccionada : indices[0] }))
 }
 
 /**
- * Las otras paradas que comparten lugar con la `indice`: a menos de `metros`, o a menos de `radioPx` en pantalla cuando
- * el zoom ya es de calle (≥ 15); más lejos, encimarse es cosa de la escala y no del lugar.
+ * Qué paradas se dibujan en este zoom: la de encima de cada pila; si dos pilas se enciman en pantalla (a menos de
+ * `radioPx`), sólo la de la parada más larga; la `seleccionada` se dibuja siempre. Índices originales, para que el
+ * número coincida con «Parada N».
  */
-export function paradasCoincidentes(paradas: RecorridoHoy['paradas'], indice: number, zoom: number, radioPx = 18, metros = 40): number[] {
-  const p = paradas[indice]
-  if (!p) return []
-  const [x, y] = proyectar(p.lat, p.lon, zoom)
-  return paradas
-    .map((q, i) => ({ q, i }))
-    .filter(({ q, i }) => {
-      if (i === indice) return false
-      const [qx, qy] = proyectar(q.lat, q.lon, zoom)
-      return meters([p.lat, p.lon, '', 0], [q.lat, q.lon, '', 0]) < metros || (zoom >= ZOOM_HORAS && Math.hypot(qx - x, qy - y) < radioPx)
-    })
-    .map(({ i }) => i)
+export function paradasVisibles(paradas: RecorridoHoy['paradas'], zoom: number, radioPx = 18, seleccionada: number | null = null): number[] {
+  const orden = pilasDeParadas(paradas, zoom, seleccionada)
+    .map(({ encima }) => ({ index: encima, p: paradas[encima], xy: proyectar(paradas[encima].lat, paradas[encima].lon, zoom) }))
+    .sort((a, b) => (a.index === seleccionada ? -1 : b.index === seleccionada ? 1 : b.p.segundos - a.p.segundos))
+  const puestas: typeof orden = []
+  for (const item of orden) {
+    if (item.index === seleccionada || !puestas.some((q) => Math.hypot(q.xy[0] - item.xy[0], q.xy[1] - item.xy[1]) < radioPx)) puestas.push(item)
+  }
+  return puestas.map((item) => item.index).sort((a, b) => a - b)
+}
+
+/** Las otras paradas de la pila de `indice` (misma regla que `pilasDeParadas`). */
+export function paradasCoincidentes(paradas: RecorridoHoy['paradas'], indice: number, zoom: number): number[] {
+  const pila = pilasDeParadas(paradas, zoom).find(({ indices }) => indices.includes(indice))
+  return pila ? pila.indices.filter((i) => i !== indice) : []
 }
 
 /** «mismo lugar que la 18», «… que la 5 y la 18», «… que la 3, la 5 y la 18»; vacío sin coincidentes. */

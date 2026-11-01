@@ -4,11 +4,12 @@ import { computed, ref, watch } from 'vue'
 import { latLngBounds, type LeafletMouseEvent, type Map as LeafletMap, type PointExpression } from 'leaflet'
 import { LCircleMarker, LIcon, LMarker, LPolyline, LTooltip } from '@vue-leaflet/vue-leaflet'
 import MapWidget from '@/shared/components/MapWidget.vue'
+import EquipoGpsPilaParadas from './EquipoGpsPilaParadas.vue'
 import { EQUIPO_GPS_COLOR } from '../equipo-gps.constants'
 import {
   clock, desproyectar, flechasVisibles, FLECHAS_SEPARACION_PX, formatDuration, formatTime, gapLinks, longestStops, marcasDeHora,
-  paradasVisibles, passesNear, passLabel, pathArrows, proyectar, proyectarDia, routeBands, routeEnds, shade, STOP_PX, stopSize,
-  ZOOM_HORAS
+  paradasVisibles, passesNear, passLabel, pathArrows, pilasDeParadas, proyectar, proyectarDia, routeBands, routeEnds, shade, STOP_PX,
+  stopSize, ZOOM_HORAS
 } from '../equipo-gps.helpers'
 import type { RecorridoHoy, UbicacionGerente } from '../equipo-gps.types'
 
@@ -43,8 +44,12 @@ const colorPersona = computed(() => props.color ?? EQUIPO_GPS_COLOR)
 // sólo las dos más largas llevan su duración fija; si dos se enciman en este zoom, sólo la más larga.
 const paradas = computed(() => props.recorrido?.paradas ?? [])
 const masLargas = computed(() => longestStops(paradas.value))
-// La seleccionada se dibuja siempre, encima (z 900) de las que coinciden con ella.
+// La seleccionada se dibuja siempre; las que comparten lugar forman una pila con ella (o la primera) encima.
 const visibles = computed(() => paradasVisibles(paradas.value, zoom.value, 18, props.paradaSeleccionada ?? null))
+const pilas = computed(() => pilasDeParadas(paradas.value, zoom.value, props.paradaSeleccionada ?? null))
+const pilaDe = (index: number) => pilas.value.find((pila) => pila.encima === index)
+/** La seleccionada (suelta o en pila) y su etiqueta van en su propio pane, arriba de marcadores y tooltips. */
+const paneDe = (index: number) => (props.paradaSeleccionada === index ? 'paradaActiva' : 'markerPane')
 
 // Puebla por defecto cuando aún no hay dónde centrar; `encuadrar` manda en cuanto hay datos.
 const centro = computed<PointExpression>(() =>
@@ -115,6 +120,11 @@ function tocarRuta(event: LeafletMouseEvent) {
   pase.value = found ? { lat: found.at.lat, lon: found.at.lon, texto: passLabel(found.passes.map((p) => clock(p.time))) } : null
 }
 watch(puntosHora, () => (pase.value = null))
+/** Una fila del globo de la pila: selecciona esa parada (como el navegador) y cierra el globo. */
+function elegirDePila(index: number) {
+  mapa.value?.closePopup()
+  emit('parada', index)
+}
 
 // Sólo dos etiquetas en el mapa: «Inicio HH:MM» y «Fin HH:MM» (o «Último punto»). Los huecos van
 // punteados y tenues, sin rótulo: su duración se lee en la línea del día del panel.
@@ -173,6 +183,7 @@ function direccion(lat: number, lon: number): 'top' | 'left' | 'right' {
 
 function onReady(map: LeafletMap) {
   mapa.value = map
+  map.createPane('paradaActiva').style.zIndex = '690'
   zoom.value = map.getZoom()
   emit('zoom', zoom.value)
   map.on('zoomend', () => emit('zoom', (zoom.value = map.getZoom())))
@@ -277,41 +288,53 @@ defineExpose({ encuadrar, centrar, seguir })
       </LIcon>
     </LMarker>
 
-    <LMarker
-      v-for="index in visibles"
-      :key="`parada-${index}`"
-      :lat-lng="[paradas[index].lat, paradas[index].lon]"
-      :z-index-offset="paradaSeleccionada === index ? 900 : 500"
-      @click="emit('parada', index)"
-    >
-      <LIcon
-        :icon-size="[STOP_PX[stopSize(paradas[index].segundos)], STOP_PX[stopSize(paradas[index].segundos)]]"
-        :icon-anchor="[STOP_PX[stopSize(paradas[index].segundos)] / 2, STOP_PX[stopSize(paradas[index].segundos)] / 2]"
-        class-name="equipo-gps-parada"
+    <template v-for="index in visibles" :key="`parada-${index}-${paneDe(index)}`">
+      <EquipoGpsPilaParadas
+        v-if="(pilaDe(index)?.indices.length ?? 1) > 1"
+        :paradas="paradas"
+        :pila="pilaDe(index)!"
+        :color="colorPersona"
+        :seleccionada="paradaSeleccionada === index"
+        :lado="direccion(paradas[index].lat, paradas[index].lon) === 'left' ? 'left' : 'right'"
+        @elegir="elegirDePila"
+      />
+      <LMarker
+        v-else
+        :lat-lng="[paradas[index].lat, paradas[index].lon]"
+        :pane="paneDe(index)"
+        :z-index-offset="500"
+        @click="emit('parada', index)"
       >
-        <span
-          class="equipo-gps-parada__punto"
-          :data-size="stopSize(paradas[index].segundos)"
-          :data-selected="paradaSeleccionada === index"
-          :style="{ borderColor: colorPersona }"
-        >{{ index + 1 }}</span>
-      </LIcon>
-      <LTooltip
-        :key="`${paradaSeleccionada === index ? 'fija' : masLargas.includes(index) ? 'larga' : 'toque'}-${direccion(paradas[index].lat, paradas[index].lon) === 'left' ? 'izq' : 'der'}`"
-        :options="{
-          permanent: paradaSeleccionada === index || masLargas.includes(index),
-          direction: direccion(paradas[index].lat, paradas[index].lon) === 'left' ? 'left' : 'right',
-          offset: [(direccion(paradas[index].lat, paradas[index].lon) === 'left' ? -1 : 1) * (STOP_PX[stopSize(paradas[index].segundos)] / 2 + 2), 0],
-          className: paradaSeleccionada === index ? 'equipo-gps-label' : 'equipo-gps-parada-label'
-        }"
-      >
-        <template v-if="paradaSeleccionada === index">
-          Parada {{ index + 1 }} · {{ formatTime(paradas[index].inicio) }} · {{ formatDuration(paradas[index].segundos) }}
-        </template>
-        <template v-else-if="masLargas.includes(index)">{{ formatDuration(paradas[index].segundos) }}</template>
-        <template v-else>{{ formatTime(paradas[index].inicio) }} · {{ formatDuration(paradas[index].segundos) }}</template>
-      </LTooltip>
-    </LMarker>
+        <LIcon
+          :icon-size="[STOP_PX[stopSize(paradas[index].segundos)], STOP_PX[stopSize(paradas[index].segundos)]]"
+          :icon-anchor="[STOP_PX[stopSize(paradas[index].segundos)] / 2, STOP_PX[stopSize(paradas[index].segundos)] / 2]"
+          class-name="equipo-gps-parada"
+        >
+          <span
+            class="equipo-gps-parada__punto"
+            :data-size="stopSize(paradas[index].segundos)"
+            :data-selected="paradaSeleccionada === index"
+            :style="{ borderColor: colorPersona }"
+          >{{ index + 1 }}</span>
+        </LIcon>
+        <LTooltip
+          :key="`${paradaSeleccionada === index ? 'fija' : masLargas.includes(index) ? 'larga' : 'toque'}-${direccion(paradas[index].lat, paradas[index].lon) === 'left' ? 'izq' : 'der'}`"
+          :options="{
+            permanent: paradaSeleccionada === index || masLargas.includes(index),
+            direction: direccion(paradas[index].lat, paradas[index].lon) === 'left' ? 'left' : 'right',
+            offset: [(direccion(paradas[index].lat, paradas[index].lon) === 'left' ? -1 : 1) * (STOP_PX[stopSize(paradas[index].segundos)] / 2 + 2), 0],
+            className: paradaSeleccionada === index ? 'equipo-gps-label' : 'equipo-gps-parada-label',
+            pane: paneDe(index) === 'paradaActiva' ? 'paradaActiva' : 'tooltipPane'
+          }"
+        >
+          <template v-if="paradaSeleccionada === index">
+            Parada {{ index + 1 }} · {{ formatTime(paradas[index].inicio) }} · {{ formatDuration(paradas[index].segundos) }}
+          </template>
+          <template v-else-if="masLargas.includes(index)">{{ formatDuration(paradas[index].segundos) }}</template>
+          <template v-else>{{ formatTime(paradas[index].inicio) }} · {{ formatDuration(paradas[index].segundos) }}</template>
+        </LTooltip>
+      </LMarker>
+    </template>
 
     <LCircleMarker
       v-if="extremos"
@@ -490,6 +513,49 @@ defineExpose({ encuadrar, centrar, seguir })
 }
 .leaflet-tooltip.equipo-gps-label::before {
   display: none;
+}
+/* Pila de paradas: el círculo de encima, una hoja detrás (3 px) y «×N» chica en el color de la persona. */
+.equipo-gps-pila {
+  display: block;
+  position: relative;
+}
+.equipo-gps-pila__hoja {
+  background: #ffffff;
+  border: 2px solid;
+  border-radius: 9999px;
+  box-sizing: border-box;
+  height: 100%;
+  left: 3px;
+  position: absolute;
+  top: 3px;
+  width: 100%;
+}
+.equipo-gps-pila .equipo-gps-parada__punto {
+  position: relative;
+}
+.equipo-gps-pila__n {
+  border-radius: 9999px;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 12px;
+  padding: 0 3px;
+  position: absolute;
+  right: -8px;
+  top: -5px;
+}
+.leaflet-popup.equipo-gps-pila-globo .leaflet-popup-content-wrapper {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 8px;
+  box-shadow: none;
+  padding: 0;
+}
+.leaflet-popup.equipo-gps-pila-globo .leaflet-popup-content {
+  margin: 0;
+  min-width: 160px;
+}
+.leaflet-popup.equipo-gps-pila-globo .leaflet-popup-tip {
+  box-shadow: none;
 }
 /* Paradas: sutiles, en blanco con borde del color de la persona; el número coincide con la línea del día. */
 .equipo-gps-parada {

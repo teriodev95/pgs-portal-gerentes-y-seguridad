@@ -95,6 +95,12 @@ export interface RangoHoras {
   to: number | null
 }
 
+/** Una pila: las paradas que comparten lugar, en orden de tiempo, y cuál va encima (la seleccionada o la primera). */
+export interface PilaParadas {
+  indices: number[]
+  encima: number
+}
+
 /** Una «pista» del navegador de paradas: Inicio, cada parada y el Fin/Último punto. */
 export interface Pista {
   tipo: 'inicio' | 'parada' | 'fin'
