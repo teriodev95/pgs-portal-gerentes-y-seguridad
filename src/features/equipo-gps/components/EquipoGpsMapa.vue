@@ -1,12 +1,13 @@
 <script setup lang="ts">
 // Único componente del detalle que importa Leaflet: entra al chunk perezoso que ya existe para MapWidget.
 import { computed, ref, watch } from 'vue'
-import { latLngBounds, type Map as LeafletMap, type PointExpression } from 'leaflet'
+import { latLngBounds, type LeafletMouseEvent, type Map as LeafletMap, type PointExpression } from 'leaflet'
 import { LCircleMarker, LIcon, LMarker, LPolyline, LTooltip } from '@vue-leaflet/vue-leaflet'
 import MapWidget from '@/shared/components/MapWidget.vue'
 import { EQUIPO_GPS_COLOR } from '../equipo-gps.constants'
 import {
-  formatDuration, formatTime, gapLinks, longestStops, paradasVisibles, routeBands, routeEnds, shade, STOP_PX, stopSize
+  clock, formatDuration, formatTime, gapLinks, longestStops, marcasDeHora, paradasVisibles, passesNear, passLabel, proyectar,
+  puntosDeHora, routeBands, routeEnds, shade, STOP_PX, stopSize, ZOOM_HORAS
 } from '../equipo-gps.helpers'
 import type { RecorridoHoy, UbicacionGerente } from '../equipo-gps.types'
 
@@ -52,6 +53,40 @@ const centro = computed<PointExpression>(() =>
 const bandas = computed(() => (props.recorrido ? routeBands(props.recorrido.tramos, BANDS) : []))
 const huecos = computed(() => (props.recorrido ? gapLinks(props.recorrido) : []))
 const extremos = computed(() => (props.recorrido ? routeEnds(props.recorrido.tramos) : null))
+
+// --- Horas de paso (v6): marcas de reloj desde zoom 15 y «¿A qué hora pasó por aquí?» al tocar la ruta. ---
+// La proyección se hace una vez por zoom y por día; qué marcas se ven, al terminar de mover o de hacer zoom. Nunca por cuadro.
+const puntosHora = computed(() => (props.recorrido && !props.soloParadas ? puntosDeHora(props.recorrido.tramos, zoom.value) : []))
+const toques = computed(() => (props.soloParadas ? [] : bandas.value.filter((banda) => !banda.estimated)))
+const marcas = computed(() => {
+  void vista.value
+  const map = mapa.value
+  if (!map || zoom.value < ZOOM_HORAS || !puntosHora.value.length) return []
+  const z = zoom.value
+  const limites = map.getPixelBounds()
+  if (!limites.min || !limites.max) return []
+  // Lo que tapan el chip de arriba, los botones flotantes y el panel no cuenta como vista; el texto va a la derecha del punto.
+  const rect = { minX: limites.min.x + 16, minY: limites.min.y + 110, maxX: limites.max.x - 64, maxY: limites.max.y - (props.margenInferior ?? 0) - 72 }
+  const pix = (lat: number, lon: number) => {
+    const [x, y] = proyectar(lat, lon, z)
+    return { x, y }
+  }
+  // Inicio y Fin llevan etiqueta fija encima: piden más aire que una parada.
+  const protegidos: { x: number; y: number; r?: number }[] = paradas.value.map((p) => pix(p.lat, p.lon))
+  if (extremos.value) protegidos.push({ ...pix(extremos.value.start[0], extremos.value.start[1]), r: 64 }, { ...pix(extremos.value.end[0], extremos.value.end[1]), r: 64 })
+  if (props.ubicacion) protegidos.push({ ...pix(props.ubicacion.lat, props.ubicacion.lon), r: 64 })
+  return marcasDeHora(puntosHora.value, z, rect, protegidos)
+})
+/** El globo «Pasó a las …» del último toque sobre la ruta; se queda hasta tocar otra parte del mapa. */
+const pase = ref<{ lat: number; lon: number; texto: string } | null>(null)
+function tocarRuta(event: LeafletMouseEvent) {
+  const map = mapa.value
+  if (!map) return
+  const { x, y } = map.project(event.latlng, zoom.value)
+  const found = passesNear(puntosHora.value, { x, y })
+  pase.value = found ? { lat: found.at.lat, lon: found.at.lon, texto: passLabel(found.passes.map((p) => clock(p.time))) } : null
+}
+watch(puntosHora, () => (pase.value = null))
 
 // Sólo dos etiquetas en el mapa: «Inicio HH:MM» y «Fin HH:MM» (o «Último punto»). Los huecos van
 // punteados y tenues, sin rótulo: su duración se lee en la línea del día del panel.
@@ -113,6 +148,7 @@ function onReady(map: LeafletMap) {
   zoom.value = map.getZoom()
   map.on('zoomend', () => (zoom.value = map.getZoom()))
   map.on('moveend zoomend resize', () => (vista.value += 1))
+  map.on('click', () => (pase.value = null))
   // Mover el mapa con el dedo pausa el seguimiento en vivo (convención de Google Maps).
   map.on('dragstart', () => emit('arrastre'))
   encuadrar()
@@ -174,6 +210,31 @@ defineExpose({ encuadrar, centrar, seguir })
       </LTooltip>
     </LPolyline>
 
+    <!-- Área de toque de la ruta (28 px, invisible): «¿A qué hora pasó por aquí?». No burbujea: tocar la ruta no es tocar el mapa.
+         Las paradas (marcadores) quedan encima y ganan el toque. -->
+    <LPolyline
+      v-for="(banda, index) in toques"
+      :key="`toque-${index}`"
+      :lat-lngs="banda.points"
+      :color="'#000000'"
+      :opacity="0"
+      :weight="28"
+      :options="{ bubblingMouseEvents: false }"
+      @click="tocarRuta"
+    />
+
+    <!-- Marcas de reloj (desde zoom 15): un punto chico sobre la línea y la hora a un lado. No se tocan. -->
+    <LMarker
+      v-for="marca in marcas"
+      :key="`hora-${marca.tramo}-${marca.time}`"
+      :lat-lng="[marca.lat, marca.lon]"
+      :options="{ interactive: false, keyboard: false }"
+    >
+      <LIcon :icon-size="[56, 14]" :icon-anchor="[4, 7]" class-name="equipo-gps-hora">
+        <span class="equipo-gps-hora__punto" /><span class="equipo-gps-hora__texto">{{ clock(marca.time) }}</span>
+      </LIcon>
+    </LMarker>
+
     <LMarker
       v-for="index in visibles"
       :key="`parada-${index}`"
@@ -228,6 +289,13 @@ defineExpose({ encuadrar, centrar, seguir })
       </LTooltip>
     </LCircleMarker>
 
+    <!-- «Pasó a las 15:42»: un punto en el lugar y el globo encima, por arriba de las etiquetas fijas. -->
+    <LMarker v-if="pase" :lat-lng="[pase.lat, pase.lon]" :options="{ interactive: false, keyboard: false }" pane="popupPane">
+      <LIcon :icon-size="[12, 12]" :icon-anchor="[6, 6]" class-name="equipo-gps-pase">
+        <span class="equipo-gps-pase__punto" /><span class="equipo-gps-pase__globo">{{ pase.texto }}</span>
+      </LIcon>
+    </LMarker>
+
     <!-- Estela en vivo: los últimos minutos, delgada, en el color de la persona. -->
     <LPolyline
       v-if="estela && estela.length > 1"
@@ -269,6 +337,75 @@ defineExpose({ encuadrar, centrar, seguir })
 </template>
 
 <style>
+/* Marcas de reloj: punto chico sobre la línea y la hora con halo blanco, sin caja ni sombra; nunca reciben el toque. */
+.equipo-gps-hora {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: flex;
+  gap: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.equipo-gps-hora__punto {
+  background: #ffffff;
+  border: 2px solid #334155;
+  border-radius: 9999px;
+  box-sizing: border-box;
+  flex: none;
+  height: 8px;
+  width: 8px;
+}
+.equipo-gps-hora__texto {
+  -webkit-text-stroke: 3px #ffffff;
+  color: #334155;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 14px;
+  paint-order: stroke fill;
+}
+/* «Pasó a las …»: punto en el lugar y globo encima con su pico. */
+.equipo-gps-pase {
+  background: transparent;
+  border: 0;
+  pointer-events: none;
+  position: relative;
+}
+.equipo-gps-pase__punto {
+  background: #ffffff;
+  border: 3px solid #2563eb;
+  border-radius: 9999px;
+  box-sizing: border-box;
+  display: block;
+  height: 12px;
+  width: 12px;
+}
+.equipo-gps-pase__globo {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 8px;
+  bottom: 18px;
+  color: #0f172a;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  left: 50%;
+  padding: 4px 8px;
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.equipo-gps-pase__globo::after {
+  border: 6px solid transparent;
+  border-bottom: 0;
+  border-top-color: #ffffff;
+  content: '';
+  left: 50%;
+  position: absolute;
+  top: 100%;
+  transform: translateX(-50%);
+}
 /* Etiquetas informativas del mapa («Inicio 09:16»): sin sombra, no parecen botones (Norman). */
 .leaflet-tooltip.equipo-gps-label {
   background: rgba(255, 255, 255, 0.94);

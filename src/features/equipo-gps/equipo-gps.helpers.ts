@@ -594,3 +594,225 @@ export function guardarSoloParadas(gerenteId: number, valor: boolean) {
     /* sin almacenamiento */
   }
 }
+
+// --- Horas de paso (v6): marcas de reloj sobre la línea y «¿A qué hora pasó por aquí?». Puras, en píxeles del zoom. ---
+// `passesNear`, `passLabel` y `spread` son puertos de MOX `modules/rastreo-gps/helpers.ts`.
+
+export interface Pixel {
+  x: number
+  y: number
+}
+export interface Rect {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+}
+
+/** Un instante del día sobre la línea dibujada, en píxeles de un zoom. */
+export interface PuntoHora extends Pixel {
+  tramo: number
+  /** Avance en píxeles sobre la línea de su tramo. */
+  s: number
+  time: number
+  lat: number
+  lon: number
+  /** Un fijo real del teléfono (`recorded_at`); los demás se intercalan para el toque, con hora interpolada. */
+  real: boolean
+  /** Está sobre la línea sólida: a los lados de un tramo estimado no va marca. */
+  solido: boolean
+}
+
+export const ZOOM_HORAS = 15
+export const HORAS_SEPARACION_PX = 150
+export const HORAS_MAX = 8
+export const HORAS_MARGEN_PX = 40
+
+/** Inversa de `proyectar`. */
+export function desproyectar(x: number, y: number, zoom: number): [number, number] {
+  const escala = 256 * 2 ** zoom
+  const n = Math.PI - (2 * Math.PI * y) / escala
+  return [(180 / Math.PI) * Math.atan(Math.sinh(n)), (x / escala) * 360 - 180]
+}
+
+function acumulado(linea: Pixel[]) {
+  const L = [0]
+  for (let i = 1; i < linea.length; i++) L.push(L[i - 1] + Math.hypot(linea[i].x - linea[i - 1].x, linea[i].y - linea[i - 1].y))
+  return L
+}
+
+/** El punto de la línea a `s` píxeles del inicio (búsqueda binaria, como MOX `pathArrows`). */
+function enAvance(linea: Pixel[], L: number[], s: number): Pixel {
+  if (linea.length < 2) return linea[0]
+  const objetivo = Math.min(L[L.length - 1], Math.max(0, s))
+  let i = 1
+  let alto = L.length - 1
+  while (i < alto) {
+    const medio = (i + alto) >> 1
+    if (L[medio] < objetivo) i = medio + 1
+    else alto = medio
+  }
+  const paso = L[i] - L[i - 1] || 1
+  const t = (objetivo - L[i - 1]) / paso
+  return { x: linea[i - 1].x + (linea[i].x - linea[i - 1].x) * t, y: linea[i - 1].y + (linea[i].y - linea[i - 1].y) * t }
+}
+
+/**
+ * Avance sobre la línea del primer lugar, desde el segmento `desde` y nunca antes de `sMin`, que queda a menos de
+ * `tol` px de `p`: el mínimo local más temprano, no el más cercano de toda la línea. La calle sigue el orden del día y
+ * una ida y vuelta pasa dos veces por el mismo sitio: tomar el más cercano saltaría a la vuelta (o regresaría a la
+ * ida). `null` si la línea no pasa cerca del punto.
+ */
+function avanceCercano(p: Pixel, linea: Pixel[], L: number[], desde: number, tol: number, sMin: number) {
+  let mejor = Infinity
+  let mejorS = 0
+  let mejorJ = -1
+  for (let j = Math.max(1, desde); j < linea.length; j++) {
+    if (L[j] < sMin) continue
+    const a = linea[j - 1]
+    const dx = linea[j].x - a.x
+    const dy = linea[j].y - a.y
+    const largo = Math.hypot(dx, dy)
+    let t = largo ? Math.min(1, Math.max(0, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (largo * largo))) : 0
+    if (largo && L[j - 1] + largo * t < sMin) t = (sMin - L[j - 1]) / largo
+    const d = Math.hypot(a.x + dx * t - p.x, a.y + dy * t - p.y)
+    if (d < mejor) [mejor, mejorS, mejorJ] = [d, L[j - 1] + largo * t, j]
+    else if (mejor <= tol && j - mejorJ > 3) break
+  }
+  return mejor <= tol ? { s: mejorS, j: mejorJ } : null
+}
+
+/** Metros que mide un píxel en ese zoom y latitud (Web Mercator). */
+const metrosPorPx = (lat: number, zoom: number) => (156_543.03 * Math.cos((lat * Math.PI) / 180)) / 2 ** zoom
+
+/** Un fijo a más de esto de la calle dibujada no se pone sobre ella (OSRM lo dejó fuera o la línea terminó antes). */
+const TOLERANCIA_CALLE_M = 80
+
+/**
+ * Los fijos reales de cada tramo proyectados al zoom y puestos sobre la línea dibujada: con `ajustado` (OSRM) en el
+ * punto más cercano de la calle; sin él, en el fijo mismo. Entre fijos consecutivos de la línea sólida se intercalan
+ * puntos cada `pasoPx` con la hora interpolada, para que el toque sobre la ruta siempre tenga uno cerca (los fijos del
+ * monitor vienen a ~500 m). Un fijo lejos de la calle dibujada queda en su sitio, sin marca ni intercalados.
+ * Se calcula una vez por zoom y por día, nunca en cada cuadro.
+ */
+export function puntosDeHora(tramos: RecorridoHoy['tramos'], zoom: number, pasoPx = 40): PuntoHora[] {
+  const salida: PuntoHora[] = []
+  tramos.forEach((tramo, k) => {
+    const fijos = tramo.puntos.filter(validVertex)
+    if (!fijos.length) return
+    const pix = fijos.map((v) => {
+      const [x, y] = proyectar(v[0], v[1], zoom)
+      return { x, y }
+    })
+    const calle = Boolean(tramo.ajustado && tramo.ajustado.length > 1)
+    const linea = calle
+      ? tramo.ajustado!.map(([lat, lon]) => {
+          const [x, y] = proyectar(lat, lon, zoom)
+          return { x, y }
+        })
+      : pix
+    const L = acumulado(linea)
+    const estimado = new Set(calle ? [] : (tramo.estimado ?? []).map(([desde, hasta]) => `${desde}|${hasta}`))
+    const estimadoEntre = (i: number) => estimado.has(`${fijos[i - 1][2]}|${fijos[i][2]}`)
+    const tol = calle ? TOLERANCIA_CALLE_M / metrosPorPx(fijos[0][0], zoom) : Infinity
+    let j = 1
+    let sAnterior = 0
+    let anteriorEnCalle = false
+    fijos.forEach((v, i) => {
+      let s = L[i] ?? 0
+      let enCalle = true
+      if (calle) {
+        const cerca = avanceCercano(pix[i], linea, L, j, tol, sAnterior)
+        enCalle = cerca !== null
+        if (cerca) {
+          s = Math.max(sAnterior, cerca.s)
+          j = cerca.j
+        } else s = sAnterior
+      }
+      const pos = calle && enCalle ? enAvance(linea, L, s) : pix[i]
+      const [lat, lon] = calle && enCalle ? desproyectar(pos.x, pos.y, zoom) : [v[0], v[1]]
+      const solidoAntes = enCalle && i > 0 && !estimadoEntre(i)
+      const solidoDespues = enCalle && i < fijos.length - 1 && !estimadoEntre(i + 1)
+      const time = Date.parse(v[2])
+      const anterior = salida[salida.length - 1]
+      if (solidoAntes && anteriorEnCalle && anterior && anterior.tramo === k && s - anterior.s > pasoPx)
+        for (let si = anterior.s + pasoPx; si < s - pasoPx / 2; si += pasoPx) {
+          const p = enAvance(linea, L, si)
+          const [la, lo] = desproyectar(p.x, p.y, zoom)
+          const t = anterior.time + ((si - anterior.s) / (s - anterior.s)) * (time - anterior.time)
+          salida.push({ x: p.x, y: p.y, tramo: k, s: si, time: t, lat: la, lon: lo, real: false, solido: true })
+        }
+      salida.push({ x: pos.x, y: pos.y, tramo: k, s, time, lat, lon, real: true, solido: solidoAntes || solidoDespues })
+      sAnterior = s
+      anteriorEnCalle = enCalle
+    })
+  })
+  return salida
+}
+
+/**
+ * Las marcas de reloj que se ven: desde zoom 15, sólo fijos reales de la línea sólida dentro de `vista`, a ≥ 150 px
+ * en pantalla de cualquier otra marca (si la ruta pasa dos veces por un lugar queda una sola) y a ≥ 40 px de las
+ * paradas y de Inicio/Fin (`protegidos`; cada uno puede pedir más radio `r`, p. ej. los que llevan etiqueta fija;
+ * se cuida también el texto a la derecha del punto); como mucho 8, repartidas. Se recalcula al terminar de mover o
+ * de hacer zoom.
+ */
+export function marcasDeHora(
+  puntos: PuntoHora[],
+  zoom: number,
+  vista: Rect,
+  protegidos: (Pixel & { r?: number })[],
+  separacion = HORAS_SEPARACION_PX,
+  max = HORAS_MAX,
+  margen = HORAS_MARGEN_PX
+): PuntoHora[] {
+  if (zoom < ZOOM_HORAS) return []
+  const marcas: PuntoHora[] = []
+  for (const p of puntos) {
+    if (!p.real || !p.solido) continue
+    if (p.x < vista.minX || p.x > vista.maxX || p.y < vista.minY || p.y > vista.maxY) continue
+    if (protegidos.some((q) => Math.hypot(q.x - p.x, q.y - p.y) < (q.r ?? margen) || Math.hypot(q.x - p.x - 28, q.y - p.y) < (q.r ?? margen))) continue
+    if (marcas.some((m) => Math.hypot(m.x - p.x, m.y - p.y) < separacion)) continue
+    marcas.push(p)
+  }
+  return spread(marcas, max)
+}
+
+/** Se queda con `max` elementos repartidos parejo: una ruta larga nunca llena la pantalla. */
+export function spread<T>(items: T[], max: number) {
+  if (items.length <= max) return items
+  return Array.from({ length: max }, (_, i) => items[Math.floor((i * items.length) / max)])
+}
+
+/**
+ * Cuándo pasó la ruta por el lugar más cercano a `target` (píxeles del zoom actual). `track` debe venir en orden de
+ * tiempo. Los puntos a menos de `radius` de ese lugar forman una sola pasada mientras estén a menos de `gapMs` entre
+ * sí (una parada o un cruce lento); volver más tarde cuenta aparte. Cada pasada reporta su punto más cercano al lugar.
+ */
+export function passesNear<T extends Pixel & { time: number }>(track: T[], target: Pixel, radius = 20, gapMs = 600_000) {
+  let nearest: T | undefined
+  let best = Infinity
+  for (const point of track) {
+    const gap = Math.hypot(point.x - target.x, point.y - target.y)
+    if (gap < best) [best, nearest] = [gap, point]
+  }
+  if (!nearest) return null
+  const passes: { point: T; distance: number; last: number }[] = []
+  for (const point of track) {
+    const distance = Math.hypot(point.x - nearest.x, point.y - nearest.y)
+    if (distance > radius) continue
+    const current = passes[passes.length - 1]
+    if (current && point.time - current.last <= gapMs) {
+      current.last = point.time
+      if (distance < current.distance) Object.assign(current, { point, distance })
+    } else passes.push({ point, distance, last: point.time })
+  }
+  return { at: nearest, passes: passes.map((pass) => pass.point) }
+}
+
+/** «Pasó a las 14:52 y a las 17:20». */
+export function passLabel(times: string[]) {
+  const parts = times.map((value) => `a las ${value}`)
+  const last = parts.pop()
+  return `Pasó ${parts.length ? `${parts.join(', ')} y ` : ''}${last ?? ''}`
+}
