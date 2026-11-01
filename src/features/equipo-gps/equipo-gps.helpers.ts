@@ -696,7 +696,17 @@ const TOLERANCIA_CALLE_M = 80
  * Se calcula una vez por zoom y por día, nunca en cada cuadro.
  */
 export function puntosDeHora(tramos: RecorridoHoy['tramos'], zoom: number, pasoPx = 40): PuntoHora[] {
+  return proyectarDia(tramos, zoom, pasoPx).puntos
+}
+
+/**
+ * La proyección del día a un zoom, compartida por marcas de hora y flechas: `puntos` (ver `puntosDeHora`) y `lineas`,
+ * los pedazos sólidos de la línea dibujada (la calle ajustada completa, o los fijos crudos partidos donde hay un
+ * tramo estimado). Una vez por zoom y por día.
+ */
+export function proyectarDia(tramos: RecorridoHoy['tramos'], zoom: number, pasoPx = 40): { puntos: PuntoHora[]; lineas: Pixel[][] } {
   const salida: PuntoHora[] = []
+  const lineas: Pixel[][] = []
   tramos.forEach((tramo, k) => {
     const fijos = tramo.puntos.filter(validVertex)
     if (!fijos.length) return
@@ -714,6 +724,18 @@ export function puntosDeHora(tramos: RecorridoHoy['tramos'], zoom: number, pasoP
     const L = acumulado(linea)
     const estimado = new Set(calle ? [] : (tramo.estimado ?? []).map(([desde, hasta]) => `${desde}|${hasta}`))
     const estimadoEntre = (i: number) => estimado.has(`${fijos[i - 1][2]}|${fijos[i][2]}`)
+    if (calle) lineas.push(linea)
+    else {
+      let pieza: Pixel[] = [pix[0]]
+      for (let i = 1; i < pix.length; i++) {
+        if (estimadoEntre(i)) {
+          if (pieza.length > 1) lineas.push(pieza)
+          pieza = []
+        }
+        pieza.push(pix[i])
+      }
+      if (pieza.length > 1) lineas.push(pieza)
+    }
     const tol = calle ? TOLERANCIA_CALLE_M / metrosPorPx(fijos[0][0], zoom) : Infinity
     let j = 1
     let sAnterior = 0
@@ -747,7 +769,61 @@ export function puntosDeHora(tramos: RecorridoHoy['tramos'], zoom: number, pasoP
       anteriorEnCalle = enCalle
     })
   })
-  return salida
+  return { puntos: salida, lineas }
+}
+
+// --- Flechas de sentido (v6b): puerto de MOX `heading` y `pathArrows`; cuáles se ven, como las marcas de hora. ---
+
+export const FLECHAS_SEPARACION_PX = 110
+export const FLECHAS_MAX = 16
+export const FLECHAS_MINIMO_PX = 30
+export const FLECHAS_MARGEN_PX = 24
+
+/** Rumbo en pantalla de a hacia b, en grados desde arriba (norte del mapa) en el sentido del reloj. */
+export function heading(a: Pixel, b: Pixel) {
+  return ((Math.atan2(b.x - a.x, a.y - b.y) * 180) / Math.PI + 360) % 360
+}
+
+/**
+ * Flechas de sentido cada `spacing` píxeles de pantalla a lo largo de una línea proyectada, en posiciones fijas para
+ * ese zoom (desplazar el mapa no las mueve). Donde la trayectoria se dobla sobre sí misma (el titubeo del GPS en una
+ * parada) el sentido es ruido y no se pone flecha.
+ */
+export function pathArrows(path: Pixel[], spacing: number) {
+  const L = acumulado(path)
+  const total = L[L.length - 1] ?? 0
+  const reach = spacing / 4
+  const arrows: (Pixel & { angle: number })[] = []
+  for (let s = spacing / 2; path.length > 1 && s < total; s += spacing) {
+    const a = enAvance(path, L, s - reach)
+    const b = enAvance(path, L, s + reach)
+    if (Math.hypot(b.x - a.x, b.y - a.y) < reach) continue
+    arrows.push({ ...enAvance(path, L, s), angle: heading(a, b) })
+  }
+  return arrows
+}
+
+/**
+ * Las flechas que se ven: dentro de `vista`, a ≥ 24 px de paradas, Inicio/Fin y marcas de hora (`protegidos`, que
+ * mandan) y a ≥ 30 px de cualquier otra flecha (en una ida y vuelta por la misma calle queda la primera); como mucho
+ * 16, repartidas. Se recalcula al terminar de mover o de hacer zoom.
+ */
+export function flechasVisibles<T extends Pixel>(
+  flechas: T[],
+  vista: Rect,
+  protegidos: (Pixel & { r?: number })[],
+  max = FLECHAS_MAX,
+  minimo = FLECHAS_MINIMO_PX,
+  margen = FLECHAS_MARGEN_PX
+): T[] {
+  const vistas: T[] = []
+  for (const f of flechas) {
+    if (f.x < vista.minX || f.x > vista.maxX || f.y < vista.minY || f.y > vista.maxY) continue
+    if (protegidos.some((q) => Math.hypot(q.x - f.x, q.y - f.y) < (q.r ?? margen))) continue
+    if (vistas.some((v) => Math.hypot(v.x - f.x, v.y - f.y) < minimo)) continue
+    vistas.push(f)
+  }
+  return spread(vistas, max)
 }
 
 /**

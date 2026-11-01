@@ -6,8 +6,9 @@ import { LCircleMarker, LIcon, LMarker, LPolyline, LTooltip } from '@vue-leaflet
 import MapWidget from '@/shared/components/MapWidget.vue'
 import { EQUIPO_GPS_COLOR } from '../equipo-gps.constants'
 import {
-  clock, formatDuration, formatTime, gapLinks, longestStops, marcasDeHora, paradasVisibles, passesNear, passLabel, proyectar,
-  puntosDeHora, routeBands, routeEnds, shade, STOP_PX, stopSize, ZOOM_HORAS
+  clock, desproyectar, flechasVisibles, FLECHAS_SEPARACION_PX, formatDuration, formatTime, gapLinks, longestStops, marcasDeHora,
+  paradasVisibles, passesNear, passLabel, pathArrows, proyectar, proyectarDia, routeBands, routeEnds, shade, STOP_PX, stopSize,
+  ZOOM_HORAS
 } from '../equipo-gps.helpers'
 import type { RecorridoHoy, UbicacionGerente } from '../equipo-gps.types'
 
@@ -56,26 +57,52 @@ const extremos = computed(() => (props.recorrido ? routeEnds(props.recorrido.tra
 
 // --- Horas de paso (v6): marcas de reloj desde zoom 15 y «¿A qué hora pasó por aquí?» al tocar la ruta. ---
 // La proyección se hace una vez por zoom y por día; qué marcas se ven, al terminar de mover o de hacer zoom. Nunca por cuadro.
-const puntosHora = computed(() => (props.recorrido && !props.soloParadas ? puntosDeHora(props.recorrido.tramos, zoom.value) : []))
+const proyeccion = computed(() => (props.recorrido && !props.soloParadas ? proyectarDia(props.recorrido.tramos, zoom.value) : { puntos: [], lineas: [] }))
+const puntosHora = computed(() => proyeccion.value.puntos)
 const toques = computed(() => (props.soloParadas ? [] : bandas.value.filter((banda) => !banda.estimated)))
-const marcas = computed(() => {
-  void vista.value
-  const map = mapa.value
-  if (!map || zoom.value < ZOOM_HORAS || !puntosHora.value.length) return []
+/** Lo que tapan el chip de arriba, los botones flotantes y el panel no cuenta como vista. */
+function vistaUtil(izq: number, arriba: number, der: number, abajo: number) {
+  const limites = mapa.value?.getPixelBounds()
+  if (!limites?.min || !limites.max) return null
+  return { minX: limites.min.x + izq, minY: limites.min.y + arriba, maxX: limites.max.x - der, maxY: limites.max.y - (props.margenInferior ?? 0) - abajo }
+}
+/** Paradas, Inicio y Fin proyectados al zoom actual; Inicio y Fin llevan etiqueta fija encima y piden más aire. */
+const fijos = computed(() => {
   const z = zoom.value
-  const limites = map.getPixelBounds()
-  if (!limites.min || !limites.max) return []
-  // Lo que tapan el chip de arriba, los botones flotantes y el panel no cuenta como vista; el texto va a la derecha del punto.
-  const rect = { minX: limites.min.x + 16, minY: limites.min.y + 110, maxX: limites.max.x - 64, maxY: limites.max.y - (props.margenInferior ?? 0) - 72 }
   const pix = (lat: number, lon: number) => {
     const [x, y] = proyectar(lat, lon, z)
     return { x, y }
   }
-  // Inicio y Fin llevan etiqueta fija encima: piden más aire que una parada.
-  const protegidos: { x: number; y: number; r?: number }[] = paradas.value.map((p) => pix(p.lat, p.lon))
-  if (extremos.value) protegidos.push({ ...pix(extremos.value.start[0], extremos.value.start[1]), r: 64 }, { ...pix(extremos.value.end[0], extremos.value.end[1]), r: 64 })
-  if (props.ubicacion) protegidos.push({ ...pix(props.ubicacion.lat, props.ubicacion.lon), r: 64 })
-  return marcasDeHora(puntosHora.value, z, rect, protegidos)
+  const lista: { x: number; y: number; r?: number }[] = paradas.value.map((p) => pix(p.lat, p.lon))
+  if (extremos.value) lista.push({ ...pix(extremos.value.start[0], extremos.value.start[1]), r: 64 }, { ...pix(extremos.value.end[0], extremos.value.end[1]), r: 64 })
+  if (props.ubicacion) lista.push({ ...pix(props.ubicacion.lat, props.ubicacion.lon), r: 64 })
+  return lista
+})
+const marcas = computed(() => {
+  void vista.value
+  if (zoom.value < ZOOM_HORAS || !puntosHora.value.length) return []
+  const rect = vistaUtil(16, 110, 64, 72) // el texto va a la derecha del punto
+  return rect ? marcasDeHora(puntosHora.value, zoom.value, rect, fijos.value) : []
+})
+
+// --- Flechas de sentido (v6b): cada ~110 px de pantalla sobre la línea sólida, fijas por zoom; mover sólo muestra u oculta. ---
+const flechas = computed(() => {
+  const z = zoom.value
+  return proyeccion.value.lineas.flatMap((linea) =>
+    pathArrows(linea, FLECHAS_SEPARACION_PX).map((f) => {
+      const [lat, lon] = desproyectar(f.x, f.y, z)
+      return { ...f, lat, lon }
+    })
+  )
+})
+const flechasVistas = computed(() => {
+  void vista.value
+  if (!flechas.value.length) return []
+  const rect = vistaUtil(8, 100, 8, 8)
+  if (!rect) return []
+  // Paradas, Inicio/Fin y marcas de hora (con su texto a la derecha) mandan sobre las flechas.
+  const protegidos = [...fijos.value, ...marcas.value.flatMap((m) => [{ x: m.x, y: m.y }, { x: m.x + 28, y: m.y }])]
+  return flechasVisibles(flechas.value, rect, protegidos)
 })
 /** El globo «Pasó a las …» del último toque sobre la ruta; se queda hasta tocar otra parte del mapa. */
 const pase = ref<{ lat: number; lon: number; texto: string } | null>(null)
@@ -223,6 +250,19 @@ defineExpose({ encuadrar, centrar, seguir })
       @click="tocarRuta"
     />
 
+    <!-- Flechas de sentido (como MOX): SVG de 16 px girado al rumbo, bajo las paradas y las marcas. No se tocan. -->
+    <LMarker
+      v-for="flecha in flechasVistas"
+      :key="`flecha-${Math.round(flecha.x)}-${Math.round(flecha.y)}`"
+      :lat-lng="[flecha.lat, flecha.lon]"
+      :options="{ interactive: false, keyboard: false }"
+      :z-index-offset="-200"
+    >
+      <LIcon :icon-size="[16, 16]" :icon-anchor="[8, 8]" class-name="equipo-gps-flecha">
+        <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" :style="{ transform: `rotate(${Math.round(flecha.angle)}deg)` }"><path d="M8 2 13.5 13 8 10.5 2.5 13Z" /></svg>
+      </LIcon>
+    </LMarker>
+
     <!-- Marcas de reloj (desde zoom 15): un punto chico sobre la línea y la hora a un lado. No se tocan. -->
     <LMarker
       v-for="marca in marcas"
@@ -337,6 +377,21 @@ defineExpose({ encuadrar, centrar, seguir })
 </template>
 
 <style>
+/* Flechas de sentido: relleno oscuro con borde blanco de 1.5, como MOX `.arrowMarker`; nunca reciben el toque. */
+.equipo-gps-flecha {
+  background: transparent;
+  border: 0;
+  pointer-events: none;
+}
+.equipo-gps-flecha svg {
+  display: block;
+}
+.equipo-gps-flecha path {
+  fill: #171717;
+  stroke: #ffffff;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
 /* Marcas de reloj: punto chico sobre la línea y la hora con halo blanco, sin caja ni sombra; nunca reciben el toque. */
 .equipo-gps-hora {
   align-items: center;

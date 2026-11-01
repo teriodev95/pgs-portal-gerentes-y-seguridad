@@ -386,7 +386,7 @@ const titulo = computed(() => titleCase(gerente.value?.nombre))
         </div>
       </dl>
       <!-- Pista para descubrir las horas de paso; va en lugar de una leyenda. -->
-      <p v-if="!soloParadas && vista?.tramos.length" class="mt-2 text-[12px] leading-4 text-slate-500">Toca la ruta para ver a qué hora pasó.</p>
+      <p v-if="!soloParadas && vista?.tramos.length" class="mt-2 text-[12px] leading-4 text-slate-500">Las flechas marcan el sentido · toca la ruta para ver la hora.</p>
       <div v-if="telefono" class="mt-3 grid grid-cols-2 gap-2">
         <a :href="telUrl(telefono)" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 text-[16px] font-semibold text-white active:bg-blue-700"><Phone class="size-4" /> Llamar</a>
         <a :href="whatsappUrl(telefono)" target="_blank" rel="noopener" class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-600 text-[16px] font-semibold text-blue-700 active:bg-blue-50"><MessageCircle class="size-4" /> WhatsApp</a>
