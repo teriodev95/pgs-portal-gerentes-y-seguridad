@@ -1,5 +1,6 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
 import type { ApprovedRequest, SaleDetails, SecurityStaff } from "../types"
+import { TEXTO_VENTA_OK, textoAvisoCarteraVirtual, type RespuestaCarteraVirtual } from './cartera-virtual'
 
 /** Lo que devuelve Elysia en /solicitudes-app/listas-sin-venta (snake_case). */
 interface ApprovedRequestResponse {
@@ -66,12 +67,27 @@ class SalesService {
     return data ?? []
   }
 
+  /** Carteras virtuales: aviso, no bloqueo. Si Elysia no responde, la venta sigue igual. */
+  private async avisoCarteraVirtual(nombreCliente: string): Promise<string> {
+    if (!nombreCliente?.trim()) return TEXTO_VENTA_OK
+    try {
+      const { data } = await this.elysiaClient.get<RespuestaCarteraVirtual>(
+        `/filtrado-clientes/cartera-virtual?nombre=${encodeURIComponent(nombreCliente.trim())}`,
+        { meta: { skipErrorNotification: true } }
+      )
+      return textoAvisoCarteraVirtual(data)
+    } catch {
+      return TEXTO_VENTA_OK
+    }
+  }
+
   async createSale(sale: SaleDetails) {
+    const secondaryText = await this.avisoCarteraVirtual(sale.nombreCliente)
     return this.faxClient.post(`/ventas/`, sale, {
       meta: {
         successNotification: {
           mainText: '¡Venta registrada!',
-          secondaryText: 'La venta se ha creado exitosamente'
+          secondaryText
         },
         errorNotification: {
           title: 'Error al registrar venta',
