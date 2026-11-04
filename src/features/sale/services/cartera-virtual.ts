@@ -13,5 +13,5 @@ export const TEXTO_VENTA_OK = 'La venta se ha creado exitosamente'
 export function textoAvisoCarteraVirtual(resp: RespuestaCarteraVirtual | null | undefined): string {
   const d = resp?.data
   if (!d?.coincide) return TEXTO_VENTA_OK
-  return `Aviso: el cliente está en una cartera virtual (${d.motivo}). Oficina no podrá aprobar el crédito sin liberarlo.`
+  return `Aviso: el cliente está en una cartera virtual (${d.motivo}). Revísalo con Oficina antes de entregar.`
 }
