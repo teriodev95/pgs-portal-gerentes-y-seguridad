@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue'
+import { useStore } from '@/shared/stores'
 import { useNotification } from '@/shared/composables/useNotification'
 import { DONE_STATUSES } from '../constants'
 import {
@@ -26,6 +27,9 @@ import type {
  */
 export function useSecurityAgenda(managerGerencia?: string) {
   const { showError } = useNotification()
+  const store = useStore()
+  /** Dueño de «Mi agenda»: el usuario en sesión. */
+  const usuarioId = computed(() => store.user?.usuarioId)
 
   const fecha = ref(todayISO())
   /** `undefined` = mi agenda; con valor = agenda de un auditor del equipo. */
@@ -88,9 +92,16 @@ export function useSecurityAgenda(managerGerencia?: string) {
         })
         manager.value = member ?? null
         agenda.value = member?.agenda ? await securityAgendaService.getAgenda(member.agenda.id) : null
-      } else {
+      } else if (auditorId.value) {
+        // Agenda de un integrante del equipo: el backend ya la acota a ese auditor.
         const [summary] = await securityAgendaService.listAgendas(fecha.value, auditorId.value)
         agenda.value = summary ? await securityAgendaService.getAgenda(summary.id) : null
+      } else {
+        // «Mi agenda»: solo la propia; sin ella queda vacía para crearla, nunca la de otro.
+        const summary = await securityAgendaService.miAgenda(fecha.value, usuarioId.value)
+        const propia = summary ? await securityAgendaService.getAgenda(summary.id) : null
+        // Candado: lo que se muestra y edita como «mía» tiene que ser del usuario en sesión.
+        agenda.value = propia && propia.auditorId === usuarioId.value ? propia : null
       }
     } catch (error) {
       agenda.value = null
@@ -205,6 +216,7 @@ export function useSecurityAgenda(managerGerencia?: string) {
     // Estado
     fecha,
     auditorId,
+    usuarioId,
     agenda,
     manager,
     activityTypes,

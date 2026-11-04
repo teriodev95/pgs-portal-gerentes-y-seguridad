@@ -1,4 +1,5 @@
 import { createApiClientFromPreset } from '@/shared/services/core'
+import { elegirMiAgenda } from './mi-agenda'
 import type {
   Agenda,
   AgendaActivity,
@@ -78,11 +79,20 @@ class SecurityAgendaService {
     return data.data
   }
 
+  /**
+   * Resúmenes del día. Sin `auditorId`, a jefe y oficina les llegan las de todo su equipo:
+   * para «lo mío» NO tomar `[0]` de aquí; usar `miAgenda`.
+   */
   async listAgendas(fecha: string, auditorId?: number): Promise<AgendaSummary[]> {
     const { data } = await this.apiClient.get<ApiEnvelope<AgendaSummary[]>>(this.base, {
       params: auditorId ? { fecha, auditorId } : { fecha }
     })
     return data.data
+  }
+
+  /** La agenda propia del día (resumen) o `null` si no existe. Única función para «Mi agenda» y el FAB. */
+  miAgenda(fecha: string, usuarioId: number | undefined): Promise<AgendaSummary | null> {
+    return elegirMiAgenda((auditorId) => this.listAgendas(fecha, auditorId), usuarioId)
   }
 
   async getAgenda(id: number): Promise<Agenda> {

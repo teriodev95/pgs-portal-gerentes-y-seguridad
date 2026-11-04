@@ -135,6 +135,8 @@ export interface Agenda {
 /** Resumen que devuelven `GET /` y el bloque `agenda` de `GET /equipo`. */
 export interface AgendaSummary {
   id: number
+  /** Dueño de la agenda: `GET /` lo trae siempre; el bloque de `GET /equipo` no (ahí el dueño es el integrante). */
+  auditorId?: number
   status: AgendaStatus
   enviadaAt: string | null
   enviadaATiempo: boolean | null

@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { CalendarCheck } from 'lucide-vue-next'
+import { useStore } from '@/shared/stores'
 // Se importa desde `names` (y no desde `@/router`) para no cerrar el ciclo
 // router -> HomeView -> HomeMenu -> este botón -> router.
 import { ROUTE_NAME } from '@/router/names'
@@ -16,6 +17,7 @@ import FloatBtn from '@/shared/components/FloatBtn.vue'
 
 const $router = useRouter()
 const { canUseAgenda } = useAgendaAccess()
+const store = useStore()
 
 const fecha = ref(todayISO())
 const summary = ref<AgendaSummary | null>(null)
@@ -80,8 +82,8 @@ watch(
     if (!allowed || ready.value) return
 
     try {
-      const [first] = await securityAgendaService.listAgendas(fecha.value)
-      summary.value = first ?? null
+      // La propia, con la misma función que «Mi agenda»: a un jefe la lista trae las de su equipo.
+      summary.value = await securityAgendaService.miAgenda(fecha.value, store.user?.usuarioId)
     } catch {
       // El botón es la entrada a la agenda: si el resumen falla se queda sin
       // marca, pero nunca sin botón.
