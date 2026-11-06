@@ -3,6 +3,7 @@ import { useStore } from '@/shared/stores'
 import type { MoneyTabulation, TabulationFormData } from '../types'
 import { tabulationService } from '../services/tabulator.service'
 import { useNotification } from '@/shared/composables/useNotification'
+import { getSemanaActual } from '@/shared/services/semana-actual'
 
 export function useMoneyTabulation() {
   // Services, Composables and Stores initialization
@@ -16,7 +17,6 @@ export function useMoneyTabulation() {
   const isSavingTabulation = ref(false)
 
   // Computed properties
-  const currentDate = computed(() => $store.currentDate)
   const gerenciaSelected = computed(() => $store.gerenciaSelected)
 
   const isFormValid = computed(() => true) // Validation will be done in the component
@@ -59,12 +59,20 @@ export function useMoneyTabulation() {
       return
     }
 
+    let semanaDeHoy: { semana: number; anio: number }
+    try {
+      semanaDeHoy = await getSemanaActual()
+    } catch (error) {
+      showError((error as Error).message)
+      return
+    }
+
     try {
       isLoadingTabulation.value = true
 
       const { data } = await tabulationService.getMoneyTabulation({
-        week: currentDate.value.week,
-        year: currentDate.value.year,
+        week: semanaDeHoy.semana,
+        year: semanaDeHoy.anio,
         managment: gerenciaSelected.value
       })
 
@@ -119,12 +127,19 @@ export function useMoneyTabulation() {
           currentTabulationData.value.id!
         )
       } else {
-        // Create new tabulation
+        // Create new tabulation: siempre con la semana actual del servidor
+        let semanaDeHoy: { semana: number; anio: number }
+        try {
+          semanaDeHoy = await getSemanaActual()
+        } catch (error) {
+          showError((error as Error).message)
+          throw error
+        }
         const tabulationData: MoneyTabulation = {
           ...formData,
           gerencia: gerenciaSelected.value,
-          anio: currentDate.value.year,
-          semana: currentDate.value.week
+          anio: semanaDeHoy.anio,
+          semana: semanaDeHoy.semana
         }
         console.log('Saving tabulation data:', tabulationData)
         await tabulationService.createMoneyTabulation(tabulationData)
@@ -160,7 +175,6 @@ export function useMoneyTabulation() {
     isSavingTabulation,
 
     // Computed - Basic
-    currentDate,
     gerenciaSelected,
 
     // Computed - Specific  
