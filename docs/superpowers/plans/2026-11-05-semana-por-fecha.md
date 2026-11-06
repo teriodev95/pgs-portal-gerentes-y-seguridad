@@ -23,7 +23,7 @@
 ## Fuera de alcance (decisión explícita)
 
 - **HU punto 2 (`useWeekDaySelector` deja de escribir en `$store.currentDate`):** no se toca en este plan. `useReport` (Reporte diario) lee la semana desde el store, así que quitar la escritura cambia la fuente de datos del reporte. Requiere pasar la semana por parámetro: se planea aparte. Este plan ya evita el daño (los guardados no leen el store), así que el criterio 2 de la HU se cumple sin tocarlo.
-- **HU punto 4 (tabulador):** `useMoneyTabulation` carga y guarda con la semana del store. Necesita decisión de producto (¿capturar en otra semana a propósito?). No se cambia aquí.
+- **HU punto 4 (tabulador):** resuelto con la opción B (decisión 2026-11-06): `useMoneyTabulation` carga y guarda con la semana del servidor. El tabulador ya no muestra semanas pasadas; en BD, ninguna de las 2024 tabulaciones de 2026 se guardó en una semana distinta a su `created_at`, así que nadie usaba esa posibilidad.
 - **HU punto 5 (candado en FAX `POST /pagos/`):** repo `fast-api-xpress-fax`, rama `dev`. Tarea independiente, opcional, no ejecutada en este plan.
 - **Corrección de datos:** los pagos ya mal semaneados en `pagos_v3` (consulta de control en la HU) se corrigen con script aprobado, no con código.
 
