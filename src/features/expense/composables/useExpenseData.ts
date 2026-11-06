@@ -4,6 +4,7 @@ import type { WeeklyExpense, ExpenseFormData } from '../types'
 import { weeklyExpenseService } from '../services/expense.service'
 import { useExpenseStore } from '../stores'
 import { useNotification } from '@/shared/composables/useNotification'
+import { getSemanaActual } from '@/shared/services/semana-actual'
 
 // Validation function
 function validateExpenseData(expense: WeeklyExpense): { isValid: boolean; errors: string[] } {
@@ -95,11 +96,19 @@ export function useExpenseData() {
       timeZone: 'America/Mexico_City'
     })
 
+    let semanaDeHoy: { semana: number; anio: number }
+    try {
+      semanaDeHoy = await getSemanaActual()
+    } catch (error) {
+      showError((error as Error).message)
+      return Promise.reject(error)
+    }
+
     const expense: WeeklyExpense = {
       ...formData,
       creadoPorId: user.value.usuarioId,
-      semana: currentDate.value.week,
-      anio: currentDate.value.year,
+      semana: semanaDeHoy.semana,
+      anio: semanaDeHoy.anio,
       gerencia: isUserManager.value ? gerenciaSelected.value as string : '',
       fecha: currentDateStr,
     }

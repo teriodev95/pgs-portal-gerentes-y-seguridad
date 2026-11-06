@@ -4,6 +4,7 @@ import type { SaleDetails, SaleFormData } from '../types'
 import { salesService } from '../services/sale.service'
 import { useSaleStore } from '../stores'
 import { useNotification } from '@/shared/composables/useNotification'
+import { getSemanaActual } from '@/shared/services/semana-actual'
 
 function validateSaleData(sale: SaleDetails): { isValid: boolean; errors: string[] } {
   const errors: string[] = []
@@ -142,10 +143,18 @@ export function useSaleData() {
       return Promise.reject(new Error('El primer pago no puede ser 0'))
     }
 
+    let semanaDeHoy: { semana: number; anio: number }
+    try {
+      semanaDeHoy = await getSemanaActual()
+    } catch (error) {
+      showError((error as Error).message)
+      return Promise.reject(error)
+    }
+
     const saleData: SaleDetails = {
       ...formData,
-      semana: currentDate.value.week,
-      anio: currentDate.value.year,
+      semana: semanaDeHoy.semana,
+      anio: semanaDeHoy.anio,
       gerencia: gerenciaSelected.value,
     }
 

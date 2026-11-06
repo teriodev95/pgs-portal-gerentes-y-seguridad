@@ -4,6 +4,7 @@ import type { IIncident, IIncidentFormData } from '../types'
 import { incidentService } from '../services/incident.service'
 import { useIncidentStore } from '../stores'
 import { useNotification } from '@/shared/composables/useNotification'
+import { getSemanaActual } from '@/shared/services/semana-actual'
 
 // Validation function
 function validateIncidentData(incident: IIncident): { isValid: boolean; errors: string[] } {
@@ -99,6 +100,14 @@ export function useIncidentData() {
       return Promise.reject(new Error('Usuario no autenticado'))
     }
 
+    let semanaDeHoy: { semana: number; anio: number }
+    try {
+      semanaDeHoy = await getSemanaActual()
+    } catch (error) {
+      showError((error as Error).message)
+      return Promise.reject(error)
+    }
+
     const currentDateStr = new Date().toLocaleDateString('en-CA', {
       timeZone: 'America/Mexico_City'
     })
@@ -106,8 +115,8 @@ export function useIncidentData() {
     const incident: IIncident = {
       ...formData,
       usuarioId: user.value.usuarioId,
-      semana: currentDate.value.week,
-      anio: currentDate.value.year,
+      semana: semanaDeHoy.semana,
+      anio: semanaDeHoy.anio,
       gerencia: isUserManager.value ? gerenciaSelected.value as string : '',
       fecha: currentDateStr,
     }
