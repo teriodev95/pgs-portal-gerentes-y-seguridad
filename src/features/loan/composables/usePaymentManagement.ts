@@ -7,11 +7,12 @@ import type { ICobranza  } from '@/interfaces'
 import type { PaymentSource, RecoverySource, IPaymentCreate } from '../types'
 import useGeolocation from '@/shared/composables/useGeolocation'
 import { useNotification } from '@/shared/composables/useNotification'
+import { getSemanaActual } from '@/shared/services/semana-actual'
 
 export function usePaymentManagement() {
   const $store = useStore()
   const { userLocation, hasPermission } = useGeolocation()
-  const { showWarning } = useNotification()
+  const { showWarning, showError } = useNotification()
 
   const isLoadingPayments = ref(false)
   const isProcessing = ref(false)
@@ -54,6 +55,14 @@ export function usePaymentManagement() {
   ) {
     if (!selectedPayment.value) return false
 
+    let semanaDeHoy: { semana: number; anio: number }
+    try {
+      semanaDeHoy = await getSemanaActual()
+    } catch (error) {
+      showError((error as Error).message)
+      return false
+    }
+
     const payment = selectedPayment.value
     try {
       selectedAmount.value = amount
@@ -63,7 +72,7 @@ export function usePaymentManagement() {
 
       const paymentData: IPaymentCreate = {
         agente: agencySelected.value as string,
-        anio: currentDate.value.year,
+        anio: semanaDeHoy.anio,
         cliente: payment.nombre,
         comentario: `'Llenado por el Gerente ${$store.user?.nombre}'`,
         creadoDesde: 'PGS',
@@ -78,7 +87,7 @@ export function usePaymentManagement() {
         prestamoId: `${payment.prestamoId}`,
         quienPago: selectedPaymentSource,
         recuperadoPor: selectedPaymentRecovery,
-        semana: currentDate.value.week,
+        semana: semanaDeHoy.semana,
         tarifa: payment.tarifa,
         tipo: 'Pago',
       }
