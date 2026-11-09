@@ -116,6 +116,16 @@ export interface Referencia {
 
 export interface ActivosElectrodomestico {
   marca?: string | null
+  numero_serie?: string | null
+  antiguedad?: string | null
+  valor?: number | null
+}
+
+/** Bien adicional que registra el agente (tipo, descripción y valor); oficina lo ve igual en MOX. */
+export interface GarantiaAdicional {
+  id?: string | null
+  tipo?: string | null
+  descripcion?: string | null
   valor?: number | null
 }
 
@@ -192,6 +202,7 @@ export interface Solicitud {
   cliente_no_servicio?: string | null
   cliente_referencias?: Referencia[] | null
   cliente_activos?: ActivosData | null
+  cliente_garantias?: GarantiaAdicional[] | null
   cliente_ocupacion?: string | null
   cliente_empresa?: string | null
   cliente_ingresos_mensuales?: number | null
@@ -218,6 +229,7 @@ export interface Solicitud {
   aval_no_servicio?: string | null
   aval_referencias?: Referencia[] | null
   aval_activos?: ActivosData | null
+  aval_garantias?: GarantiaAdicional[] | null
   aval_ocupacion?: string | null
   aval_empresa?: string | null
   aval_ingresos_mensuales?: number | null

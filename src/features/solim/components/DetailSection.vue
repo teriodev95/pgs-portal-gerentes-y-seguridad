@@ -22,8 +22,8 @@ withDefaults(defineProps<Props>(), {
     <h3 :class="titleClass">{{ title }}</h3>
     <div class="space-y-3 text-sm">
       <DetailItem 
-        v-for="item in items" 
-        :key="item.label"
+        v-for="(item, index) in items"
+        :key="`${index}-${item.label}`"
         :label="item.label" 
         :value="item.value" 
       />

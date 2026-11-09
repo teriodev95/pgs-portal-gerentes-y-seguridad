@@ -10,6 +10,7 @@ import type {
   ApprovalType,
   DocumentosData,
   DocumentoImagen,
+  GarantiaAdicional,
   LoanRequestDetailResponse,
   LoanRequestsListResponse,
   Referencia,
@@ -323,6 +324,27 @@ function normalizeCorreccion(value: unknown): CorreccionSolicitud | null {
   }
 }
 
+/** Acepta la lista o el JSON en texto tal como lo guarda Elysia. */
+function normalizeGarantias(value: unknown): GarantiaAdicional[] {
+  let list = value
+  if (typeof value === 'string') {
+    try {
+      list = JSON.parse(value)
+    } catch {
+      return []
+    }
+  }
+  return asArray<unknown>(list)
+    .map(asRecord)
+    .filter((item): item is AnyRecord => item !== null)
+    .map((item) => ({
+      id: asString(item.id),
+      tipo: asString(item.tipo),
+      descripcion: asString(item.descripcion),
+      valor: asNumber(item.valor)
+    }))
+}
+
 export function normalizeSolicitud(value: unknown): Solicitud {
   const raw = asRecord(value) ?? {}
   const captura = asRecord(raw.captura)
@@ -386,6 +408,7 @@ export function normalizeSolicitud(value: unknown): Solicitud {
     cliente_no_servicio: asString(raw.cliente_no_servicio ?? cliente?.no_servicio),
     cliente_referencias: normalizeReferencias(raw.cliente_referencias ?? cliente?.referencias),
     cliente_activos: (raw.cliente_activos ?? cliente?.activos ?? null) as Solicitud['cliente_activos'],
+    cliente_garantias: normalizeGarantias(raw.cliente_garantias ?? cliente?.garantias),
     cliente_ocupacion: asString(raw.cliente_ocupacion ?? cliente?.ocupacion ?? clienteEmpleo?.ocupacion),
     cliente_empresa: asString(raw.cliente_empresa ?? cliente?.empresa ?? clienteEmpleo?.empresa),
     cliente_ingresos_mensuales: asNumber(raw.cliente_ingresos_mensuales ?? cliente?.ingresos_mensuales),
@@ -412,6 +435,7 @@ export function normalizeSolicitud(value: unknown): Solicitud {
     aval_no_servicio: asString(raw.aval_no_servicio ?? aval?.no_servicio),
     aval_referencias: normalizeReferencias(raw.aval_referencias ?? aval?.referencias),
     aval_activos: (raw.aval_activos ?? aval?.activos ?? null) as Solicitud['aval_activos'],
+    aval_garantias: normalizeGarantias(raw.aval_garantias ?? aval?.garantias),
     aval_ocupacion: asString(raw.aval_ocupacion ?? aval?.ocupacion ?? avalEmpleo?.ocupacion),
     aval_empresa: asString(raw.aval_empresa ?? aval?.empresa ?? avalEmpleo?.empresa),
     aval_ingresos_mensuales: asNumber(raw.aval_ingresos_mensuales ?? aval?.ingresos_mensuales),

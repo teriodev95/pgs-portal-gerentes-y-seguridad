@@ -7,6 +7,7 @@ import DocumentViewer from './DocumentViewer.vue'
 import DetailSection from './DetailSection.vue'
 import ClienteHistorialDisclosure from './ClienteHistorialDisclosure.vue'
 import CorreccionSolicitadaCard from './CorreccionSolicitadaCard.vue'
+import { bienesValuados } from '../utils/bienes-valuados'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type {
   ActivosData,
@@ -185,6 +186,8 @@ const referenceClientItems = computed(() => mapReferences('Referencia', props.re
 const referenceGuarantorItems = computed(() => mapReferences('Referencia', props.request.aval_referencias))
 const clientAssetItems = computed(() => mapAssets(props.request.cliente_activos))
 const guarantorAssetItems = computed(() => mapAssets(props.request.aval_activos))
+const clientValuedAssets = computed(() => bienesValuados(props.request.cliente_activos, props.request.cliente_garantias))
+const guarantorValuedAssets = computed(() => bienesValuados(props.request.aval_activos, props.request.aval_garantias))
 const clientAssetPhotos = computed(() => mapAssetPhotos('Activo cliente', props.request.cliente_activos))
 const guarantorAssetPhotos = computed(() => mapAssetPhotos('Activo aval', props.request.aval_activos))
 
@@ -486,7 +489,10 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
         </div>
       </CardContainer>
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <CardContainer class-name="rounded-3xl"><DetailSection title="Activos del cliente" :items="clientAssetItems" /></CardContainer>
+        <CardContainer class-name="rounded-3xl">
+          <DetailSection title="Activos del cliente" :items="clientAssetItems" />
+          <DetailSection v-if="clientValuedAssets.length" class="mt-6" title="Bienes y su valor" :items="clientValuedAssets" />
+        </CardContainer>
         <CardContainer class-name="rounded-3xl">
           <div>
             <h3 class="mb-4 text-lg font-semibold text-slate-800">Fotos de activos</h3>
@@ -512,7 +518,10 @@ function mapAssetPhotos(prefix: string, assets?: ActivosData | null) {
         </div>
       </CardContainer>
       <div class="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <CardContainer class-name="rounded-3xl"><DetailSection title="Activos del aval" :items="guarantorAssetItems" /></CardContainer>
+        <CardContainer class-name="rounded-3xl">
+          <DetailSection title="Activos del aval" :items="guarantorAssetItems" />
+          <DetailSection v-if="guarantorValuedAssets.length" class="mt-6" title="Bienes y su valor" :items="guarantorValuedAssets" />
+        </CardContainer>
         <CardContainer class-name="rounded-3xl">
           <div>
             <h3 class="mb-4 text-lg font-semibold text-slate-800">Fotos de activos</h3>
