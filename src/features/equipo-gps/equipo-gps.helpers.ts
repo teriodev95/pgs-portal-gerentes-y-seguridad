@@ -226,7 +226,7 @@ export function pasaFiltro(gerente: GerenteEquipo, filtro: FiltroEquipo, busqued
   if (filtro === 'sin_senal' && !esSinSenal(gerente)) return false
   const q = busqueda.trim().toLowerCase()
   if (!q) return true
-  return `${gerente.nombre ?? ''} ${gerente.gerencia} ${gerente.usuario ?? ''}`.toLowerCase().includes(q)
+  return `${gerente.nombre ?? ''} ${etiqueta(gerente)} ${gerente.usuario ?? ''}`.toLowerCase().includes(q)
 }
 
 const registrado = (g: GerenteEquipo) => Date.parse(g.ubicacion?.registrado_at ?? '') || 0
@@ -243,6 +243,14 @@ export function ordenarGerentes(gerentes: GerenteEquipo[]): GerenteEquipo[] {
   })
 }
 
+/** Lo que va bajo el nombre: la gerencia, o el puesto para el personal sin gerencia. */
+export function etiqueta(gerente: Pick<GerenteEquipo, 'gerencia' | 'puesto'>): string {
+  return gerente.gerencia ?? gerente.puesto ?? ''
+}
+
+/** El personal sin gerencia (trae `puesto`) va en su propio grupo, después de todas las sucursales. */
+export const GRUPO_PERSONAL = { codigo: 'PERSONAL', nombre: 'Regionales y seguridad' } as const
+
 export interface GrupoSucursal {
   codigo: string
   nombre: string
@@ -257,16 +265,21 @@ export function agruparPorSucursal(
   sucursal: string | null = null
 ): GrupoSucursal[] {
   const orden = Object.keys(SUCURSALES)
+  const lugar = (codigo: string) => (codigo === GRUPO_PERSONAL.codigo ? 100 : orden.indexOf(codigo) + 1 || 99)
   const porCodigo = new Map<string, GerenteEquipo[]>()
   for (const g of gerentes) {
     if (!pasaFiltro(g, filtro, busqueda) || !pasaSucursal(g, sucursal)) continue
-    const codigo = g.sucursal ?? '—'
+    const codigo = g.puesto ? GRUPO_PERSONAL.codigo : g.sucursal ?? '—'
     if (!porCodigo.has(codigo)) porCodigo.set(codigo, [])
     porCodigo.get(codigo)!.push(g)
   }
   return [...porCodigo.entries()]
-    .sort(([a], [b]) => (orden.indexOf(a) + 1 || 99) - (orden.indexOf(b) + 1 || 99))
-    .map(([codigo, lista]) => ({ codigo, nombre: sucursalNombre(codigo), gerentes: ordenarGerentes(lista) }))
+    .sort(([a], [b]) => lugar(a) - lugar(b))
+    .map(([codigo, lista]) => ({
+      codigo,
+      nombre: codigo === GRUPO_PERSONAL.codigo ? GRUPO_PERSONAL.nombre : sucursalNombre(codigo),
+      gerentes: ordenarGerentes(lista)
+    }))
 }
 
 export function telUrl(telefono: string): string {

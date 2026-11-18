@@ -67,7 +67,8 @@ export function useEquipoGps() {
     { immediate: true }
   )
 
-  const gerentes = computed<GerenteEquipo[]>(() => equipo.value?.gerentes ?? [])
+  // El personal sin gerencia (si FAX lo manda) entra a la misma lista: filtros, mapa y detalle lo tratan igual.
+  const gerentes = computed<GerenteEquipo[]>(() => [...(equipo.value?.gerentes ?? []), ...(equipo.value?.personal ?? [])])
   const conGerente = computed(() => gerentes.value.filter((g) => g.estado !== 'vacante'))
   const vacantes = computed(() => gerentes.value.filter((g) => g.estado === 'vacante'))
   /** Conteos de estado dentro de la sucursal elegida, y de sucursal dentro del estado elegido: se combinan. */

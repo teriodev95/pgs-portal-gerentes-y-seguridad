@@ -13,9 +13,9 @@ import EquipoGpsNavegador from '../components/EquipoGpsNavegador.vue'
 import EquipoGpsPanel from '../components/EquipoGpsPanel.vue'
 import { useEquipoGps } from '../composables/useEquipoGps'
 import {
-  agoShort, clock, colorDe, dayLabelCorto, epochAHora, formatDistance, formatTime, guardarSoloParadas, horaAEpoch,
-  hoyMexico, isFresh, leerSoloParadas, lineaDelDia, notaMismoLugar, paradasCoincidentes, pistas as armarPistas, sliceDay,
-  sucursalNombre, telUrl, titleCase, whatsappUrl
+  agoShort, clock, colorDe, dayLabelCorto, epochAHora, etiqueta, formatDistance, formatTime, guardarSoloParadas,
+  horaAEpoch, hoyMexico, isFresh, leerSoloParadas, lineaDelDia, notaMismoLugar, paradasCoincidentes,
+  pistas as armarPistas, sliceDay, sucursalNombre, telUrl, titleCase, whatsappUrl
 } from '../equipo-gps.helpers'
 import { equipoGpsError, equipoGpsService } from '../equipo-gps.service'
 import type { DiaConDatos, EventoDia, RangoHoras, RecorridoHoy, UltimaPosicion } from '../equipo-gps.types'
@@ -377,7 +377,7 @@ const titulo = computed(() => titleCase(gerente.value?.nombre))
       <template #encabezado>
         <h1 class="truncate text-[20px] font-semibold leading-6 text-slate-900">{{ titulo }}</h1>
         <div class="mt-1 flex items-center justify-between gap-3">
-          <p class="truncate text-[13px] leading-4 text-slate-500">{{ gerente.gerencia }} · {{ sucursalNombre(gerente.sucursal) }}</p>
+          <p class="truncate text-[13px] leading-4 text-slate-500">{{ etiqueta(gerente) }} · {{ sucursalNombre(gerente.sucursal) }}</p>
           <EquipoGpsEstado :gerente="gerente" :now="now" chip />
         </div>
         <div class="mt-3">

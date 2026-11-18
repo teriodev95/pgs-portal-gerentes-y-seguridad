@@ -7,7 +7,7 @@ import EquipoGpsChips from '../components/EquipoGpsChips.vue'
 import EquipoGpsEstado from '../components/EquipoGpsEstado.vue'
 import EquipoGpsPanel from '../components/EquipoGpsPanel.vue'
 import { useEquipoGps } from '../composables/useEquipoGps'
-import { agoShort, agruparPorSucursal, colorDe, estadoTexto, formatDistance, formatTime, initials, sucursalNombre, telUrl, textoAhora, titleCase, whatsappUrl } from '../equipo-gps.helpers'
+import { agoShort, agruparPorSucursal, colorDe, estadoTexto, etiqueta, formatDistance, formatTime, initials, sucursalNombre, telUrl, textoAhora, titleCase, whatsappUrl } from '../equipo-gps.helpers'
 import { equipoGpsService } from '../equipo-gps.service'
 import type { GerenteEquipo, ResumenHoy } from '../equipo-gps.types'
 
@@ -210,7 +210,7 @@ function tiraFin() {
             {{ g.nombre }} <span class="tabular-nums text-slate-400">· {{ g.gerentes.length }}</span>
           </h2>
           <ul class="divide-y divide-slate-100">
-            <li v-for="p in g.gerentes" :key="p.gerencia">
+            <li v-for="p in g.gerentes" :key="p.id ?? p.gerencia ?? ''">
               <button type="button" class="flex h-16 w-full items-center gap-3 px-4 text-left active:bg-slate-50" @click="abrir(p)">
                 <span
                   class="size-2 shrink-0 rounded-full"
@@ -220,7 +220,7 @@ function tiraFin() {
                 <span class="min-w-0 flex-1">
                   <span class="block truncate text-[16px] font-medium leading-5 text-slate-900">{{ titleCase(p.nombre) }}</span>
                   <span class="block truncate text-[13px] leading-4 text-slate-500">
-                    {{ p.gerencia }}<template v-if="p.estado !== 'activo' && p.estado !== 'sin_senal'"> · {{ estadoTexto(p.estado) }}</template>
+                    {{ etiqueta(p) }}<template v-if="p.estado !== 'activo' && p.estado !== 'sin_senal'"> · {{ estadoTexto(p.estado) }}</template>
                   </span>
                 </span>
                 <span class="shrink-0 text-right text-[13px] tabular-nums leading-4" :class="p.estado === 'activo' ? 'text-slate-500' : 'text-slate-400'">
@@ -238,7 +238,7 @@ function tiraFin() {
             {{ vacantes.length }} {{ vacantes.length === 1 ? 'gerencia vacante' : 'gerencias vacantes' }}
           </button>
           <ul v-if="verVacantes" class="divide-y divide-slate-100 pb-4">
-            <li v-for="v in vacantes" :key="v.gerencia" class="flex h-12 items-center gap-3 px-4 pl-10 text-[13px] text-slate-500">
+            <li v-for="v in vacantes" :key="v.gerencia ?? ''" class="flex h-12 items-center gap-3 px-4 pl-10 text-[13px] text-slate-500">
               <span class="font-medium text-slate-600">{{ v.gerencia }}</span> · {{ sucursalNombre(v.sucursal) }} · sin gerente
             </li>
           </ul>
@@ -349,7 +349,7 @@ function tiraFin() {
             <div class="min-w-0 flex-1">
               <h2 class="truncate text-[20px] font-semibold leading-6 text-slate-900">{{ titleCase(seleccionado.nombre) }}</h2>
               <div class="mt-1 flex items-center justify-between gap-3">
-                <p class="truncate text-[13px] leading-4 text-slate-500">{{ seleccionado.gerencia }} · {{ sucursalNombre(seleccionado.sucursal) }}</p>
+                <p class="truncate text-[13px] leading-4 text-slate-500">{{ etiqueta(seleccionado) }} · {{ sucursalNombre(seleccionado.sucursal) }}</p>
                 <EquipoGpsEstado :gerente="seleccionado" :now="now" chip />
               </div>
             </div>
@@ -411,12 +411,12 @@ function tiraFin() {
         </div>
       </template>
       <ul v-else-if="grupo" class="mt-2 divide-y divide-slate-100">
-        <li v-for="p in grupo" :key="p.id ?? p.gerencia">
+        <li v-for="p in grupo" :key="p.id ?? p.gerencia ?? ''">
           <button type="button" class="flex h-14 w-full items-center gap-3 text-left active:bg-slate-50" @click="elegir(p)">
             <span class="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white" :style="{ background: colorDe(p) }">{{ initials(p.nombre) }}</span>
             <span class="min-w-0 flex-1">
               <span class="block truncate text-[16px] font-medium leading-5 text-slate-900">{{ titleCase(p.nombre) }}</span>
-              <span class="block truncate text-[13px] leading-4 text-slate-500">{{ p.gerencia }} · {{ sucursalNombre(p.sucursal) }}</span>
+              <span class="block truncate text-[13px] leading-4 text-slate-500">{{ etiqueta(p) }} · {{ sucursalNombre(p.sucursal) }}</span>
             </span>
             <EquipoGpsEstado :gerente="p" :now="now" />
           </button>

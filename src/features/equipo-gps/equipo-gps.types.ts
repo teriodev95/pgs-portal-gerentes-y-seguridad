@@ -21,17 +21,22 @@ export interface GerenteEquipo {
   id: number | null
   nombre: string | null
   usuario: string | null
-  gerencia: string
+  /** null para el personal sin gerencia (regionales y seguridad), que trae `puesto`. */
+  gerencia: string | null
   /** Código de sucursal de la gerencia (GERC, GERD, GERDC, GERE, GERGC, GERM, GERP). */
   sucursal: string | null
   /** Color que Oficina guardó en MOX; null = el color por defecto de la sucursal (`colorDe`). */
   color: string | null
   estado: EstadoGerente
   ubicacion: UbicacionGerente | null
+  /** Sólo en `personal`: el Tipo de usuario (Regional, Seguridad). */
+  puesto?: string
 }
 
 export interface EquipoRespuesta {
   gerentes: GerenteEquipo[]
+  /** Regionales y seguridad de las gerencias de quien mira; FAX sólo la manda a Seguridad. */
+  personal?: GerenteEquipo[]
   /** Sucursales permitidas a quien mira (de sus gerencias y usuarios_sucursales): los chips salen de aquí. */
   sucursales: string[]
   fecha: string
