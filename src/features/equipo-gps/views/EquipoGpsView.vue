@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useLocalStorage } from '@vueuse/core'
 import { BatteryLow, BatteryMedium, ChevronRight, ChevronLeft, Crosshair, Layers, MessageCircle, Phone, Search, X } from 'lucide-vue-next'
 import { ROUTE_NAME } from '@/router'
 import EquipoGpsChips from '../components/EquipoGpsChips.vue'
 import EquipoGpsEstado from '../components/EquipoGpsEstado.vue'
 import EquipoGpsPanel from '../components/EquipoGpsPanel.vue'
 import { useEquipoGps } from '../composables/useEquipoGps'
-import { agoShort, agruparPorSucursal, colorDe, estadoTexto, etiqueta, formatDistance, formatTime, initials, sucursalNombre, telUrl, textoAhora, titleCase, whatsappUrl } from '../equipo-gps.helpers'
+import { agoShort, agruparPorSucursal, colorDe, esSinSenal, estadoTexto, etiqueta, resumenGrupo, formatDistance, formatTime, initials, sucursalNombre, telUrl, textoAhora, titleCase, whatsappUrl } from '../equipo-gps.helpers'
+import { EQUIPO_GPS_DESPLEGABLE_DESDE } from '../equipo-gps.constants'
 import { equipoGpsService } from '../equipo-gps.service'
 import type { GerenteEquipo, ResumenHoy } from '../equipo-gps.types'
 
@@ -31,6 +33,21 @@ const altoPanel = ref(0)
 const mapa = ref<{ encuadrar: () => void }>()
 
 const grupos = computed(() => agruparPorSucursal(gerentes.value, filtro.value, busqueda.value, sucursalFiltro.value))
+
+// Equipos grandes: grupos plegables con su resumen. Al buscar, filtrar por estado o quedar un solo grupo se ven
+// abiertos, como siempre.
+const desplegable = computed(
+  () =>
+    conGerente.value.length >= EQUIPO_GPS_DESPLEGABLE_DESDE &&
+    grupos.value.length > 1 &&
+    filtro.value === 'todos' &&
+    !busqueda.value.trim()
+)
+const abiertos = useLocalStorage<string[]>('equipo-gps-grupos-abiertos', [])
+const estaAbierto = (codigo: string) => !desplegable.value || abiertos.value.includes(codigo)
+function alternar(codigo: string) {
+  abiertos.value = estaAbierto(codigo) ? abiertos.value.filter((c) => c !== codigo) : [...abiertos.value, codigo]
+}
 const total = computed(() => grupos.value.reduce((n, g) => n + g.gerentes.length, 0))
 const conteos = computed(() => ({ todos: conGerente.value.filter((g) => !sucursalFiltro.value || g.sucursal === sucursalFiltro.value).length, activos: activos.value, sinSenal: sinSenal.value }))
 
@@ -159,7 +176,7 @@ function tiraFin() {
           v-model="busqueda"
           type="search"
           inputmode="search"
-          placeholder="Buscar gerente o gerencia"
+          placeholder="Buscar persona, gerencia o usuario"
           class="h-10 w-full rounded-xl bg-slate-100 pl-9 pr-9 text-[16px] text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600"
         />
         <button
@@ -205,11 +222,26 @@ function tiraFin() {
 
       <template v-else-if="equipo">
         <section v-for="g in grupos" :key="g.codigo">
-          <h2 class="sticky top-0 z-10 flex h-8 items-center gap-2 bg-white/95 px-4 text-[13px] font-semibold uppercase tracking-wide text-slate-500 backdrop-blur">
+          <h2 v-if="desplegable" class="sticky top-0 z-10 border-b border-slate-100 bg-white/95 backdrop-blur">
+            <button
+              type="button"
+              class="flex h-12 w-full items-center gap-2 px-4 text-left text-[13px] font-semibold uppercase tracking-wide text-slate-500 active:bg-slate-50"
+              :aria-expanded="estaAbierto(g.codigo)"
+              @click="alternar(g.codigo)"
+            >
+              <span class="size-2 rounded-full" :style="{ background: colorDe({ color: null, sucursal: g.codigo }) }" aria-hidden="true" />
+              {{ g.nombre }}
+              <span class="ml-auto font-medium normal-case tracking-normal tabular-nums" :class="g.gerentes.some(esSinSenal) ? 'text-slate-700' : 'text-slate-400'">
+                {{ resumenGrupo(g.gerentes) }}
+              </span>
+              <ChevronRight class="size-4 shrink-0 text-slate-400 transition-transform" :class="estaAbierto(g.codigo) && 'rotate-90'" aria-hidden="true" />
+            </button>
+          </h2>
+          <h2 v-else class="sticky top-0 z-10 flex h-8 items-center gap-2 bg-white/95 px-4 text-[13px] font-semibold uppercase tracking-wide text-slate-500 backdrop-blur">
             <span class="size-2 rounded-full" :style="{ background: colorDe({ color: null, sucursal: g.codigo }) }" aria-hidden="true" />
             {{ g.nombre }} <span class="tabular-nums text-slate-400">· {{ g.gerentes.length }}</span>
           </h2>
-          <ul class="divide-y divide-slate-100">
+          <ul v-if="estaAbierto(g.codigo)" class="divide-y divide-slate-100">
             <li v-for="p in g.gerentes" :key="p.id ?? p.gerencia ?? ''">
               <button type="button" class="flex h-16 w-full items-center gap-3 px-4 text-left active:bg-slate-50" @click="abrir(p)">
                 <span

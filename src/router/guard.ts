@@ -35,7 +35,7 @@ export const CashReportGuard: NavigationGuard = (_to, _from, next) => {
   else next({ name: ROUTE_NAME.DASHBOARD_HOME })
 }
 
-/** Rastreo del equipo: sólo con el módulo `rastreo-equipo` de PGS; FAX vuelve a exigirlo. */
+/** Rastreo del equipo: Seguridad y Regional, o el módulo `rastreo-equipo` de PGS; FAX vuelve a exigirlo. */
 export const EquipoGpsGuard: NavigationGuard = (_to, _from, next) => {
   const $store = useStore()
   if (hasEquipoGpsPermission($store.user)) next()

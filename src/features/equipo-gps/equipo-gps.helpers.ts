@@ -248,6 +248,12 @@ export function etiqueta(gerente: Pick<GerenteEquipo, 'gerencia' | 'puesto'>): s
   return gerente.gerencia ?? gerente.puesto ?? ''
 }
 
+/** El encabezado de un grupo plegado: «10 · 2 sin señal» o «7 · todos activos». */
+export function resumenGrupo(gerentes: GerenteEquipo[]): string {
+  const sinSenal = gerentes.filter(esSinSenal).length
+  return `${gerentes.length} · ${sinSenal ? `${sinSenal} sin señal` : 'todos activos'}`
+}
+
 /** El personal sin gerencia (trae `puesto`) va en su propio grupo, después de todas las sucursales. */
 export const GRUPO_PERSONAL = { codigo: 'PERSONAL', nombre: 'Regionales y seguridad' } as const
 

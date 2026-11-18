@@ -1,7 +1,10 @@
 <script setup lang="ts">
 // Una sola fila deslizable: primero el estado (Todos / Activos / Sin señal), después las sucursales
 // permitidas con su punto de color. Los dos grupos se combinan. El elegido va en el azul de acción.
+// Con muchas sucursales van en un solo chip con el selector nativo del teléfono.
 import { computed } from 'vue'
+import { ChevronDown } from 'lucide-vue-next'
+import { EQUIPO_GPS_SELECTOR_SUCURSAL_DESDE } from '../equipo-gps.constants'
 import { getSucursalColor, sucursalNombre } from '../equipo-gps.helpers'
 import type { FiltroEquipo } from '../equipo-gps.types'
 
@@ -31,6 +34,10 @@ const activo = 'bg-blue-600 text-white'
 function elegirSucursal(codigo: string) {
   emit('update:sucursal', props.sucursal === codigo ? null : codigo)
 }
+
+const conSelector = computed(() => props.sucursales.length >= EQUIPO_GPS_SELECTOR_SUCURSAL_DESDE)
+const elegida = computed(() => props.sucursales.find((s) => s.codigo === props.sucursal) ?? null)
+const punto = (codigo: string) => (getSucursalColor(codigo) === '#cbd5e1' ? '#334155' : getSucursalColor(codigo))
 </script>
 
 <template>
@@ -54,23 +61,42 @@ function elegirSucursal(codigo: string) {
 
     <template v-if="sucursales.length > 1">
       <span class="my-1.5 w-px shrink-0 bg-slate-300/70" aria-hidden="true" />
-      <button
-        v-for="s in sucursales"
-        :key="s.codigo"
-        type="button"
-        class="inline-flex h-8 shrink-0 snap-start items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors"
-        :class="sucursal === s.codigo ? activo : base"
-        :aria-pressed="sucursal === s.codigo"
-        @click="elegirSucursal(s.codigo)"
+      <label
+        v-if="conSelector"
+        class="relative inline-flex h-8 shrink-0 snap-start items-center gap-1.5 rounded-full pl-3 pr-2 text-[13px] font-medium transition-colors focus-within:ring-2 focus-within:ring-blue-600"
+        :class="elegida ? activo : base"
       >
-        <span
-          class="size-2 rounded-full ring-1 ring-white/80"
-          :style="{ background: getSucursalColor(s.codigo) === '#cbd5e1' ? '#334155' : getSucursalColor(s.codigo) }"
-          aria-hidden="true"
-        />
-        {{ sucursalNombre(s.codigo) }}
-        <span class="tabular-nums" :class="sucursal === s.codigo ? 'text-blue-100' : 'text-slate-500'">{{ s.n }}</span>
-      </button>
+        <template v-if="elegida">
+          <span class="size-2 rounded-full ring-1 ring-white/80" :style="{ background: punto(elegida.codigo) }" aria-hidden="true" />
+          {{ sucursalNombre(elegida.codigo) }} <span class="tabular-nums text-blue-100">{{ elegida.n }}</span>
+        </template>
+        <template v-else>Sucursal</template>
+        <ChevronDown class="size-4" aria-hidden="true" />
+        <select
+          class="absolute inset-0 cursor-pointer opacity-0"
+          aria-label="Sucursal"
+          :value="sucursal ?? ''"
+          @change="emit('update:sucursal', ($event.target as HTMLSelectElement).value || null)"
+        >
+          <option value="">Todas las sucursales</option>
+          <option v-for="s in sucursales" :key="s.codigo" :value="s.codigo">{{ sucursalNombre(s.codigo) }} · {{ s.n }}</option>
+        </select>
+      </label>
+      <template v-else>
+        <button
+          v-for="s in sucursales"
+          :key="s.codigo"
+          type="button"
+          class="inline-flex h-8 shrink-0 snap-start items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors"
+          :class="sucursal === s.codigo ? activo : base"
+          :aria-pressed="sucursal === s.codigo"
+          @click="elegirSucursal(s.codigo)"
+        >
+          <span class="size-2 rounded-full ring-1 ring-white/80" :style="{ background: punto(s.codigo) }" aria-hidden="true" />
+          {{ sucursalNombre(s.codigo) }}
+          <span class="tabular-nums" :class="sucursal === s.codigo ? 'text-blue-100' : 'text-slate-500'">{{ s.n }}</span>
+        </button>
+      </template>
     </template>
   </div>
 </template>
