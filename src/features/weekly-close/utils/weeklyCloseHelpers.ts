@@ -1,5 +1,13 @@
-import type { IWeeklyCloseWithIncome } from '../types'
+import type { IEgresosAgente, IWeeklyCloseWithIncome } from '../types'
 import type { CreateNewWeeklyClose } from '../types/new-weekly.types'
+
+/** Total de egresos del agente: asignaciones previas + otros egresos + efectivo entregado. */
+export const totalEgresosAgente = ({
+  asignaciones,
+  otrosEgresos,
+  efectivoEntregadoCierre
+}: Pick<IEgresosAgente, 'asignaciones' | 'otrosEgresos' | 'efectivoEntregadoCierre'>): number =>
+  (asignaciones || 0) + (otrosEgresos || 0) + (efectivoEntregadoCierre || 0)
 
 /**
  * Transforma IWeeklyCloseWithIncome a CreateNewWeeklyClose para la nueva API de Elysia

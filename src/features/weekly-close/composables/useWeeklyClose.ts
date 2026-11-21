@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router'
 import { useCierreSemanalStore, useSignStore } from '../stores'
 import { useStore } from '@/shared/stores'
 import { useWeeklyCloseApi } from './useWeeklyCloseApi'
-import { transformToNewCreateCierre } from '../utils/weeklyCloseHelpers'
+import { totalEgresosAgente, transformToNewCreateCierre } from '../utils/weeklyCloseHelpers'
 import { ROUTE_NAME } from '@/router'
 import { useNotification } from '@/shared/composables/useNotification'
 import { unsignedVideoUsers } from '../constants'
@@ -76,11 +76,7 @@ export const useWeeklyClose = () => {
   const totalAgentExpenses = computed(() => {
     if (!store.weeklyClose) return 0
 
-    return (
-      store.weeklyClose.egresosAgente.asignaciones || 0 +
-      (store.weeklyClose.egresosAgente.otrosEgresos || 0) +
-      (store.weeklyClose.egresosAgente.efectivoEntregadoCierre || 0)
-    )
+    return totalEgresosAgente(store.weeklyClose.egresosAgente)
   })
 
   /**
