@@ -24,10 +24,11 @@ const visibles = computed(() => {
 const totalEnCampo = computed(() => conMovimiento.value.reduce((t, c) => t + c.en_campo, 0))
 const conEfectivo = computed(() => conMovimiento.value.filter((c) => c.en_campo > 0).length)
 
-/** Porcentaje de la cobranza que ya se entregó, para la barra. */
+/** Porcentaje de lo que debe entregar (cobranza + pendiente) que ya entregó, para la barra. */
 function avanceDe(c: Cadena): number {
-  if (c.cobranza <= 0) return c.entregado > 0 ? 100 : 0
-  return Math.min(100, Math.round((c.entregado / c.cobranza) * 100))
+  const porEntregar = c.cobranza + (c.pendiente_semana_anterior ?? 0)
+  if (porEntregar <= 0) return c.entregado > 0 ? 100 : 0
+  return Math.min(100, Math.round((c.entregado / porEntregar) * 100))
 }
 
 /** Entregas de esta agencia que siguen en custodia (Seguridad/Regional) sin regresar. */
@@ -90,8 +91,13 @@ function horaCorta(iso: string): string {
               <span v-if="c.vacante" class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">VACANTE</span>
               <span v-else-if="c.agente" class="ml-1 font-normal text-gray-600">{{ c.agente }}</span>
             </p>
+            <!-- cobranza + pendiente − entregado = en campo -->
             <p class="mt-0.5 text-xs text-gray-500">
               Cobranza <span class="font-semibold text-gray-800">{{ formatMoney(c.cobranza) }}</span>
+              <span v-if="(c.pendiente_semana_anterior ?? 0) > 0" class="whitespace-nowrap">
+                + Pendiente {{ c.pendiente_semana_cobro ? `S${c.pendiente_semana_cobro}` : 'sem. anterior' }}
+                <span class="font-semibold text-gray-800">{{ formatMoney(c.pendiente_semana_anterior ?? 0) }}</span>
+              </span>
               · Entregado <span class="font-semibold text-gray-800">{{ formatMoney(c.entregado) }}</span>
             </p>
           </div>

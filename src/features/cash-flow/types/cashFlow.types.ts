@@ -47,6 +47,10 @@ export interface Cadena {
   agencia: string
   agente: string | null
   cobranza: number
+  /** Cobrado después del cierre de la semana anterior que el agente aún trae; suma a en_campo. */
+  pendiente_semana_anterior?: number
+  /** Semana en que se cobró ese pendiente. */
+  pendiente_semana_cobro?: number | null
   entregado: number
   en_campo: number
   cerrada: boolean
