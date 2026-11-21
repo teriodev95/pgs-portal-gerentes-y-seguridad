@@ -34,6 +34,7 @@ export function segmentosDe(c: Cubos): Barras {
   }
 
   entrada('cobranza', 'Cobranza', c.cobranza_total, 'bg-blue-500')
+  entrada('pendiente', 'Pendiente sem. anterior', c.pendiente_semana_anterior, 'bg-blue-300')
   entrada('primer_pagos', 'Primeros pagos', c.primer_pagos, 'bg-teal-500')
   entrada('incidentes', 'Incidentes', c.otros_ingresos, 'bg-cyan-500')
   entrada('recibido', 'Recibido', c.recibido_otras_gerencias, 'bg-indigo-400')

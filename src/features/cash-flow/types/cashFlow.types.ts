@@ -14,6 +14,8 @@ export interface Cubos {
   cobranza_total: number
   primer_pagos: number
   otros_ingresos: number
+  /** Cobrado por agentes después del cierre de la semana anterior; ya viene sumado en `entradas`. */
+  pendiente_semana_anterior: number
   recibido_otras_gerencias: number
   fondeo_oficina: number
   entregado_oficina: number
