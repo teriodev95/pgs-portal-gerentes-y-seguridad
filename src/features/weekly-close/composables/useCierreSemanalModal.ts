@@ -37,14 +37,6 @@ export const useCierreSemanalModal = () => {
         label: 'Multas',
         value: store.weeklyClose.ingresosAgente.multas ?? 0
       },
-      otrosIngresosAgente: {
-        label: 'Otros',
-        value: store.weeklyClose.ingresosAgente.otrosIngresos ?? 0
-      },
-      comisionVentas: {
-        label: 'Comisión por Ventas',
-        value: store.weeklyClose.egresosGerente.comisionVentasPagadaEnSemana ?? 0
-      },
       bonos: {
         label: 'Bonos',
         value: store.weeklyClose.egresosGerente.bonosPagadosEnSemana ?? 0
@@ -52,10 +44,6 @@ export const useCierreSemanalModal = () => {
       otrosEgresosAgente: {
         label: 'Otros',
         value: store.weeklyClose.egresosAgente.otrosEgresos ?? 0
-      },
-      motivoOtrosIA: {
-        label: 'Motivo Otros',
-        value: store.weeklyClose.ingresosAgente.motivoOtrosIngresos ?? ''
       },
       motivoOtrosEA: {
         label: 'Motivo Otros',
@@ -68,10 +56,6 @@ export const useCierreSemanalModal = () => {
       efectivoEntregado: {
         label: 'Efectivo Entregado',
         value: store.weeklyClose.egresosAgente.efectivoEntregadoCierre ?? 0
-      },
-      comisionCobranza: {
-        label: 'Comisión por Cobranza',
-        value: store.weeklyClose.egresosGerente.comisionCobranzaPagadaEnSemana ?? 0
       }
     }
   })
@@ -117,17 +101,11 @@ export const useCierreSemanalModal = () => {
     motivoOtrosEA: (weeklyClose, value) => {
       weeklyClose.egresosAgente.motivoOtrosEgresos = String(value)
     },
-    motivoOtrosIA: (weeklyClose, value) => {
-      weeklyClose.ingresosAgente.motivoOtrosIngresos = String(value)
-    },
     multas: (weeklyClose, value) => {
       weeklyClose.ingresosAgente.multas = Number(value)
     },
     otrosEgresosAgente: (weeklyClose, value) => {
       weeklyClose.egresosAgente.otrosEgresos = Number(value)
-    },
-    otrosIngresosAgente: (weeklyClose, value) => {
-      weeklyClose.ingresosAgente.otrosIngresos = Number(value)
     },
     efectivoEntregado: (weeklyClose, value) => {
       weeklyClose.egresosAgente.efectivoEntregadoCierre = Number(value)
@@ -170,7 +148,7 @@ export const useCierreSemanalModal = () => {
    * Valida el valor antes de guardarlo
    */
   const validateModalValue = (value: ModalValue, context: ModalConfigKey): string | null => {
-    if (context === 'motivoOtrosEA' || context === 'motivoOtrosIA') {
+    if (context === 'motivoOtrosEA') {
       // Para campos de texto
       if (typeof value !== 'string') {
         return WEEKLY_CLOSE_VALIDATION_MESSAGES.INVALID_NUMBER
@@ -218,8 +196,7 @@ export const useCierreSemanalModal = () => {
    * Obtiene el tipo de input apropiado para un contexto
    */
   const getInputTypeForContext = (context: ModalConfigKey): InputType => {
-    const textFields: ModalConfigKey[] = ['motivoOtrosEA', 'motivoOtrosIA']
-    return textFields.includes(context) ? 'text' : 'number'
+    return context === 'motivoOtrosEA' ? 'text' : 'number'
   }
 
   /**

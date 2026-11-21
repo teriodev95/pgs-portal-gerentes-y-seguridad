@@ -8,10 +8,8 @@ export interface ModalConfig {
 export type ModalConfigKey =
   | 'bonos'
   | 'motivoOtrosEA'
-  | 'motivoOtrosIA'
   | 'multas'
   | 'otrosEgresosAgente'
-  | 'otrosIngresosAgente'
   | 'efectivoEntregado'
   | 'asignacionesPrevias'
 

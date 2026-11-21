@@ -9,6 +9,7 @@ import { ArrowRight, ChevronDown } from 'lucide-vue-next'
 import DataField from '@/shared/components/DataField.vue'
 import EditableField from './EditableField.vue'
 import InfoIcon from '@/shared/components/icons/InfoIcon.vue'
+import AnnotationIcon from '@/shared/components/icons/AnnotationIcon.vue'
 import CardContainer from '@/shared/components/CardContainer.vue'
 import TextCT from '@/shared/components/ui/TextCT.vue'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
@@ -83,16 +84,19 @@ const handleShowWeekDetails = () => {
       @edit="emit('action:show-modal', $event)"
     />
 
-    <EditableField
-      label="Otros"
-      :value="weeklyClose?.ingresosAgente.otrosIngresos"
-      modal-key="otrosIngresosAgente"
-      :is-locked="isClosingLocked"
-      :has-reason="true"
-      :reason-text="weeklyClose?.ingresosAgente.motivoOtrosIngresos"
-      reason-modal-key="motivoOtrosIA"
-      @edit="emit('action:show-modal', $event)"
-    />
+    <!-- Fijo: lo calcula el sistema (pagos que el agente cobró después del cierre
+         de la semana anterior y trae pendientes); el motivo dice cuáles. -->
+    <div>
+      <DataField label="Otros" :value="toCurrency(weeklyClose.ingresosAgente.otrosIngresos)" />
+      <TextCT
+        v-if="weeklyClose.ingresosAgente.motivoOtrosIngresos"
+        variant="tertiary"
+        class="mt-1 flex items-start gap-2 break-words leading-5 text-gray-600"
+      >
+        <AnnotationIcon class="mt-0.5 h-4 w-4 shrink-0" />
+        <span>{{ weeklyClose.ingresosAgente.motivoOtrosIngresos }}</span>
+      </TextCT>
+    </div>
 
     <hr class="line" />
 
