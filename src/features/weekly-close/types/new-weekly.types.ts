@@ -108,6 +108,14 @@ export interface AgenciaDashboard {
   cierre: Cierre;
 }
 
+/** Crédito vivo sin registro de pago en la semana (GET /cierres-semanales/sin-registro). */
+export interface CreditoSinRegistro {
+  prestamoId: string;
+  folio: string | null;
+  cliente: string;
+  tarifa: number;
+}
+
 export interface CreateNewWeeklyClose {
   agencia: string;
   semana: number;

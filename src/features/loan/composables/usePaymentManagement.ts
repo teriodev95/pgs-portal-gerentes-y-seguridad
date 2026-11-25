@@ -46,12 +46,15 @@ export function usePaymentManagement() {
   }
 
   /**
-   * Processes a payment for the selected client
+   * Processes a payment for the selected client.
+   * `enLote`: uno de varios pagos seguidos (no pagos del cierre); no avisa ni recarga la
+   * cobranza por cada uno.
    */
   async function processPayment(
-    amount: number, 
-    selectedPaymentSource: PaymentSource, 
-    selectedPaymentRecovery: RecoverySource
+    amount: number,
+    selectedPaymentSource: PaymentSource,
+    selectedPaymentRecovery: RecoverySource,
+    enLote = false
   ) {
     if (!selectedPayment.value) return false
 
@@ -93,7 +96,8 @@ export function usePaymentManagement() {
       }
 
 
-      await loanAndPaymentService.createPayment(paymentData)
+      await loanAndPaymentService.createPayment(paymentData, enLote)
+      if (enLote) return true
 
       // Solo mostrar advertencia si no hay permisos de geolocalización
       if (!hasPermission.value) {

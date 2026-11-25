@@ -17,7 +17,8 @@ class LoanAndPaymentService {
     })
   }
 
-  async createPayment(pago: IPaymentCreate) {
+  /** `enLote`: sin el aviso de éxito por pago; quien registra varios avisa una sola vez. */
+  async createPayment(pago: IPaymentCreate, enLote = false) {
     const transactionDetails = [
       `- Fecha de aplicación del pago: <span class='font-extrabold'>${formatToHumanDate(new Date(), true)}</span>`,
       `- Monto abonado: <span class='font-extrabold'>${toCurrency(pago.monto)}</span>`
@@ -25,7 +26,7 @@ class LoanAndPaymentService {
 
     return this.apiFastApi.post(`/pagos/`, pago, {
       meta: {
-        successNotification: {
+        successNotification: enLote ? undefined : {
           mainText: '¡Pago registrado con éxito!',
           secondaryText: `Se ha registrado correctamente el pago de <span class='font-extrabold'>${pago.cliente}</span>`,
           subText: 'A continuación, los detalles de la transacción:',

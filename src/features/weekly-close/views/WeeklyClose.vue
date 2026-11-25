@@ -2,6 +2,7 @@
 import { computed, onBeforeMount } from 'vue'
 import { useWeeklyClose } from '@/features/weekly-close/composables/useWeeklyClose'
 import { useCierreSemanalModal } from '@/features/weekly-close/composables/useCierreSemanalModal'
+import { useCreditosSinRegistro } from '@/features/weekly-close/composables/useCreditosSinRegistro'
 
 /**
  * ------------------------------------------
@@ -20,6 +21,7 @@ import CardContainer from '@/shared/components/CardContainer.vue'
 import TextCT from '@/shared/components/ui/TextCT.vue'
 import BadgetCT from '@/shared/components/ui/BadgetCT.vue'
 import BtnComponent from '@/shared/components/BtnComponent.vue'
+import CreditosSinRegistro from '@/features/weekly-close/components/CreditosSinRegistro.vue'
 
 // Composable principal del cierre semanal (REFACTORIZADO)
 const {
@@ -51,6 +53,16 @@ const {
   closeModal,
   saveValueWithValidation
 } = useCierreSemanalModal()
+
+// Créditos sin registro de pago en la semana: mientras haya, no se firma
+const {
+  creditos: creditosSinRegistro,
+  semana: semanaDelCierre,
+  registrados,
+  isRegistrando,
+  cargar: cargarSinRegistro,
+  registrarNoPagos
+} = useCreditosSinRegistro()
 
 /**
  * ------------------------------------------
@@ -94,10 +106,11 @@ const handleModalCancel = () => {
 }
 
 /**
- * handleContinue - Navega a la vista de firma
+ * handleContinue - Navega a la vista de firma, salvo que falten registros de pago.
+ * Se vuelve a consultar al pulsar: pudo entrar un pago desde que se abrió la pantalla.
  */
-const handleContinue = () => {
-  navigateToSign()
+const handleContinue = async () => {
+  if ((await cargarSinRegistro()) === 0) navigateToSign()
 }
 
 /**
@@ -107,6 +120,7 @@ const handleContinue = () => {
  */
 onBeforeMount(async () => {
   await initializeWeeklyClose()
+  if (weeklyClose.value && !isClosingLocked.value) await cargarSinRegistro()
 })
 
 // NO limpiamos el store en onUnmounted porque podemos navegar
@@ -167,14 +181,26 @@ onBeforeMount(async () => {
       <!-- Weekly Closing Summary -->
       <WeeklyClosingSummary @action:show-modal="openModalAuto" />
 
-      <!-- Continue Button -->
-      <button
-        @click="handleContinue"
-        class="btn-primary flex w-full items-center justify-center gap-4"
-        v-if="!isClosingLocked"
-      >
-        Continuar
-      </button>
+      <template v-if="!isClosingLocked">
+        <!-- Faltan registros de pago: se resuelve aquí antes de firmar -->
+        <CreditosSinRegistro
+          v-if="creditosSinRegistro.length"
+          :creditos="creditosSinRegistro"
+          :semana="semanaDelCierre"
+          :registrando="isRegistrando"
+          :registrados="registrados"
+          @registrar="registrarNoPagos"
+        />
+
+        <!-- Continue Button -->
+        <button
+          v-else
+          @click="handleContinue"
+          class="btn-primary flex w-full items-center justify-center gap-4"
+        >
+          Continuar
+        </button>
+      </template>
     </div>
 
     <!-- Loading State -->

@@ -4,7 +4,7 @@ import type {
   IUploadVideoResponse,
   IWeeklyCloseWithIncome
 } from '@/features/weekly-close/types'
-import type { AgenciaDashboard, CreateNewWeeklyClose } from '@/features/weekly-close/types/new-weekly.types'
+import type { AgenciaDashboard, CreateNewWeeklyClose, CreditoSinRegistro } from '@/features/weekly-close/types/new-weekly.types'
 import type { GetBaseProps } from '@/interfaces'
 import { toCurrency } from '@/shared/utils'
 
@@ -105,6 +105,19 @@ class WeeklyClosingService {
       ...response,
       data: mappedData
     } as AxiosResponse<IWeeklyCloseWithIncome>
+  }
+
+  /** Créditos vivos sin pago ni no pago capturado en la semana; con uno solo Elysia no deja firmar. */
+  async getCreditosSinRegistro({ agency, year, week }: GetBaseProps) {
+    return this.apiElysia.get<{ data: CreditoSinRegistro[] }>(`/cierres-semanales/sin-registro/${agency}/${year}/${week}`, {
+      meta: {
+        errorNotification: {
+          title: 'No se pudo revisar la cobranza',
+          message: 'No se pudo comprobar si todos los clientes tienen registro esta semana. Intenta nuevamente.',
+          type: 'error'
+        }
+      }
+    })
   }
 
   async createWeeklyClose(data: CreateNewWeeklyClose, agencyName: string, managementName: string, onClose?: () => void) {
